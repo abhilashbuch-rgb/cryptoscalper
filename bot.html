@@ -868,6 +868,22 @@ body::before {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- INVITE-ONLY GATE (shown when user is not on allowlist)                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="invite-gate" style="display:none; min-height:80vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
+  <div style="font-family:var(--mono); font-size:42px; font-weight:900; letter-spacing:.15em; margin-bottom:12px; background:linear-gradient(135deg,#ffb454,#ff6b35); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">WICK</div>
+  <div style="font-size:13px; font-family:var(--mono); color:var(--text3); letter-spacing:.2em; text-transform:uppercase; margin-bottom:32px;">Invite Only</div>
+  <div style="max-width:440px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:36px 32px;">
+    <div style="font-size:36px; margin-bottom:16px;">🔒</div>
+    <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--text1);">You're on the waitlist</div>
+    <div style="font-size:14px; color:var(--text2); line-height:1.7; margin-bottom:24px;">WICK is currently in private beta. We'll send you an email when your spot opens up.</div>
+    <div id="invite-email" style="font-family:var(--mono); font-size:12px; color:var(--accent); background:rgba(255,180,84,.08); border:1px solid rgba(255,180,84,.15); border-radius:8px; padding:10px 16px; margin-bottom:20px;"></div>
+    <div style="font-size:12px; color:var(--text3); line-height:1.6;">Have an invite code? Contact <span style="color:var(--text2); font-weight:600;">support@wick.network</span></div>
+  </div>
+  <button onclick="signOut(window._firebaseAuth)" style="margin-top:24px; background:none; border:1px solid var(--border); color:var(--text3); font-family:var(--mono); font-size:12px; padding:8px 20px; border-radius:6px; cursor:pointer;">Sign out</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- WIZARD (new users — shown when not yet configured)                        -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <div id="wizard">
@@ -3089,6 +3105,7 @@ document.getElementById('btn-signout').addEventListener('click', () => {
 onAuthStateChanged(auth, async user => {
   if (!user) {
     document.getElementById('auth-gate').style.display  = 'flex';
+    document.getElementById('invite-gate').style.display = 'none';
     document.getElementById('wizard').style.display     = 'none';
     document.getElementById('dashboard').style.display  = 'none';
     document.getElementById('btn-signout').style.display = 'none';
@@ -3118,10 +3135,20 @@ onAuthStateChanged(auth, async user => {
     body: JSON.stringify({ first: !window._hasLoggedBefore }),
   }).then(() => { window._hasLoggedBefore = true; }).catch(() => {});
 
-  // Fetch status to decide: wizard or dashboard
+  // Fetch status to decide: invite gate, wizard, or dashboard
   try {
     const r = await apiFetch('/api/bot');
     if (r.status === 401) return;
+    if (r.status === 403) {
+      // Invite-only — show waitlist screen
+      document.getElementById('invite-gate').style.display = 'flex';
+      document.getElementById('wizard').style.display      = 'none';
+      document.getElementById('dashboard').style.display   = 'none';
+      document.getElementById('invite-email').textContent  = user.email;
+      // Auto-join waitlist
+      apiFetch('/api/bot?action=waitlist', { method: 'POST', body: JSON.stringify({ platform: 'wick' }) }).catch(() => {});
+      return;
+    }
     const d = await r.json();
 
     if (d.configured) {

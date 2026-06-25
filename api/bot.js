@@ -36,6 +36,26 @@ function cors(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Authorization,Content-Type');
 }
 
+async function isAllowed(email, uid) {
+  // Check env var allowlist first (comma-separated emails)
+  const envList = process.env.ALLOWED_EMAILS;
+  if (envList) {
+    const emails = envList.split(',').map(e => e.trim().toLowerCase());
+    if (emails.includes(email)) return true;
+  }
+
+  // Check Firestore allowlist collection
+  try {
+    const doc = await db.collection('allowlist').doc(email).get();
+    if (doc.exists) return true;
+    // Also check by UID
+    const uidDoc = await db.collection('allowlist').doc(uid).get();
+    if (uidDoc.exists) return true;
+  } catch {}
+
+  return false;
+}
+
 module.exports = async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -60,7 +80,14 @@ module.exports = async (req, res) => {
   const decoded = await verifyToken(req);
   if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
   const uid = decoded.uid;
+  const email = (decoded.email || '').toLowerCase();
   const userRef = db.collection('users').doc(uid);
+
+  // ── Invite-only gate ──
+  const allowed = await isAllowed(email, uid);
+  if (!allowed && action !== 'login_notify' && action !== 'waitlist') {
+    return res.status(403).json({ error: 'invite_only', message: 'WICK is currently invite-only. You have been added to the waitlist.' });
+  }
 
   // ── Login notification ──
   if (action === 'login_notify') {

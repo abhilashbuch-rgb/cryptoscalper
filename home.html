@@ -3,355 +3,982 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK — Prediction Market Agent</title>
-<meta name="description" content="WICK — invite-only agentic bot for Polymarket. Autonomous prediction market trading powered by multi-agent intelligence.">
+<title>WICK — Autonomous Prediction Market Intelligence</title>
+<meta name="description" content="WICK — invite-only autonomous agent for Polymarket. Multi-agent intelligence pipeline. Non-custodial. Invite only.">
 <meta property="og:title" content="WICK — Prediction Market Agent">
-<meta property="og:description" content="Invite-only autonomous Polymarket agent. 4-desk intelligence pipeline. News arbitrage. Sports. Geopolitics.">
+<meta property="og:description" content="Autonomous Polymarket agent. 4-desk intelligence pipeline. Invite only.">
 <meta property="og:url" content="https://wick.network">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f8fafc;--card:rgba(0,0,0,.02);--card2:rgba(0,0,0,.04);
-  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.12);
-  --text1:#0f172a;--text2:#475569;--text3:#94a3b8;
-  --accent:#2962FF;--green:#2962FF;--red:#ef4444;
-  --pm:#2962FF;--pm2:#1652F0;
-  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+html{scroll-behavior:auto}
+body{
+  background:#000;
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
-body{background:var(--bg);color:var(--text1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(0,0,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+canvas#webgl{
+  position:fixed;
+  top:0;left:0;
+  width:100vw;height:100vh;
+  z-index:0;
+  pointer-events:none;
+}
 
-/* Layout */
-.page{position:relative;z-index:1}
-section{max-width:1000px;margin:0 auto;padding:0 24px}
-.hero{text-align:center;padding:80px 24px 48px}
-.logo{margin-bottom:6px;display:flex;justify-content:center}
-.logo svg{width:clamp(280px,50vw,480px);height:auto}
-.tagline{font-size:13px;font-family:var(--mono);color:var(--text3);letter-spacing:.25em;text-transform:uppercase;margin-bottom:16px}
-.subtitle{font-size:clamp(1rem,2.5vw,1.15rem);color:var(--text2);max-width:520px;margin:0 auto 28px;line-height:1.8}
+/* Scroll sections */
+.scroll-spacer{height:500vh;position:relative;z-index:1}
+.section{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:2;
+  pointer-events:none;
+  opacity:0;
+  will-change:opacity,transform;
+}
+.section.active{pointer-events:auto}
+.section *{pointer-events:auto}
 
-/* Counter */
-.counter-row{display:inline-flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:8px 20px 8px 14px;margin-bottom:48px}
-.counter-dot{width:8px;height:8px;border-radius:50%;background:#2962FF;box-shadow:0 0 8px rgba(41,98,255,.5);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.counter-num{font-family:var(--mono);font-weight:800;font-size:14px;color:#2962FF}
-.counter-label{font-size:12px;color:var(--text2)}
+/* Typography */
+.hero-pre{
+  font-size:clamp(10px,1.2vw,13px);
+  letter-spacing:.4em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.35);
+  margin-bottom:20px;
+  font-weight:500;
+}
+.hero-title{
+  font-size:clamp(2.2rem,7vw,5.5rem);
+  font-weight:700;
+  line-height:1.05;
+  text-align:center;
+  max-width:900px;
+  padding:0 24px;
+  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.7) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{
+  font-size:clamp(14px,1.8vw,18px);
+  color:rgba(255,255,255,.4);
+  margin-top:24px;
+  font-weight:300;
+  letter-spacing:.02em;
+  text-align:center;
+  max-width:500px;
+  padding:0 24px;
+  line-height:1.7;
+}
 
-/* Two-col */
-.split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:64px 24px;max-width:1000px;margin:0 auto}
-.split.reverse{direction:rtl}.split.reverse>*{direction:ltr}
-@media(max-width:768px){.split{grid-template-columns:1fr;gap:32px;text-align:center}.split.reverse{direction:ltr}}
-.sect-label{font-size:10px;font-family:var(--mono);letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-.sect-title{font-size:clamp(1.4rem,3vw,1.8rem);font-weight:800;margin-bottom:12px;line-height:1.3}
-.sect-desc{font-size:14px;color:var(--text2);line-height:1.8}
+/* Section copy */
+.section-copy{
+  text-align:center;
+  max-width:680px;
+  padding:0 32px;
+}
+.section-label{
+  font-size:clamp(9px,1vw,11px);
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  color:#00f2fe;
+  margin-bottom:16px;
+  font-weight:500;
+}
+.section-heading{
+  font-size:clamp(1.6rem,4.5vw,3rem);
+  font-weight:700;
+  line-height:1.15;
+  margin-bottom:20px;
+  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.65) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.section-desc{
+  font-size:clamp(13px,1.5vw,16px);
+  color:rgba(255,255,255,.4);
+  line-height:1.8;
+  font-weight:300;
+}
 
-/* Phone mockup */
-.phone{width:280px;margin:0 auto;background:#fff;border:2px solid rgba(0,0,0,.1);border-radius:32px;padding:12px;box-shadow:0 40px 80px rgba(0,0,0,.1),0 0 40px rgba(41,98,255,.05)}
-.phone-notch{width:100px;height:6px;background:rgba(0,0,0,.08);border-radius:3px;margin:0 auto 12px}
-.phone-screen{background:#f1f5f9;border-radius:20px;padding:16px;min-height:380px}
-.ph-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.ph-logo{font-family:var(--mono);font-size:14px;font-weight:900;color:#2962FF;letter-spacing:.15em}
-.ph-status{font-size:9px;font-family:var(--mono);color:#2962FF;padding:3px 8px;background:rgba(41,98,255,.1);border-radius:4px}
-.ph-stat{background:rgba(255,255,255,.7);border-radius:10px;padding:12px;margin-bottom:8px}
-.ph-stat-label{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
-.ph-stat-val{font-size:20px;font-weight:800;font-family:var(--mono)}
-.ph-stat-sub{font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px}
-.ph-row{display:flex;gap:6px;margin-bottom:8px}
-.ph-row .ph-stat{flex:1}
-.ph-row .ph-stat-val{font-size:14px}
-.ph-trade{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.5);border-radius:8px;margin-bottom:4px;font-size:10px;font-family:var(--mono)}
-.ph-trade-sym{font-weight:800;color:var(--text1);min-width:45px}
-.ph-trade-side{font-size:8px;padding:2px 5px;border-radius:3px;font-weight:700}
-.ph-trade-side.buy{background:rgba(41,98,255,.1);color:#2962FF}
-.ph-trade-side.sell{background:rgba(239,68,68,.1);color:var(--red)}
-.ph-trade-pnl{margin-left:auto;font-weight:700}
+/* Metrics grid */
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  max-width:600px;
+  margin:40px auto 0;
+  background:rgba(255,255,255,.06);
+  border-radius:12px;
+  overflow:hidden;
+}
+@media(max-width:600px){.metrics{grid-template-columns:1fr;max-width:280px}}
+.metric{
+  padding:28px 20px;
+  background:rgba(0,0,0,.6);
+  text-align:center;
+}
+.metric-val{
+  font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:700;
+  background:linear-gradient(135deg,#00f2fe,#0066ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.metric-label{
+  font-size:10px;
+  color:rgba(255,255,255,.3);
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  margin-top:6px;
+  font-weight:500;
+}
 
-/* Broker strip */
-.brokers{padding:48px 24px;text-align:center}
-.broker-grid{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:20px}
-.broker-item{display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.7;transition:opacity .3s}
-.broker-item:hover{opacity:1}
-.broker-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s}
-.broker-icon.pm{background:linear-gradient(135deg,#1652F0,#2962FF)}
-.broker-item:hover .pm{box-shadow:0 0 24px rgba(41,98,255,.3)}
-.broker-name{font-size:11px;font-family:var(--mono);color:var(--text3);font-weight:600}
-
-/* Feature grid */
-.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
-@media(max-width:768px){.features{grid-template-columns:1fr}}
-.feat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:24px 20px}
-.feat-icon{font-size:24px;margin-bottom:12px}
-.feat-title{font-size:14px;font-weight:700;margin-bottom:6px}
-.feat-desc{font-size:12px;color:var(--text2);line-height:1.6}
-
-/* Signal list */
-.signals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
-@media(max-width:480px){.signals{grid-template-columns:1fr}}
-.signal{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);padding:6px 0}
-.signal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-
-/* Gate card */
-.gate{max-width:440px;margin:0 auto;padding:64px 24px 48px;text-align:left}
-.gate-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:36px 32px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
-.gate-title{font-size:18px;font-weight:800;margin-bottom:6px;text-align:center}
-.gate-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:24px;text-align:center}
-
+/* CTA / Gate */
+.gate-wrap{
+  width:100%;
+  max-width:440px;
+  padding:0 24px;
+}
+.gate-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:40px 32px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.gate-title{
+  font-size:22px;
+  font-weight:700;
+  text-align:center;
+  margin-bottom:6px;
+  background:linear-gradient(135deg,#fff,rgba(255,255,255,.8));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.gate-desc{
+  font-size:13px;
+  color:rgba(255,255,255,.35);
+  text-align:center;
+  margin-bottom:28px;
+  line-height:1.7;
+}
 .form-group{margin-bottom:16px}
-.form-label{display:block;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
-.form-input{width:100%;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:8px;color:var(--text1);font-size:14px;outline:none;transition:border-color .2s}
-.form-input:focus{border-color:rgba(41,98,255,.5)}
-.form-input::placeholder{color:var(--text3)}
-.check-group{margin-bottom:10px;display:flex;align-items:flex-start;gap:10px;cursor:pointer}
-.check-group input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
-.check-label{font-size:11px;color:var(--text2);line-height:1.5}
-.check-label a{color:var(--accent);text-decoration:none}
+.form-label{
+  display:block;
+  font-size:10px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.3);
+  margin-bottom:6px;
+  font-weight:500;
+}
+.form-input{
+  width:100%;
+  padding:13px 16px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color .3s;
+}
+.form-input:focus{border-color:rgba(0,242,254,.4)}
+.form-input::placeholder{color:rgba(255,255,255,.2)}
+.check-group{
+  margin-bottom:10px;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  cursor:pointer;
+}
+.check-group input[type="checkbox"]{
+  width:16px;height:16px;
+  margin-top:2px;
+  accent-color:#0066ff;
+  flex-shrink:0;
+  cursor:pointer;
+}
+.check-label{
+  font-size:11px;
+  color:rgba(255,255,255,.35);
+  line-height:1.6;
+}
+.check-label a{color:#00f2fe;text-decoration:none}
 .check-label a:hover{text-decoration:underline}
-.btn-submit{width:100%;padding:14px;background:#2962FF;color:#fff;font-family:var(--mono);font-size:13px;font-weight:800;border:none;border-radius:8px;cursor:pointer;transition:all .3s;margin-top:16px;letter-spacing:.03em}
-.btn-submit:hover:not(:disabled){background:#4D8FFF;box-shadow:0 8px 24px rgba(41,98,255,.2)}
-.btn-submit:disabled{opacity:.35;cursor:not-allowed}
-.divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
-.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
-.btn-google{display:inline-flex;align-items:center;background:#fff;color:var(--text2);font-weight:600;font-size:13px;padding:12px 20px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .3s;width:100%;justify-content:center;gap:10px}
-.btn-google:hover{background:#f1f5f9;color:var(--text1);border-color:rgba(0,0,0,.15)}
+.btn-submit{
+  width:100%;
+  padding:14px;
+  background:linear-gradient(135deg,#0066ff,#0012e6);
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  transition:all .3s;
+  margin-top:16px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.btn-submit:hover:not(:disabled){
+  background:linear-gradient(135deg,#0088ff,#0033ff);
+  box-shadow:0 0 40px rgba(0,102,255,.3);
+}
+.btn-submit:disabled{opacity:.25;cursor:not-allowed}
+.divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:24px 0;
+  font-size:10px;
+  color:rgba(255,255,255,.2);
+  text-transform:uppercase;
+  letter-spacing:.15em;
+  font-weight:500;
+}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
+.btn-google{
+  display:inline-flex;
+  align-items:center;
+  background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.7);
+  font-weight:600;
+  font-size:13px;
+  padding:12px 20px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.08);
+  cursor:pointer;
+  transition:all .3s;
+  width:100%;
+  justify-content:center;
+  gap:10px;
+  font-family:'Space Grotesk',sans-serif;
+}
+.btn-google:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.15);
+}
 .btn-google svg{width:16px;height:16px;flex-shrink:0}
-#msg{display:none;margin-top:14px;font-family:var(--mono);font-size:11px;padding:12px 16px;border-radius:8px;line-height:1.6;text-align:center}
-#msg.success{display:block;color:#2962FF;background:rgba(41,98,255,.06);border:1px solid rgba(41,98,255,.15)}
-#msg.waitlist{display:block;color:#2962FF;background:rgba(41,98,255,.06);border:1px solid rgba(41,98,255,.15)}
+#msg{
+  display:none;
+  margin-top:16px;
+  font-size:11px;
+  padding:12px 16px;
+  border-radius:8px;
+  line-height:1.6;
+  text-align:center;
+}
+#msg.success,#msg.waitlist{display:block;color:#00f2fe;background:rgba(0,242,254,.06);border:1px solid rgba(0,242,254,.15)}
 #msg.approved{display:block;color:#16a34a;background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.15)}
-#msg.error{display:block;color:var(--red);background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15)}
-.signout{margin-top:12px;background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 18px;border-radius:6px;cursor:pointer;display:none;margin-left:auto;margin-right:auto}
-.signout:hover{color:var(--text2);border-color:rgba(0,0,0,.15)}
+#msg.error{display:block;color:#ef4444;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15)}
+.signout{
+  margin-top:12px;
+  background:none;
+  border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.3);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;
+  padding:7px 18px;
+  border-radius:6px;
+  cursor:pointer;
+  display:none;
+}
+.signout:hover{color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.15)}
+
+/* Nav */
+.nav{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:100;
+  padding:20px 32px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  transition:background .4s;
+}
+.nav.scrolled{background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.nav-logo svg{width:clamp(100px,15vw,140px);height:auto}
+.nav-counter{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  color:rgba(255,255,255,.3);
+}
+.nav-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:#00f2fe;
+  box-shadow:0 0 8px rgba(0,242,254,.5);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.nav-num{font-weight:700;color:#00f2fe}
 
 /* Footer */
-footer{max-width:1000px;margin:0 auto;padding:32px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)}
-footer a{color:var(--text3);text-decoration:none;font-size:11px;font-family:var(--mono)}
-footer a:hover{color:var(--text2)}
-.foot-logo{display:inline-flex;align-items:center}
+.site-footer{
+  position:relative;
+  z-index:10;
+  border-top:1px solid rgba(255,255,255,.05);
+  padding:32px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1000px;
+  margin:0 auto;
+}
+.site-footer a{
+  color:rgba(255,255,255,.25);
+  text-decoration:none;
+  font-size:11px;
+  transition:color .3s;
+  letter-spacing:.05em;
+}
+.site-footer a:hover{color:rgba(255,255,255,.5)}
 .foot-logo svg{width:80px;height:auto}
-.foot-links{display:flex;gap:16px}
-.disclaimer{max-width:1000px;margin:0 auto;padding:0 24px 40px;font-size:10px;color:rgba(255,255,255,.2);text-align:center;line-height:1.6}
+.foot-links{display:flex;gap:20px}
+.disclaimer{
+  position:relative;
+  z-index:10;
+  max-width:1000px;
+  margin:0 auto;
+  padding:0 32px 48px;
+  font-size:10px;
+  color:rgba(255,255,255,.12);
+  text-align:center;
+  line-height:1.7;
+}
+
+/* Scroll progress */
+.scroll-progress{
+  position:fixed;
+  top:0;left:0;
+  height:2px;
+  background:linear-gradient(90deg,#00f2fe,#0066ff,#0012e6);
+  z-index:200;
+  width:0%;
+  transition:width .1s linear;
+}
+
+@media(max-width:768px){
+  .nav{padding:16px 20px}
+  .gate-card{padding:28px 20px}
+  .metrics{gap:1px}
+  .metric{padding:20px 16px}
+}
 </style>
 </head>
 <body>
-<div class="page">
 
-<!-- ═══ HERO ═══ -->
-<div class="hero">
-  <div class="logo"><svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#0f172a"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></div>
-  <div class="tagline">Invite Only</div>
-  <p class="subtitle">An autonomous Polymarket agent that scans prediction markets, matches news catalysts, and trades mispriced odds — so you don't have to. Currently in private beta.</p>
-  <div class="counter-row">
-    <div class="counter-dot"></div>
-    <span class="counter-num" id="wl-count">—</span>
-    <span class="counter-label">people on the waitlist</span>
-  </div>
-</div>
+<!-- Scroll progress bar -->
+<div class="scroll-progress" id="scroll-progress"></div>
 
-<!-- ═══ WHAT IT DOES — with phone mockup ═══ -->
-<div class="split">
-  <div>
-    <div class="sect-label">What WICK Does</div>
-    <div class="sect-title">It trades prediction markets while you sleep.</div>
-    <p class="sect-desc">WICK connects to your Polymarket wallet and runs autonomously. Four specialized AI desks — Research, Math, Execution, and Risk — scan live markets, match breaking news to open contracts, detect mispriced odds, and place trades when the edge is clear. If drawdown hits 5%, the circuit breaker freezes everything. Your USDC never leaves your wallet — WICK can only place trades, never withdraw.</p>
+<!-- Fixed WebGL canvas -->
+<canvas id="webgl"></canvas>
+
+<!-- Fixed nav -->
+<nav class="nav" id="nav">
+  <div class="nav-logo">
+    <svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(0,8)">
+        <path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/>
+        <path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/>
+        <path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(265,102)" fill="#ffffff">
+        <path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/>
+        <path d="M152,-88 L174,-88 L174,0 L152,0 Z"/>
+        <circle cx="163" cy="-112" r="11" fill="#00f2fe"/>
+        <path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/>
+        <path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/>
+      </g>
+    </svg>
   </div>
-  <div>
-    <div class="phone">
-      <div class="phone-notch"></div>
-      <div class="phone-screen">
-        <div class="ph-header">
-          <div class="ph-logo">WICK</div>
-          <div class="ph-status">RUNNING</div>
+  <div class="nav-counter">
+    <div class="nav-dot"></div>
+    <span class="nav-num" id="wl-count">--</span>
+    <span>on the waitlist</span>
+  </div>
+</nav>
+
+<!-- Scroll spacer (drives the animation) -->
+<div class="scroll-spacer">
+
+  <!-- Viewport 1: The Threshold -->
+  <div class="section" id="s-hero" style="opacity:1">
+    <div class="hero-pre">Invite Only</div>
+    <h1 class="hero-title">The market never sleeps. Neither does WICK.</h1>
+    <p class="hero-sub">Autonomous prediction market intelligence. Four AI desks. One unified edge. Non-custodial. Always on.</p>
+  </div>
+
+  <!-- Viewport 2: The Acceleration -->
+  <div class="section" id="s-hook">
+    <div class="section-copy">
+      <div class="section-label">The Intelligence Pipeline</div>
+      <h2 class="section-heading">Four desks. Zero guesswork.</h2>
+      <p class="section-desc">Research scrapes breaking headlines. Math calculates implied probability gaps. Execution sizes the position with Kelly criterion precision. Risk vetoes anything that doesn't clear the hurdle rate. Every trade is a consensus, not a gamble.</p>
+    </div>
+  </div>
+
+  <!-- Viewport 3: The Convergence -->
+  <div class="section" id="s-proof">
+    <div class="section-copy">
+      <div class="section-label">Architecture</div>
+      <h2 class="section-heading">Engineered for edge, not volume.</h2>
+      <p class="section-desc">NegRisk arbitrage locks profit when bracket sums exceed $1.00. Nightly self-calibration tunes hurdle rates to market liquidity. A 5% drawdown circuit breaker freezes all positions before damage compounds. Your USDC never leaves your wallet.</p>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-val">4</div>
+          <div class="metric-label">AI Desks</div>
         </div>
-        <div class="ph-stat">
-          <div class="ph-stat-label">Total P&L</div>
-          <div class="ph-stat-val" style="color:#16a34a">+$312.40</div>
-          <div class="ph-stat-sub">18 resolved · 72% hit rate</div>
+        <div class="metric">
+          <div class="metric-val">24/7</div>
+          <div class="metric-label">Autonomous</div>
         </div>
-        <div class="ph-row">
-          <div class="ph-stat">
-            <div class="ph-stat-label">Balance</div>
-            <div class="ph-stat-val">$2,814</div>
+        <div class="metric">
+          <div class="metric-val">5%</div>
+          <div class="metric-label">Max Drawdown</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Viewport 4: The Nexus -->
+  <div class="section" id="s-cta">
+    <div class="gate-wrap">
+      <div class="gate-card">
+        <div class="gate-title">Get Early Access</div>
+        <div class="gate-desc">Join the waitlist or enter your invite code.</div>
+
+        <form id="waitlist-form" onsubmit="return handleWaitlist(event)">
+          <div class="form-group">
+            <label class="form-label" for="wl-email">Email</label>
+            <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
           </div>
-          <div class="ph-stat">
-            <div class="ph-stat-label">Mode</div>
-            <div class="ph-stat-val" style="color:var(--pm)">Sandbox</div>
+          <label class="check-group">
+            <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
+            <span class="check-label">I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</span>
+          </label>
+          <label class="check-group">
+            <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
+            <span class="check-label">I understand that trading involves substantial risk of loss. WICK is not a financial advisor. Only trade money I can afford to lose.</span>
+          </label>
+          <label class="check-group">
+            <input type="checkbox" id="chk-newsletter" checked>
+            <span class="check-label">Send me updates and the WICK Weekly newsletter.</span>
+          </label>
+          <button class="btn-submit" type="submit" id="btn-submit" disabled>Join Waitlist</button>
+        </form>
+
+        <div class="divider">Have an invite code?</div>
+
+        <div id="invite-section">
+          <div class="form-group">
+            <label class="form-label" for="invite-code">Invite Code</label>
+            <input class="form-input" type="text" id="invite-code" placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em;text-align:center">
           </div>
+          <div id="code-error" style="display:none;font-size:11px;color:#ef4444;margin-bottom:12px;text-align:center"></div>
+          <button class="btn-submit" id="btn-verify" onclick="verifyCode()" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);margin-top:0">Verify Code</button>
         </div>
-        <div class="ph-stat-label" style="margin:12px 0 6px;font-size:9px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Recent Positions</div>
-        <div class="ph-trade"><span class="ph-trade-sym" style="min-width:80px">BTC $120k</span><span class="ph-trade-side buy">YES</span><span style="color:var(--text3)">62¢</span><span class="ph-trade-pnl" style="color:#16a34a">+$38.00</span></div>
-        <div class="ph-trade"><span class="ph-trade-sym" style="min-width:80px">Fed Cut Jul</span><span class="ph-trade-side sell">NO</span><span style="color:var(--text3)">71¢</span><span class="ph-trade-pnl" style="color:#16a34a">+$14.50</span></div>
-        <div class="ph-trade"><span class="ph-trade-sym" style="min-width:80px">Lakers Win</span><span class="ph-trade-side buy">YES</span><span style="color:var(--text3)">45¢</span><span class="ph-trade-pnl" style="color:var(--red)">-$5.00</span></div>
+
+        <div id="signin-section" style="display:none">
+          <div id="code-accepted" style="font-size:11px;color:#00f2fe;text-align:center;margin-bottom:14px"></div>
+          <button class="btn-google" id="btn-signin">
+            <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+            Sign in with Google
+          </button>
+        </div>
+
+        <div id="msg"></div>
       </div>
+      <button class="signout" id="btn-signout" onclick="signOut(auth)">Sign out</button>
     </div>
   </div>
-</div>
 
-<!-- ═══ POWERED BY POLYMARKET ═══ -->
-<section class="brokers">
-  <div class="sect-label" style="text-align:center">Built for Polymarket</div>
-  <div class="sect-title" style="text-align:center;margin-bottom:8px">Trade predictions, not just prices.</div>
-  <p class="sect-desc" style="text-align:center;max-width:540px;margin:0 auto">WICK connects to Polymarket's CLOB via your Polygon wallet. It scans geopolitics, sports, crypto milestones, and pop culture markets — finding mispriced odds before the crowd corrects them.</p>
-  <div class="broker-grid" style="gap:48px;margin-top:28px">
-    <div class="broker-item" style="opacity:1">
-      <div class="broker-icon pm" style="width:72px;height:72px;border-radius:18px">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M7 12L10.5 15.5L17 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <div class="broker-name" style="font-size:13px;color:var(--pm)">Polymarket</div>
-    </div>
-    <div class="broker-item" style="opacity:.35">
-      <div class="broker-icon" style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#4a5568,#2d3748)">
-        <span style="font-size:20px;color:rgba(255,255,255,.5)">K</span>
-      </div>
-      <div class="broker-name">Kalshi <span style="font-size:8px;color:var(--pm);letter-spacing:.1em">SOON</span></div>
-    </div>
-  </div>
-</section>
+</div><!-- /scroll-spacer -->
 
-<!-- ═══ SECURITY & TRUST ═══ -->
-<div class="split reverse" style="padding-top:32px">
-  <div>
-    <div class="sect-label">Security & Trust</div>
-    <div class="sect-title">Non-custodial by design.</div>
-    <p class="sect-desc" style="margin-bottom:20px">We built WICK around one principle: your money should never touch our servers. Every trade executes directly through your Polygon wallet on Polymarket's CLOB. WICK can place trades — it cannot withdraw, transfer, or access your funds.</p>
-    <div class="features" style="grid-template-columns:1fr;gap:10px;margin-top:0">
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">🔐</span>
-        <div><div style="font-size:13px;font-weight:700">AES-256-GCM Encryption</div><div style="font-size:11px;color:var(--text3)">Wallet keys encrypted at rest with military-grade encryption</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">🚫</span>
-        <div><div style="font-size:13px;font-weight:700">No Withdrawal Access</div><div style="font-size:11px;color:var(--text3)">Keys scoped to trade-only — physically cannot withdraw funds</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">🔑</span>
-        <div><div style="font-size:13px;font-weight:700">Instant Revocation</div><div style="font-size:11px;color:var(--text3)">Rotate your wallet key anytime to cut WICK's access immediately</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-        <span style="font-size:18px">🛡️</span>
-        <div><div style="font-size:13px;font-weight:700">Zero Data Collection</div><div style="font-size:11px;color:var(--text3)">No tracking, no analytics cookies, no data sold to third parties</div></div>
-      </div>
-    </div>
-  </div>
-  <div style="text-align:center">
-    <div style="width:220px;margin:0 auto;padding:32px;background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.06)">
-      <div style="font-size:64px;margin-bottom:16px">🔒</div>
-      <div style="font-family:var(--mono);font-size:11px;color:#2962FF;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px">Non-Custodial</div>
-      <div style="font-size:12px;color:var(--text3);line-height:1.6">Your USDC stays in your Polygon wallet at all times. We never hold, touch, or have the ability to move your money.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ THE ALGORITHM ═══ -->
-<div class="split" style="padding-top:32px">
-  <div>
-    <div class="sect-label">The Intelligence Pipeline</div>
-    <div class="sect-title">4 desks. Real-time news. Mathematical edge.</div>
-    <p class="sect-desc" style="margin-bottom:16px">Instead of guessing, WICK runs a multi-agent pipeline that matches breaking news to open Polymarket contracts, calculates whether the market price is wrong, and trades the gap. Each desk specializes — Research scrapes headlines, Math checks the numbers, Execution sizes the trade, and the CRO vetoes anything too risky.</p>
-    <div class="signals">
-      <div class="signal"><div class="signal-dot" style="background:var(--pm)"></div>Reuters / AP wire</div>
-      <div class="signal"><div class="signal-dot" style="background:var(--pm)"></div>ESPN live scores</div>
-      <div class="signal"><div class="signal-dot" style="background:#2962FF"></div>Sum-violation detection</div>
-      <div class="signal"><div class="signal-dot" style="background:#2962FF"></div>Kelly criterion sizing</div>
-      <div class="signal"><div class="signal-dot" style="background:var(--accent)"></div>Order book depth</div>
-      <div class="signal"><div class="signal-dot" style="background:var(--accent)"></div>Implied probability gaps</div>
-      <div class="signal"><div class="signal-dot" style="background:#4D8FFF"></div>Catalyst matching</div>
-      <div class="signal"><div class="signal-dot" style="background:#4D8FFF"></div>Market volume spikes</div>
-      <div class="signal"><div class="signal-dot" style="background:#f59e0b"></div>Position-limit enforcement</div>
-      <div class="signal"><div class="signal-dot" style="background:#f59e0b"></div>Drawdown circuit breaker</div>
-      <div class="signal"><div class="signal-dot" style="background:#f43f5e"></div>Brier score calibration</div>
-      <div class="signal"><div class="signal-dot" style="background:#f43f5e"></div>Nightly auto-tuning</div>
-    </div>
-  </div>
-  <div>
-    <div class="features" style="grid-template-columns:1fr;gap:12px">
-      <div class="feat">
-        <div class="feat-icon">📊</div>
-        <div class="feat-title">NegRisk Arbitrage</div>
-        <div class="feat-desc">Scans multi-outcome brackets where the sum of YES prices exceeds $1.00. Buys NO across all outcomes for a mathematically locked profit.</div>
-      </div>
-      <div class="feat">
-        <div class="feat-icon">🛑</div>
-        <div class="feat-title">Drawdown Circuit Breaker</div>
-        <div class="feat-desc">If the portfolio drops 5% from its peak, the engine halts all new positions and enters defensive mode automatically.</div>
-      </div>
-      <div class="feat">
-        <div class="feat-icon">🎯</div>
-        <div class="feat-title">Self-Learning Calibration</div>
-        <div class="feat-desc">Every night, the engine scores its prediction accuracy, adjusts hurdle rates for thin vs. liquid markets, and auto-tunes thresholds.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ WAITLIST + INVITE GATE ═══ -->
-<div class="gate">
-  <div class="gate-card">
-    <div class="gate-title">Get Early Access</div>
-    <div class="gate-desc">Join the waitlist or enter your invite code to get started.</div>
-
-    <form id="waitlist-form" onsubmit="return handleWaitlist(event)">
-      <div class="form-group">
-        <label class="form-label" for="wl-email">Email</label>
-        <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
-      </div>
-
-      <label class="check-group">
-        <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
-        <span class="check-label">I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</span>
-      </label>
-      <label class="check-group">
-        <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
-        <span class="check-label">I understand that trading involves substantial risk of loss. WICK is not a financial advisor. Only trade money I can afford to lose.</span>
-      </label>
-      <label class="check-group">
-        <input type="checkbox" id="chk-newsletter" checked>
-        <span class="check-label">Send me updates and the WICK Weekly newsletter.</span>
-      </label>
-
-      <button class="btn-submit" type="submit" id="btn-submit" disabled>Join Waitlist</button>
-    </form>
-
-    <div class="divider">Have an invite code?</div>
-
-    <div id="invite-section">
-      <div class="form-group">
-        <label class="form-label" for="invite-code">Invite Code</label>
-        <input class="form-input" type="text" id="invite-code" placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em;font-family:var(--mono);text-align:center">
-      </div>
-      <div id="code-error" style="display:none;font-size:11px;font-family:var(--mono);color:var(--red);margin-bottom:12px;text-align:center"></div>
-      <button class="btn-submit" id="btn-verify" onclick="verifyCode()" style="background:rgba(0,0,0,.06);color:var(--text1);margin-top:0">Verify Code</button>
-    </div>
-
-    <div id="signin-section" style="display:none">
-      <div id="code-accepted" style="font-size:11px;font-family:var(--mono);color:var(--green);text-align:center;margin-bottom:14px"></div>
-      <button class="btn-google" id="btn-signin">
-        <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-        Sign in with Google
-      </button>
-    </div>
-
-    <div id="msg"></div>
-  </div>
-  <button class="signout" id="btn-signout" onclick="signOut(auth)">Sign out</button>
-</div>
-
-<!-- Footer -->
-<footer>
-  <span class="foot-logo"><svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#0f172a"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></span>
+<!-- Footer (after scroll) -->
+<footer class="site-footer">
+  <span class="foot-logo">
+    <svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(0,8)">
+        <path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/>
+        <path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/>
+        <path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(265,102)" fill="rgba(255,255,255,.3)">
+        <path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/>
+        <path d="M152,-88 L174,-88 L174,0 L152,0 Z"/>
+        <circle cx="163" cy="-112" r="11" fill="rgba(0,242,254,.3)"/>
+        <path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/>
+        <path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/>
+      </g>
+    </svg>
+  </span>
   <div class="foot-links">
     <a href="/terms">Terms</a>
     <a href="/privacy">Privacy</a>
   </div>
 </footer>
-<p class="disclaimer">Trading prediction markets involves substantial risk of loss. WICK is automated trading software — not a financial advisor, broker, or investment adviser. Past performance does not guarantee future results. Trades execute through your own Polymarket wallet on the Polygon network. WICK never holds or transfers your funds. Only trade money you can afford to lose.</p>
+<p class="disclaimer">Trading prediction markets involves substantial risk of loss. WICK is automated trading software, not a financial advisor, broker, or investment adviser. Past performance does not guarantee future results. Trades execute through your own Polymarket wallet on the Polygon network. WICK never holds or transfers your funds. Only trade money you can afford to lose.</p>
 
-</div><!-- /page -->
+<!-- ═══ THREE.JS ═══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
+<!-- ═══ GSAP + ScrollTrigger ═══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+// ─── WebGL Scene ─────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('webgl');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.z = 5;
+
+  // ─── Custom Shader Material for the Core Artifact ───
+  const vertexShader = `
+    uniform float uTime;
+    uniform float uMorph;
+    uniform float uExplode;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying float vDisplacement;
+
+    //	Classic Perlin 3D Noise (compact)
+    vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x,289.0);}
+    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+    vec3 fade(vec3 t){return t*t*t*(t*(t*6.0-15.0)+10.0);}
+    float cnoise(vec3 P){
+      vec3 Pi0=floor(P),Pi1=Pi0+vec3(1.0);
+      Pi0=mod(Pi0,289.0);Pi1=mod(Pi1,289.0);
+      vec3 Pf0=fract(P),Pf1=Pf0-vec3(1.0);
+      vec4 ix=vec4(Pi0.x,Pi1.x,Pi0.x,Pi1.x);
+      vec4 iy=vec4(Pi0.yy,Pi1.yy);
+      vec4 iz0=Pi0.zzzz,iz1=Pi1.zzzz;
+      vec4 ixy=permute(permute(ix)+iy);
+      vec4 ixy0=permute(ixy+iz0),ixy1=permute(ixy+iz1);
+      vec4 gx0=ixy0/7.0,gy0=fract(floor(gx0)/7.0)-0.5;
+      gx0=fract(gx0);vec4 gz0=vec4(0.5)-abs(gx0)-abs(gy0);
+      vec4 sz0=step(gz0,vec4(0.0));
+      gx0-=sz0*(step(0.0,gx0)-0.5);gy0-=sz0*(step(0.0,gy0)-0.5);
+      vec4 gx1=ixy1/7.0,gy1=fract(floor(gx1)/7.0)-0.5;
+      gx1=fract(gx1);vec4 gz1=vec4(0.5)-abs(gx1)-abs(gy1);
+      vec4 sz1=step(gz1,vec4(0.0));
+      gx1-=sz1*(step(0.0,gx1)-0.5);gy1-=sz1*(step(0.0,gy1)-0.5);
+      vec3 g000=vec3(gx0.x,gy0.x,gz0.x),g100=vec3(gx0.y,gy0.y,gz0.y);
+      vec3 g010=vec3(gx0.z,gy0.z,gz0.z),g110=vec3(gx0.w,gy0.w,gz0.w);
+      vec3 g001=vec3(gx1.x,gy1.x,gz1.x),g101=vec3(gx1.y,gy1.y,gz1.y);
+      vec3 g011=vec3(gx1.z,gy1.z,gz1.z),g111=vec3(gx1.w,gy1.w,gz1.w);
+      vec4 norm0=taylorInvSqrt(vec4(dot(g000,g000),dot(g010,g010),dot(g100,g100),dot(g110,g110)));
+      g000*=norm0.x;g010*=norm0.y;g100*=norm0.z;g110*=norm0.w;
+      vec4 norm1=taylorInvSqrt(vec4(dot(g001,g001),dot(g011,g011),dot(g101,g101),dot(g111,g111)));
+      g001*=norm1.x;g011*=norm1.y;g101*=norm1.z;g111*=norm1.w;
+      float n000=dot(g000,Pf0),n100=dot(g100,vec3(Pf1.x,Pf0.yz));
+      float n010=dot(g010,vec3(Pf0.x,Pf1.y,Pf0.z)),n110=dot(g110,vec3(Pf1.xy,Pf0.z));
+      float n001=dot(g001,vec3(Pf0.xy,Pf1.z)),n101=dot(g101,vec3(Pf1.x,Pf0.y,Pf1.z));
+      float n011=dot(g011,vec3(Pf0.x,Pf1.yz)),n111=dot(g111,Pf1);
+      vec3 fade_xyz=fade(Pf0);
+      vec4 n_z=mix(vec4(n000,n100,n010,n110),vec4(n001,n101,n011,n111),fade_xyz.z);
+      vec2 n_yz=mix(n_z.xy,n_z.zw,fade_xyz.y);
+      return 2.2*mix(n_yz.x,n_yz.y,fade_xyz.x);
+    }
+
+    void main(){
+      vNormal = normal;
+      vPosition = position;
+
+      float noise = cnoise(position * 1.5 + uTime * 0.3) * uMorph;
+      float displacement = noise * 0.6;
+
+      vec3 pos = position + normal * displacement;
+
+      // Explode phase: push vertices outward
+      float explodeFactor = uExplode * 2.0;
+      pos += normal * explodeFactor * (0.5 + noise * 0.5);
+
+      vDisplacement = displacement;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `;
+
+  const fragmentShader = `
+    uniform float uTime;
+    uniform float uPhase;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying float vDisplacement;
+
+    void main(){
+      // Iridescent color based on view angle and displacement
+      vec3 col1 = vec3(0.0, 0.949, 0.996); // #00f2fe cyan
+      vec3 col2 = vec3(0.0, 0.4, 1.0);     // #0066ff blue
+      vec3 col3 = vec3(0.0, 0.071, 0.902);  // #0012e6 deep blue
+
+      float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), 2.0);
+
+      // Phase-dependent color mixing
+      float t = sin(vDisplacement * 3.0 + uTime * 0.5) * 0.5 + 0.5;
+      vec3 color = mix(col1, col2, t);
+      color = mix(color, col3, fresnel * 0.6);
+
+      // Add shimmer
+      float shimmer = sin(vPosition.x * 10.0 + vPosition.y * 10.0 + uTime) * 0.5 + 0.5;
+      color += vec3(shimmer * 0.08);
+
+      // Edge glow
+      float edgeGlow = fresnel * 0.8;
+      color += col1 * edgeGlow * 0.5;
+
+      float alpha = 0.7 + fresnel * 0.3;
+
+      gl_FragColor = vec4(color, alpha);
+    }
+  `;
+
+  // Core icosahedron artifact
+  const coreGeo = new THREE.IcosahedronGeometry(1.5, 5);
+  const coreMat = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uTime:    {value:0},
+      uMorph:   {value:0.3},
+      uExplode: {value:0},
+      uPhase:   {value:0},
+    },
+    transparent: true,
+    wireframe: false,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+  scene.add(coreMesh);
+
+  // Wireframe overlay
+  const wireGeo = new THREE.IcosahedronGeometry(1.52, 3);
+  const wireMat = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader: `
+      uniform float uTime;
+      uniform float uPhase;
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      varying float vDisplacement;
+      void main(){
+        float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0,0.0,1.0))), 3.0);
+        vec3 col = vec3(0.0, 0.949, 0.996);
+        gl_FragColor = vec4(col, fresnel * 0.4 * (1.0 - uPhase * 0.5));
+      }
+    `,
+    uniforms: {
+      uTime:    coreMat.uniforms.uTime,
+      uMorph:   coreMat.uniforms.uMorph,
+      uExplode: coreMat.uniforms.uExplode,
+      uPhase:   coreMat.uniforms.uPhase,
+    },
+    transparent: true,
+    wireframe: true,
+    depthWrite: false,
+  });
+  const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+  scene.add(wireMesh);
+
+  // ─── Particle System ───
+  const PARTICLE_COUNT = 2000;
+  const particleGeo = new THREE.BufferGeometry();
+  const positions  = new Float32Array(PARTICLE_COUNT * 3);
+  const velocities = new Float32Array(PARTICLE_COUNT * 3);
+  const randoms    = new Float32Array(PARTICLE_COUNT);
+  const basePositions = new Float32Array(PARTICLE_COUNT * 3);
+
+  for(let i = 0; i < PARTICLE_COUNT; i++){
+    // Sphere distribution
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2*Math.random()-1);
+    const r     = 1.8 + Math.random() * 0.5;
+    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    positions[i*3+2] = r * Math.cos(phi);
+    basePositions[i*3]   = positions[i*3];
+    basePositions[i*3+1] = positions[i*3+1];
+    basePositions[i*3+2] = positions[i*3+2];
+    velocities[i*3]   = (Math.random()-0.5)*0.02;
+    velocities[i*3+1] = (Math.random()-0.5)*0.02;
+    velocities[i*3+2] = (Math.random()-0.5)*0.02;
+    randoms[i] = Math.random();
+  }
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  // Network lines target positions (grid)
+  const gridPositions = new Float32Array(PARTICLE_COUNT * 3);
+  const gridCols = Math.ceil(Math.sqrt(PARTICLE_COUNT));
+  const gridSpacing = 0.12;
+  for(let i = 0; i < PARTICLE_COUNT; i++){
+    const col = i % gridCols;
+    const row = Math.floor(i / gridCols);
+    gridPositions[i*3]   = (col - gridCols/2) * gridSpacing;
+    gridPositions[i*3+1] = (row - gridCols/2) * gridSpacing;
+    gridPositions[i*3+2] = Math.sin(col*0.3)*Math.cos(row*0.3)*0.8;
+  }
+
+  const particleMat = new THREE.PointsMaterial({
+    color: 0x00f2fe,
+    size: 0.02,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  scene.add(particles);
+
+  // ─── Scroll State ───
+  let scrollProgress = 0;
+  let targetScrollProgress = 0;
+  const sections = ['s-hero','s-hook','s-proof','s-cta'];
+
+  function updateScroll(){
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    targetScrollProgress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+  }
+  window.addEventListener('scroll', updateScroll, {passive:true});
+
+  // Nav scroll state
+  window.addEventListener('scroll', function(){
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+  }, {passive:true});
+
+  // Scroll progress bar
+  window.addEventListener('scroll', function(){
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
+    document.getElementById('scroll-progress').style.width = pct + '%';
+  }, {passive:true});
+
+  // ─── Section Visibility (GSAP ScrollTrigger) ───
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero: visible 0% - 20%
+  gsap.timeline({
+    scrollTrigger:{
+      trigger:'.scroll-spacer',
+      start:'top top',
+      end:'20% top',
+      scrub:0.5,
+    }
+  })
+  .to('#s-hero',{opacity:0, duration:1});
+
+  // Hook: visible 15% - 45%
+  gsap.timeline({
+    scrollTrigger:{
+      trigger:'.scroll-spacer',
+      start:'12% top',
+      end:'45% top',
+      scrub:0.5,
+    }
+  })
+  .fromTo('#s-hook',{opacity:0},{opacity:1, duration:0.3})
+  .to('#s-hook',{opacity:1, duration:0.4})
+  .to('#s-hook',{opacity:0, duration:0.3});
+
+  // Proof: visible 40% - 70%
+  gsap.timeline({
+    scrollTrigger:{
+      trigger:'.scroll-spacer',
+      start:'37% top',
+      end:'70% top',
+      scrub:0.5,
+    }
+  })
+  .fromTo('#s-proof',{opacity:0},{opacity:1, duration:0.3})
+  .to('#s-proof',{opacity:1, duration:0.4})
+  .to('#s-proof',{opacity:0, duration:0.3});
+
+  // CTA: visible 65% - 100%
+  gsap.timeline({
+    scrollTrigger:{
+      trigger:'.scroll-spacer',
+      start:'62% top',
+      end:'90% top',
+      scrub:0.5,
+    }
+  })
+  .fromTo('#s-cta',{opacity:0},{opacity:1, duration:1});
+
+  // ─── Animation Loop ───
+  const clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    const elapsed = clock.getElapsedTime();
+    const dt = clock.getDelta();
+
+    // Smooth scroll interpolation
+    scrollProgress += (targetScrollProgress - scrollProgress) * 0.06;
+    const p = scrollProgress;
+
+    // Update shader uniforms
+    coreMat.uniforms.uTime.value = elapsed;
+    coreMat.uniforms.uPhase.value = p;
+
+    // Phase 1 (0-0.25): Dormant — gentle morph
+    // Phase 2 (0.25-0.5): Acceleration — heavy morph + explode
+    // Phase 3 (0.5-0.75): Convergence — organize
+    // Phase 4 (0.75-1.0): Nexus — collapse to stable
+
+    let morphVal, explodeVal, scaleVal, rotSpeedX, rotSpeedY;
+
+    if(p < 0.25){
+      // Dormant
+      morphVal = 0.3 + p * 1.2;
+      explodeVal = 0;
+      scaleVal = 1.0;
+      rotSpeedX = 0.15;
+      rotSpeedY = 0.2;
+    } else if(p < 0.5){
+      // Acceleration
+      const t = (p - 0.25) / 0.25;
+      morphVal = 0.6 + t * 2.0;
+      explodeVal = t * 0.8;
+      scaleVal = 1.0 + t * 0.3;
+      rotSpeedX = 0.15 + t * 0.6;
+      rotSpeedY = 0.2 + t * 0.8;
+    } else if(p < 0.75){
+      // Convergence
+      const t = (p - 0.5) / 0.25;
+      morphVal = 2.6 - t * 2.0;
+      explodeVal = 0.8 - t * 0.8;
+      scaleVal = 1.3 - t * 0.2;
+      rotSpeedX = 0.75 - t * 0.5;
+      rotSpeedY = 1.0 - t * 0.7;
+    } else {
+      // Nexus — collapse
+      const t = (p - 0.75) / 0.25;
+      morphVal = 0.6 - t * 0.5;
+      explodeVal = 0;
+      scaleVal = 1.1 - t * 0.3;
+      rotSpeedX = 0.25 - t * 0.2;
+      rotSpeedY = 0.3 - t * 0.25;
+    }
+
+    coreMat.uniforms.uMorph.value = morphVal;
+    coreMat.uniforms.uExplode.value = explodeVal;
+
+    coreMesh.scale.setScalar(scaleVal);
+    wireMesh.scale.setScalar(scaleVal);
+
+    coreMesh.rotation.x += rotSpeedX * 0.005;
+    coreMesh.rotation.y += rotSpeedY * 0.005;
+    wireMesh.rotation.x = coreMesh.rotation.x;
+    wireMesh.rotation.y = coreMesh.rotation.y;
+
+    // ─── Particle Animation ───
+    const posAttr = particleGeo.attributes.position;
+    const posArr  = posAttr.array;
+
+    for(let i = 0; i < PARTICLE_COUNT; i++){
+      const i3 = i * 3;
+      const rnd = randoms[i];
+
+      if(p < 0.3){
+        // Sphere orbit
+        const angle = elapsed * (0.1 + rnd * 0.15) + rnd * Math.PI * 2;
+        const r = 1.8 + rnd * 0.5 + Math.sin(elapsed * 0.5 + rnd * 10) * 0.15;
+        const phi = basePositions[i3+1] / (1.8 + 0.5) * Math.PI;
+        posArr[i3]   = basePositions[i3]   * Math.cos(angle * 0.1) - basePositions[i3+2] * Math.sin(angle * 0.1);
+        posArr[i3+1] = basePositions[i3+1] + Math.sin(elapsed * 0.3 + rnd * 6.28) * 0.05;
+        posArr[i3+2] = basePositions[i3]   * Math.sin(angle * 0.1) + basePositions[i3+2] * Math.cos(angle * 0.1);
+      } else if(p < 0.55){
+        // Explode outward
+        const t = (p - 0.3) / 0.25;
+        const explosionScale = 1.0 + t * 4.0;
+        const chaos = Math.sin(elapsed * 2.0 + rnd * 20.0) * t * 0.5;
+        posArr[i3]   = basePositions[i3]   * explosionScale + velocities[i3]   * elapsed * 3.0 + chaos;
+        posArr[i3+1] = basePositions[i3+1] * explosionScale + velocities[i3+1] * elapsed * 3.0 + chaos;
+        posArr[i3+2] = basePositions[i3+2] * explosionScale + velocities[i3+2] * elapsed * 3.0 + chaos;
+      } else if(p < 0.8){
+        // Organize into grid network
+        const t = Math.min((p - 0.55) / 0.25, 1.0);
+        const eased = t * t * (3 - 2 * t); // smoothstep
+        const curX = posArr[i3],   curY = posArr[i3+1], curZ = posArr[i3+2];
+        const tgtX = gridPositions[i3], tgtY = gridPositions[i3+1], tgtZ = gridPositions[i3+2];
+        posArr[i3]   = curX + (tgtX - curX) * eased * 0.08;
+        posArr[i3+1] = curY + (tgtY - curY) * eased * 0.08;
+        posArr[i3+2] = curZ + (tgtZ - curZ) * eased * 0.08;
+        // Subtle wave
+        posArr[i3+2] += Math.sin(elapsed + i * 0.01) * 0.02 * (1 - eased);
+      } else {
+        // Collapse back to tight sphere
+        const t = Math.min((p - 0.8) / 0.2, 1.0);
+        const eased = t * t * (3 - 2 * t);
+        const tgtR = 1.2;
+        const theta = randoms[i] * Math.PI * 2;
+        const phi   = Math.acos(2 * ((i/PARTICLE_COUNT)) - 1);
+        const tgtX = tgtR * Math.sin(phi) * Math.cos(theta);
+        const tgtY = tgtR * Math.sin(phi) * Math.sin(theta);
+        const tgtZ = tgtR * Math.cos(phi);
+        posArr[i3]   += (tgtX - posArr[i3])   * eased * 0.05;
+        posArr[i3+1] += (tgtY - posArr[i3+1]) * eased * 0.05;
+        posArr[i3+2] += (tgtZ - posArr[i3+2]) * eased * 0.05;
+      }
+    }
+    posAttr.needsUpdate = true;
+
+    // Particle size and opacity based on phase
+    particleMat.opacity = 0.3 + Math.sin(p * Math.PI) * 0.5;
+    particleMat.size = 0.015 + (p > 0.3 && p < 0.7 ? 0.015 : 0);
+
+    // Camera subtle movement
+    camera.position.x = Math.sin(elapsed * 0.1) * 0.3;
+    camera.position.y = Math.cos(elapsed * 0.15) * 0.2;
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Resize
+  window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+})();
+</script>
+
+<!-- ═══ Waitlist / Invite / Auth Logic ═══ -->
 <script>
 let verifiedCode = null;
 
-// Waitlist counter
 (async function() {
   try {
     const r = await fetch('/api/newsletter?action=count');
@@ -373,7 +1000,7 @@ async function verifyCode() {
   const btn = document.getElementById('btn-verify');
   const code = input.value.trim();
   if (!code) { errEl.textContent = 'Enter your invite code'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Verifying…'; errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Verifying...'; errEl.style.display = 'none';
   try {
     const r = await fetch('/api/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
     const d = await r.json();
@@ -391,13 +1018,12 @@ function handleWaitlist(e) {
   const newsletter = document.getElementById('chk-newsletter').checked;
   const btn = document.getElementById('btn-submit');
   const msg = document.getElementById('msg');
-  btn.disabled = true; btn.textContent = 'Submitting…';
+  btn.disabled = true; btn.textContent = 'Submitting...';
   fetch('/api/newsletter?action=subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, waitlist: true, newsletter, agreed_terms: true, agreed_risk: true, agreed_at: new Date().toISOString() }) })
     .then(() => {
       document.getElementById('waitlist-form').style.display = 'none';
       msg.className = 'success';
-      msg.innerHTML = "You're on the list.<br><span style='color:var(--text3);font-size:11px'>" + email + "</span><br><span style='color:var(--text3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
-      // Bump counter
+      msg.innerHTML = "You're on the list.<br><span style='color:rgba(255,255,255,.4);font-size:11px'>" + email + "</span><br><span style='color:rgba(255,255,255,.3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
       const cEl = document.getElementById('wl-count');
       const cur = parseInt(cEl.textContent.replace(/,/g,'')) || 0;
       cEl.textContent = (cur + 1).toLocaleString();
@@ -455,7 +1081,7 @@ onAuthStateChanged(auth, async user => {
 
   msg.className = '';
   msg.style.display = 'block';
-  msg.textContent = 'Checking access…';
+  msg.textContent = 'Checking access...';
 
   try {
     const token = await user.getIdToken();
@@ -479,13 +1105,13 @@ onAuthStateChanged(auth, async user => {
 
     if (r.status === 403) {
       msg.className = 'waitlist';
-      msg.innerHTML = "You're on the waitlist.<br><span style='color:var(--text3);font-size:11px'>" + user.email + "</span><br><span style='color:var(--text3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
+      msg.innerHTML = "You're on the waitlist.<br><span style='color:rgba(255,255,255,.4);font-size:11px'>" + user.email + "</span><br><span style='color:rgba(255,255,255,.3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
       return;
     }
 
     if (r.ok) {
       msg.className = 'approved';
-      msg.textContent = 'Access granted. Redirecting…';
+      msg.textContent = 'Access granted. Redirecting...';
       window.location.replace('/bot');
       return;
     }

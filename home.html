@@ -100,12 +100,26 @@ body::before{content:"";position:absolute;inset:0;background-image:linear-gradie
       <button class="btn-submit" type="submit" id="btn-submit" disabled>Join Waitlist</button>
     </form>
 
-    <div class="divider">Already have access?</div>
+    <div class="divider">Have an invite code?</div>
 
-    <button class="btn-google" id="btn-signin">
-      <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-      Sign in with Google
-    </button>
+    <!-- Invite code gate -->
+    <div id="invite-section">
+      <div class="form-group">
+        <label class="form-label" for="invite-code">Invite Code</label>
+        <input class="form-input" type="text" id="invite-code" placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em;font-family:var(--mono);text-align:center">
+      </div>
+      <div id="code-error" style="display:none;font-size:11px;font-family:var(--mono);color:#f87171;margin-bottom:12px;text-align:center"></div>
+      <button class="btn-submit" id="btn-verify" onclick="verifyCode()" style="background:rgba(255,255,255,.08);color:var(--text1);margin-top:0">Verify Code</button>
+    </div>
+
+    <!-- Google sign-in (hidden until code verified) -->
+    <div id="signin-section" style="display:none">
+      <div id="code-accepted" style="font-size:11px;font-family:var(--mono);color:var(--green);text-align:center;margin-bottom:14px"></div>
+      <button class="btn-google" id="btn-signin">
+        <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+        Sign in with Google
+      </button>
+    </div>
 
     <div id="msg"></div>
   </div>
@@ -119,9 +133,51 @@ body::before{content:"";position:absolute;inset:0;background-image:linear-gradie
 </div>
 
 <script>
+let verifiedCode = null;
+
 function updateSubmit() {
   document.getElementById('btn-submit').disabled =
     !document.getElementById('chk-terms').checked || !document.getElementById('chk-risk').checked;
+}
+
+async function verifyCode() {
+  const input = document.getElementById('invite-code');
+  const errEl = document.getElementById('code-error');
+  const btn = document.getElementById('btn-verify');
+  const code = input.value.trim();
+
+  if (!code) { errEl.textContent = 'Enter your invite code'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+  errEl.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const d = await r.json();
+
+    if (!r.ok) {
+      errEl.textContent = d.error || 'Invalid code';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Verify Code';
+      return;
+    }
+
+    verifiedCode = d.code;
+    document.getElementById('invite-section').style.display = 'none';
+    document.getElementById('signin-section').style.display = '';
+    document.getElementById('code-accepted').textContent = 'Code accepted. Sign in to continue.';
+  } catch {
+    errEl.textContent = 'Connection error. Try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Verify Code';
+  }
 }
 
 function handleWaitlist(e) {
@@ -199,6 +255,8 @@ onAuthStateChanged(auth, async user => {
     signinBtn.style.display = '';
     signoutBtn.style.display = 'none';
     form.style.display = '';
+    document.getElementById('invite-section').style.display = '';
+    document.getElementById('signin-section').style.display = 'none';
     msg.style.display = 'none';
     msg.className = '';
     return;
@@ -207,6 +265,8 @@ onAuthStateChanged(auth, async user => {
   signinBtn.style.display = 'none';
   signoutBtn.style.display = '';
   form.style.display = 'none';
+  document.getElementById('invite-section').style.display = 'none';
+  document.getElementById('signin-section').style.display = 'none';
 
   msg.className = '';
   msg.style.display = 'block';
@@ -214,17 +274,27 @@ onAuthStateChanged(auth, async user => {
 
   try {
     const token = await user.getIdToken();
+    const code = window.verifiedCode;
+
+    // If user just signed in with a verified invite code, redeem it first
+    if (code) {
+      const redeem = await fetch('/api/bot?action=redeem_code', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      if (redeem.ok) {
+        window.verifiedCode = null;
+        // Force fresh token so allowlist check passes
+        await user.getIdToken(true);
+      }
+    }
+
     const r = await fetch('/api/bot', {
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
     });
 
     if (r.status === 403) {
-      fetch('/api/bot?action=waitlist', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform: 'wick' }),
-      }).catch(() => {});
-
       msg.className = 'waitlist';
       msg.innerHTML = "You're on the waitlist.<br><span style='color:var(--text3);font-size:11px'>" + user.email + "</span><br><span style='color:var(--text3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
       return;

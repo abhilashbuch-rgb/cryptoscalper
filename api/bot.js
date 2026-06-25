@@ -85,13 +85,31 @@ module.exports = async (req, res) => {
 
   // ── Invite-only gate ──
   const allowed = await isAllowed(email, uid);
-  if (!allowed && action !== 'login_notify' && action !== 'waitlist') {
+  if (!allowed && action !== 'login_notify' && action !== 'waitlist' && action !== 'redeem_code') {
     return res.status(403).json({ error: 'invite_only', message: 'WICK is currently invite-only. You have been added to the waitlist.' });
   }
 
   // ── Login notification ──
   if (action === 'login_notify') {
     await userRef.set({ last_login: FieldValue.serverTimestamp(), email: decoded.email || '' }, { merge: true });
+    return res.json({ ok: true });
+  }
+
+  // ── Redeem invite code (adds user to allowlist) ──
+  if (action === 'redeem_code' && req.method === 'POST') {
+    const { code } = req.body || {};
+    if (!code) return res.status(400).json({ error: 'Code required' });
+    const clean = code.trim().toUpperCase();
+    const codeRef = db.collection('invite_codes').doc(clean);
+    const codeDoc = await codeRef.get();
+    if (!codeDoc.exists) return res.status(403).json({ error: 'Invalid invite code' });
+    const codeData = codeDoc.data();
+    if (codeData.used) return res.status(403).json({ error: 'This code has already been used' });
+    if (codeData.active === false) return res.status(403).json({ error: 'This code is no longer active' });
+
+    await codeRef.update({ used: true, used_by: email, used_by_uid: uid, used_at: FieldValue.serverTimestamp() });
+    await db.collection('allowlist').doc(email).set({ uid, email, code: clean, granted: FieldValue.serverTimestamp() });
+    await userRef.set({ invited: true, invite_code: clean, updated: FieldValue.serverTimestamp() }, { merge: true });
     return res.json({ ok: true });
   }
 

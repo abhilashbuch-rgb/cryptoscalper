@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK — Autonomous Prediction Market Intelligence</title>
-<meta name="description" content="WICK — invite-only autonomous agent for Polymarket. Multi-agent intelligence pipeline. Non-custodial. Invite only.">
-<meta property="og:title" content="WICK — Prediction Market Agent">
-<meta property="og:description" content="Autonomous Polymarket agent. 4-desk intelligence pipeline. Invite only.">
+<title>WICK — The Unified Digital Framework</title>
+<meta name="description" content="WICK Network — next-generation decentralized infrastructure. Real-time connectivity, seamless data integration, secure trustless architecture.">
+<meta property="og:title" content="WICK — The Unified Digital Framework">
+<meta property="og:description" content="Decentralized infrastructure unifying the digital ecosystem. Real-time connectivity. Trustless architecture. Invite only.">
 <meta property="og:url" content="https://wick.network">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,17 +23,25 @@ body{
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
+
+/* ── Full-viewport WebGL canvas ── */
 canvas#webgl{
   position:fixed;
   top:0;left:0;
   width:100vw;height:100vh;
   z-index:0;
+}
+
+/* ── Scroll driver ── */
+.scroll-spacer{
+  height:600vh;
+  position:relative;
+  z-index:1;
   pointer-events:none;
 }
 
-/* Scroll sections */
-.scroll-spacer{height:500vh;position:relative;z-index:1}
-.section{
+/* ── Floating text layers ── */
+.float-layer{
   position:fixed;
   top:0;left:0;
   width:100%;height:100vh;
@@ -41,139 +49,134 @@ canvas#webgl{
   align-items:center;
   justify-content:center;
   flex-direction:column;
-  z-index:2;
+  z-index:5;
   pointer-events:none;
   opacity:0;
-  will-change:opacity,transform;
+  will-change:opacity,transform,filter;
 }
-.section.active{pointer-events:auto}
-.section *{pointer-events:auto}
+.float-layer.active{pointer-events:auto}
+.float-layer *{pointer-events:auto}
 
-/* Typography */
+/* ── Hero typography ── */
 .hero-pre{
-  font-size:clamp(10px,1.2vw,13px);
-  letter-spacing:.4em;
+  font-size:clamp(9px,1.1vw,12px);
+  letter-spacing:.5em;
   text-transform:uppercase;
-  color:rgba(255,255,255,.35);
-  margin-bottom:20px;
-  font-weight:500;
+  color:rgba(255,255,255,.25);
+  margin-bottom:24px;
+  font-weight:400;
 }
 .hero-title{
-  font-size:clamp(2.2rem,7vw,5.5rem);
+  font-size:clamp(2rem,6.5vw,5rem);
   font-weight:700;
-  line-height:1.05;
+  line-height:1.0;
   text-align:center;
-  max-width:900px;
+  max-width:880px;
   padding:0 24px;
-  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.7) 100%);
+  background:linear-gradient(160deg,#fff 0%,rgba(200,180,255,.7) 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
 }
 .hero-sub{
-  font-size:clamp(14px,1.8vw,18px);
-  color:rgba(255,255,255,.4);
-  margin-top:24px;
+  font-size:clamp(13px,1.6vw,17px);
+  color:rgba(255,255,255,.3);
+  margin-top:28px;
   font-weight:300;
-  letter-spacing:.02em;
+  letter-spacing:.03em;
   text-align:center;
-  max-width:500px;
+  max-width:480px;
   padding:0 24px;
-  line-height:1.7;
+  line-height:1.8;
+}
+.hero-scroll-hint{
+  position:absolute;
+  bottom:48px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  opacity:.2;
+}
+.hero-scroll-hint span{
+  font-size:9px;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.4);
+}
+.scroll-line{
+  width:1px;
+  height:32px;
+  background:linear-gradient(to bottom,rgba(255,255,255,.3),transparent);
+  animation:scrollPulse 2s infinite;
+}
+@keyframes scrollPulse{
+  0%{opacity:1;transform:scaleY(1)}
+  50%{opacity:.3;transform:scaleY(.6)}
+  100%{opacity:1;transform:scaleY(1)}
 }
 
-/* Section copy */
+/* ── Section copy (floating) ── */
 .section-copy{
   text-align:center;
-  max-width:680px;
+  max-width:640px;
   padding:0 32px;
 }
 .section-label{
-  font-size:clamp(9px,1vw,11px);
-  letter-spacing:.35em;
+  font-size:clamp(8px,0.9vw,10px);
+  letter-spacing:.45em;
   text-transform:uppercase;
-  color:#00f2fe;
-  margin-bottom:16px;
+  color:rgba(155,120,255,.7);
+  margin-bottom:18px;
   font-weight:500;
 }
 .section-heading{
-  font-size:clamp(1.6rem,4.5vw,3rem);
+  font-size:clamp(1.5rem,4vw,2.8rem);
   font-weight:700;
-  line-height:1.15;
-  margin-bottom:20px;
-  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.65) 100%);
+  line-height:1.12;
+  margin-bottom:24px;
+  background:linear-gradient(160deg,#fff 0%,rgba(200,180,255,.6) 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
 }
 .section-desc{
-  font-size:clamp(13px,1.5vw,16px);
-  color:rgba(255,255,255,.4);
-  line-height:1.8;
+  font-size:clamp(12px,1.4vw,15px);
+  color:rgba(255,255,255,.3);
+  line-height:1.9;
   font-weight:300;
 }
 
-/* Metrics grid */
-.metrics{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:1px;
-  max-width:600px;
-  margin:40px auto 0;
-  background:rgba(255,255,255,.06);
-  border-radius:12px;
-  overflow:hidden;
-}
-@media(max-width:600px){.metrics{grid-template-columns:1fr;max-width:280px}}
-.metric{
-  padding:28px 20px;
-  background:rgba(0,0,0,.6);
-  text-align:center;
-}
-.metric-val{
-  font-size:clamp(1.4rem,3vw,2rem);
-  font-weight:700;
-  background:linear-gradient(135deg,#00f2fe,#0066ff);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.metric-label{
-  font-size:10px;
-  color:rgba(255,255,255,.3);
-  text-transform:uppercase;
-  letter-spacing:.2em;
-  margin-top:6px;
-  font-weight:500;
-}
-
-/* CTA / Gate */
+/* ── CTA / Gate ── */
 .gate-wrap{
   width:100%;
-  max-width:440px;
+  max-width:420px;
   padding:0 24px;
+  pointer-events:auto;
 }
 .gate-card{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;
   padding:40px 32px;
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(40px);
+  -webkit-backdrop-filter:blur(40px);
 }
 .gate-title{
-  font-size:22px;
+  font-size:24px;
   font-weight:700;
   text-align:center;
-  margin-bottom:6px;
-  background:linear-gradient(135deg,#fff,rgba(255,255,255,.8));
+  margin-bottom:8px;
+  background:linear-gradient(160deg,#fff,rgba(200,180,255,.85));
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
 }
 .gate-desc{
   font-size:13px;
-  color:rgba(255,255,255,.35);
+  color:rgba(255,255,255,.3);
   text-align:center;
   margin-bottom:28px;
   line-height:1.7;
@@ -181,27 +184,30 @@ canvas#webgl{
 .form-group{margin-bottom:16px}
 .form-label{
   display:block;
-  font-size:10px;
-  letter-spacing:.15em;
+  font-size:9px;
+  letter-spacing:.2em;
   text-transform:uppercase;
-  color:rgba(255,255,255,.3);
+  color:rgba(255,255,255,.2);
   margin-bottom:6px;
   font-weight:500;
 }
 .form-input{
   width:100%;
-  padding:13px 16px;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:8px;
+  padding:14px 16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;
   color:#fff;
   font-family:'Space Grotesk',sans-serif;
   font-size:14px;
   outline:none;
-  transition:border-color .3s;
+  transition:border-color .3s,box-shadow .3s;
 }
-.form-input:focus{border-color:rgba(0,242,254,.4)}
-.form-input::placeholder{color:rgba(255,255,255,.2)}
+.form-input:focus{
+  border-color:rgba(123,47,247,.4);
+  box-shadow:0 0 20px rgba(123,47,247,.1);
+}
+.form-input::placeholder{color:rgba(255,255,255,.15)}
 .check-group{
   margin-bottom:10px;
   display:flex;
@@ -210,62 +216,62 @@ canvas#webgl{
   cursor:pointer;
 }
 .check-group input[type="checkbox"]{
-  width:16px;height:16px;
+  width:15px;height:15px;
   margin-top:2px;
-  accent-color:#0066ff;
+  accent-color:#7b2ff7;
   flex-shrink:0;
   cursor:pointer;
 }
 .check-label{
-  font-size:11px;
-  color:rgba(255,255,255,.35);
+  font-size:10px;
+  color:rgba(255,255,255,.25);
   line-height:1.6;
 }
-.check-label a{color:#00f2fe;text-decoration:none}
+.check-label a{color:rgba(155,120,255,.8);text-decoration:none}
 .check-label a:hover{text-decoration:underline}
 .btn-submit{
   width:100%;
-  padding:14px;
-  background:linear-gradient(135deg,#0066ff,#0012e6);
+  padding:15px;
+  background:linear-gradient(135deg,#7b2ff7,#4a0ed0);
   color:#fff;
   font-family:'Space Grotesk',sans-serif;
-  font-size:13px;
+  font-size:12px;
   font-weight:700;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   cursor:pointer;
-  transition:all .3s;
+  transition:all .4s;
   margin-top:16px;
-  letter-spacing:.05em;
+  letter-spacing:.12em;
   text-transform:uppercase;
 }
 .btn-submit:hover:not(:disabled){
-  background:linear-gradient(135deg,#0088ff,#0033ff);
-  box-shadow:0 0 40px rgba(0,102,255,.3);
+  background:linear-gradient(135deg,#9945ff,#6b20e0);
+  box-shadow:0 0 50px rgba(123,47,247,.35);
 }
-.btn-submit:disabled{opacity:.25;cursor:not-allowed}
+.btn-submit:disabled{opacity:.2;cursor:not-allowed}
 .divider{
   display:flex;
   align-items:center;
   gap:12px;
   margin:24px 0;
-  font-size:10px;
-  color:rgba(255,255,255,.2);
+  font-size:9px;
+  color:rgba(255,255,255,.15);
   text-transform:uppercase;
-  letter-spacing:.15em;
+  letter-spacing:.2em;
   font-weight:500;
 }
-.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.08)}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.06)}
 .btn-google{
   display:inline-flex;
   align-items:center;
-  background:rgba(255,255,255,.04);
-  color:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.03);
+  color:rgba(255,255,255,.5);
   font-weight:600;
   font-size:13px;
-  padding:12px 20px;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,.08);
+  padding:13px 20px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.06);
   cursor:pointer;
   transition:all .3s;
   width:100%;
@@ -274,8 +280,8 @@ canvas#webgl{
   font-family:'Space Grotesk',sans-serif;
 }
 .btn-google:hover{
-  background:rgba(255,255,255,.08);
-  border-color:rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.1);
 }
 .btn-google svg{width:16px;height:16px;flex-shrink:0}
 #msg{
@@ -283,63 +289,80 @@ canvas#webgl{
   margin-top:16px;
   font-size:11px;
   padding:12px 16px;
-  border-radius:8px;
+  border-radius:10px;
   line-height:1.6;
   text-align:center;
 }
-#msg.success,#msg.waitlist{display:block;color:#00f2fe;background:rgba(0,242,254,.06);border:1px solid rgba(0,242,254,.15)}
+#msg.success,#msg.waitlist{display:block;color:rgba(155,120,255,.9);background:rgba(123,47,247,.08);border:1px solid rgba(123,47,247,.2)}
 #msg.approved{display:block;color:#16a34a;background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.15)}
 #msg.error{display:block;color:#ef4444;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15)}
 .signout{
   margin-top:12px;
   background:none;
-  border:1px solid rgba(255,255,255,.08);
-  color:rgba(255,255,255,.3);
+  border:1px solid rgba(255,255,255,.06);
+  color:rgba(255,255,255,.2);
   font-family:'Space Grotesk',sans-serif;
-  font-size:11px;
+  font-size:10px;
   padding:7px 18px;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
   display:none;
 }
-.signout:hover{color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.15)}
+.signout:hover{color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.1)}
 
-/* Nav */
+/* ── Nav ── */
 .nav{
   position:fixed;
   top:0;left:0;right:0;
   z-index:100;
-  padding:20px 32px;
+  padding:24px 36px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  transition:background .4s;
+  transition:all .5s;
 }
-.nav.scrolled{background:rgba(0,0,0,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.nav-logo svg{width:clamp(100px,15vw,140px);height:auto}
+.nav.scrolled{
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+  padding:16px 36px;
+}
+.nav-logo svg{width:clamp(90px,12vw,130px);height:auto}
 .nav-counter{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  font-size:11px;
-  color:rgba(255,255,255,.3);
+  font-size:10px;
+  color:rgba(255,255,255,.2);
+  letter-spacing:.05em;
 }
 .nav-dot{
-  width:6px;height:6px;
+  width:5px;height:5px;
   border-radius:50%;
-  background:#00f2fe;
-  box-shadow:0 0 8px rgba(0,242,254,.5);
-  animation:pulse 2s infinite;
+  background:#9945ff;
+  box-shadow:0 0 10px rgba(153,69,255,.6);
+  animation:pulse 2.5s infinite;
 }
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.nav-num{font-weight:700;color:#00f2fe}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.nav-num{font-weight:700;color:rgba(155,120,255,.8)}
 
-/* Footer */
+/* ── Scroll progress ── */
+.scroll-progress{
+  position:fixed;
+  top:0;left:0;
+  height:1px;
+  background:linear-gradient(90deg,#7b2ff7,#9945ff,#c471f5,#00f2fe);
+  z-index:200;
+  width:0%;
+  will-change:width;
+}
+
+/* ── Footer ── */
 .site-footer{
   position:relative;
   z-index:10;
-  border-top:1px solid rgba(255,255,255,.05);
-  padding:32px;
+  border-top:1px solid rgba(255,255,255,.03);
+  padding:32px 36px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -347,55 +370,41 @@ canvas#webgl{
   margin:0 auto;
 }
 .site-footer a{
-  color:rgba(255,255,255,.25);
+  color:rgba(255,255,255,.15);
   text-decoration:none;
-  font-size:11px;
+  font-size:10px;
   transition:color .3s;
-  letter-spacing:.05em;
+  letter-spacing:.08em;
 }
-.site-footer a:hover{color:rgba(255,255,255,.5)}
-.foot-logo svg{width:80px;height:auto}
+.site-footer a:hover{color:rgba(255,255,255,.35)}
+.foot-logo svg{width:72px;height:auto}
 .foot-links{display:flex;gap:20px}
 .disclaimer{
   position:relative;
   z-index:10;
   max-width:1000px;
   margin:0 auto;
-  padding:0 32px 48px;
-  font-size:10px;
-  color:rgba(255,255,255,.12);
+  padding:0 36px 48px;
+  font-size:9px;
+  color:rgba(255,255,255,.08);
   text-align:center;
-  line-height:1.7;
-}
-
-/* Scroll progress */
-.scroll-progress{
-  position:fixed;
-  top:0;left:0;
-  height:2px;
-  background:linear-gradient(90deg,#00f2fe,#0066ff,#0012e6);
-  z-index:200;
-  width:0%;
-  transition:width .1s linear;
+  line-height:1.8;
 }
 
 @media(max-width:768px){
   .nav{padding:16px 20px}
+  .nav.scrolled{padding:12px 20px}
   .gate-card{padding:28px 20px}
-  .metrics{gap:1px}
-  .metric{padding:20px 16px}
+  .section-copy{padding:0 20px}
 }
 </style>
 </head>
 <body>
 
-<!-- Scroll progress bar -->
 <div class="scroll-progress" id="scroll-progress"></div>
-
-<!-- Fixed WebGL canvas -->
 <canvas id="webgl"></canvas>
 
-<!-- Fixed nav -->
+<!-- ── Nav ── -->
 <nav class="nav" id="nav">
   <div class="nav-logo">
     <svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -416,58 +425,48 @@ canvas#webgl{
   <div class="nav-counter">
     <div class="nav-dot"></div>
     <span class="nav-num" id="wl-count">--</span>
-    <span>on the waitlist</span>
+    <span>on waitlist</span>
   </div>
 </nav>
 
-<!-- Scroll spacer (drives the animation) -->
+<!-- ── Scroll Spacer ── -->
 <div class="scroll-spacer">
 
-  <!-- Viewport 1: The Threshold -->
-  <div class="section" id="s-hero" style="opacity:1">
+  <!-- State 1: The Quantum Origin -->
+  <div class="float-layer" id="s-hero" style="opacity:1">
     <div class="hero-pre">Invite Only</div>
-    <h1 class="hero-title">The market never sleeps. Neither does WICK.</h1>
-    <p class="hero-sub">Autonomous prediction market intelligence. Four AI desks. One unified edge. Non-custodial. Always on.</p>
-  </div>
-
-  <!-- Viewport 2: The Acceleration -->
-  <div class="section" id="s-hook">
-    <div class="section-copy">
-      <div class="section-label">The Intelligence Pipeline</div>
-      <h2 class="section-heading">Four desks. Zero guesswork.</h2>
-      <p class="section-desc">Research scrapes breaking headlines. Math calculates implied probability gaps. Execution sizes the position with Kelly criterion precision. Risk vetoes anything that doesn't clear the hurdle rate. Every trade is a consensus, not a gamble.</p>
+    <h1 class="hero-title">Unifying the digital ecosystem.</h1>
+    <p class="hero-sub">Real-time connectivity. Seamless data integration. Secure, trustless architecture. One framework to bind it all.</p>
+    <div class="hero-scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
     </div>
   </div>
 
-  <!-- Viewport 3: The Convergence -->
-  <div class="section" id="s-proof">
+  <!-- State 2: The Hyperspace Shift -->
+  <div class="float-layer" id="s-shift">
     <div class="section-copy">
-      <div class="section-label">Architecture</div>
-      <h2 class="section-heading">Engineered for edge, not volume.</h2>
-      <p class="section-desc">NegRisk arbitrage locks profit when bracket sums exceed $1.00. Nightly self-calibration tunes hurdle rates to market liquidity. A 5% drawdown circuit breaker freezes all positions before damage compounds. Your USDC never leaves your wallet.</p>
-      <div class="metrics">
-        <div class="metric">
-          <div class="metric-val">4</div>
-          <div class="metric-label">AI Desks</div>
-        </div>
-        <div class="metric">
-          <div class="metric-val">24/7</div>
-          <div class="metric-label">Autonomous</div>
-        </div>
-        <div class="metric">
-          <div class="metric-val">5%</div>
-          <div class="metric-label">Max Drawdown</div>
-        </div>
-      </div>
+      <div class="section-label">Real-Time Connectivity</div>
+      <h2 class="section-heading">Every node. Every signal. Instantaneous.</h2>
+      <p class="section-desc">Wick Network delivers sub-second data propagation across decentralized nodes. Seamless integration eliminates the latency between intention and execution, creating a single source of truth that evolves in real time.</p>
     </div>
   </div>
 
-  <!-- Viewport 4: The Nexus -->
-  <div class="section" id="s-cta">
+  <!-- State 3: The Unified Matrix -->
+  <div class="float-layer" id="s-matrix">
+    <div class="section-copy">
+      <div class="section-label">Trustless Architecture</div>
+      <h2 class="section-heading">Decentralized by design. Secure by default.</h2>
+      <p class="section-desc">No central authority. No single point of failure. Wick's cryptographic consensus layer verifies every transaction, every state change, every handshake across the network without requiring trust between participants.</p>
+    </div>
+  </div>
+
+  <!-- State 4: The Nexus Point -->
+  <div class="float-layer" id="s-nexus">
     <div class="gate-wrap">
       <div class="gate-card">
-        <div class="gate-title">Get Early Access</div>
-        <div class="gate-desc">Join the waitlist or enter your invite code.</div>
+        <div class="gate-title">Join the Framework</div>
+        <div class="gate-desc">Request early access or enter your invite code.</div>
 
         <form id="waitlist-form" onsubmit="return handleWaitlist(event)">
           <div class="form-group">
@@ -486,7 +485,7 @@ canvas#webgl{
             <input type="checkbox" id="chk-newsletter" checked>
             <span class="check-label">Send me updates and the WICK Weekly newsletter.</span>
           </label>
-          <button class="btn-submit" type="submit" id="btn-submit" disabled>Join Waitlist</button>
+          <button class="btn-submit" type="submit" id="btn-submit" disabled>Request Access</button>
         </form>
 
         <div class="divider">Have an invite code?</div>
@@ -497,11 +496,11 @@ canvas#webgl{
             <input class="form-input" type="text" id="invite-code" placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em;text-align:center">
           </div>
           <div id="code-error" style="display:none;font-size:11px;color:#ef4444;margin-bottom:12px;text-align:center"></div>
-          <button class="btn-submit" id="btn-verify" onclick="verifyCode()" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);margin-top:0">Verify Code</button>
+          <button class="btn-submit" id="btn-verify" onclick="verifyCode()" style="background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);margin-top:0">Verify Code</button>
         </div>
 
         <div id="signin-section" style="display:none">
-          <div id="code-accepted" style="font-size:11px;color:#00f2fe;text-align:center;margin-bottom:14px"></div>
+          <div id="code-accepted" style="font-size:11px;color:rgba(155,120,255,.9);text-align:center;margin-bottom:14px"></div>
           <button class="btn-google" id="btn-signin">
             <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
             Sign in with Google
@@ -514,9 +513,9 @@ canvas#webgl{
     </div>
   </div>
 
-</div><!-- /scroll-spacer -->
+</div>
 
-<!-- Footer (after scroll) -->
+<!-- Footer -->
 <footer class="site-footer">
   <span class="foot-logo">
     <svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -525,10 +524,10 @@ canvas#webgl{
         <path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/>
         <path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/>
       </g>
-      <g transform="translate(265,102)" fill="rgba(255,255,255,.3)">
+      <g transform="translate(265,102)" fill="rgba(255,255,255,.12)">
         <path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/>
         <path d="M152,-88 L174,-88 L174,0 L152,0 Z"/>
-        <circle cx="163" cy="-112" r="11" fill="rgba(0,242,254,.3)"/>
+        <circle cx="163" cy="-112" r="11" fill="rgba(0,242,254,.12)"/>
         <path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/>
         <path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/>
       </g>
@@ -541,38 +540,49 @@ canvas#webgl{
 </footer>
 <p class="disclaimer">Trading prediction markets involves substantial risk of loss. WICK is automated trading software, not a financial advisor, broker, or investment adviser. Past performance does not guarantee future results. Trades execute through your own Polymarket wallet on the Polygon network. WICK never holds or transfers your funds. Only trade money you can afford to lose.</p>
 
-<!-- ═══ THREE.JS ═══ -->
+<!-- ═══════════════════════════════════════════
+     THREE.JS — Unified Wallpaper Renderer
+     ═══════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
-
-<!-- ═══ GSAP + ScrollTrigger ═══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
 <script>
-// ─── WebGL Scene ─────────────────────────────────────────────
 (function(){
+
+  // ── Renderer setup ──
   const canvas = document.getElementById('webgl');
-  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false, powerPreference:'high-performance'});
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 1);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.z = 5;
+  scene.fog = new THREE.FogExp2(0x000000, 0.08);
 
-  // ─── Custom Shader Material for the Core Artifact ───
-  const vertexShader = `
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 500);
+  camera.position.set(0, 0, 6);
+
+  // ── Shared scroll state ──
+  let scrollP = 0;
+  let smoothP = 0;
+
+  // ════════════════════════════════════════════
+  // VERTEX SHADER — Perlin noise morphing
+  // ════════════════════════════════════════════
+  const coreVert = `
     uniform float uTime;
     uniform float uMorph;
     uniform float uExplode;
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying float vDisplacement;
+    uniform float uCollapse;
+    varying vec3 vPos;
+    varying vec3 vNorm;
+    varying float vDisp;
+    varying float vFresnel;
 
-    //	Classic Perlin 3D Noise (compact)
-    vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x,289.0);}
-    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
-    vec3 fade(vec3 t){return t*t*t*(t*(t*6.0-15.0)+10.0);}
+    vec4 pm(vec4 x){return mod(((x*34.0)+1.0)*x,289.0);}
+    vec4 tis(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+    vec3 fd(vec3 t){return t*t*t*(t*(t*6.0-15.0)+10.0);}
     float cnoise(vec3 P){
       vec3 Pi0=floor(P),Pi1=Pi0+vec3(1.0);
       Pi0=mod(Pi0,289.0);Pi1=mod(Pi1,289.0);
@@ -580,8 +590,8 @@ canvas#webgl{
       vec4 ix=vec4(Pi0.x,Pi1.x,Pi0.x,Pi1.x);
       vec4 iy=vec4(Pi0.yy,Pi1.yy);
       vec4 iz0=Pi0.zzzz,iz1=Pi1.zzzz;
-      vec4 ixy=permute(permute(ix)+iy);
-      vec4 ixy0=permute(ixy+iz0),ixy1=permute(ixy+iz1);
+      vec4 ixy=pm(pm(ix)+iy);
+      vec4 ixy0=pm(ixy+iz0),ixy1=pm(ixy+iz1);
       vec4 gx0=ixy0/7.0,gy0=fract(floor(gx0)/7.0)-0.5;
       gx0=fract(gx0);vec4 gz0=vec4(0.5)-abs(gx0)-abs(gy0);
       vec4 sz0=step(gz0,vec4(0.0));
@@ -594,380 +604,422 @@ canvas#webgl{
       vec3 g010=vec3(gx0.z,gy0.z,gz0.z),g110=vec3(gx0.w,gy0.w,gz0.w);
       vec3 g001=vec3(gx1.x,gy1.x,gz1.x),g101=vec3(gx1.y,gy1.y,gz1.y);
       vec3 g011=vec3(gx1.z,gy1.z,gz1.z),g111=vec3(gx1.w,gy1.w,gz1.w);
-      vec4 norm0=taylorInvSqrt(vec4(dot(g000,g000),dot(g010,g010),dot(g100,g100),dot(g110,g110)));
-      g000*=norm0.x;g010*=norm0.y;g100*=norm0.z;g110*=norm0.w;
-      vec4 norm1=taylorInvSqrt(vec4(dot(g001,g001),dot(g011,g011),dot(g101,g101),dot(g111,g111)));
-      g001*=norm1.x;g011*=norm1.y;g101*=norm1.z;g111*=norm1.w;
-      float n000=dot(g000,Pf0),n100=dot(g100,vec3(Pf1.x,Pf0.yz));
-      float n010=dot(g010,vec3(Pf0.x,Pf1.y,Pf0.z)),n110=dot(g110,vec3(Pf1.xy,Pf0.z));
-      float n001=dot(g001,vec3(Pf0.xy,Pf1.z)),n101=dot(g101,vec3(Pf1.x,Pf0.y,Pf1.z));
-      float n011=dot(g011,vec3(Pf0.x,Pf1.yz)),n111=dot(g111,Pf1);
-      vec3 fade_xyz=fade(Pf0);
-      vec4 n_z=mix(vec4(n000,n100,n010,n110),vec4(n001,n101,n011,n111),fade_xyz.z);
-      vec2 n_yz=mix(n_z.xy,n_z.zw,fade_xyz.y);
-      return 2.2*mix(n_yz.x,n_yz.y,fade_xyz.x);
+      vec4 n0=tis(vec4(dot(g000,g000),dot(g010,g010),dot(g100,g100),dot(g110,g110)));
+      g000*=n0.x;g010*=n0.y;g100*=n0.z;g110*=n0.w;
+      vec4 n1=tis(vec4(dot(g001,g001),dot(g011,g011),dot(g101,g101),dot(g111,g111)));
+      g001*=n1.x;g011*=n1.y;g101*=n1.z;g111*=n1.w;
+      float na=dot(g000,Pf0),nb=dot(g100,vec3(Pf1.x,Pf0.yz));
+      float nc=dot(g010,vec3(Pf0.x,Pf1.y,Pf0.z)),nd=dot(g110,vec3(Pf1.xy,Pf0.z));
+      float ne=dot(g001,vec3(Pf0.xy,Pf1.z)),nf=dot(g101,vec3(Pf1.x,Pf0.y,Pf1.z));
+      float ng=dot(g011,vec3(Pf0.x,Pf1.yz)),nh=dot(g111,Pf1);
+      vec3 f=fd(Pf0);
+      vec4 nz=mix(vec4(na,nb,nc,nd),vec4(ne,nf,ng,nh),f.z);
+      vec2 ny=mix(nz.xy,nz.zw,f.y);
+      return 2.2*mix(ny.x,ny.y,f.x);
     }
 
     void main(){
-      vNormal = normal;
-      vPosition = position;
+      float n = cnoise(position * (1.2 + uMorph * 0.5) + uTime * 0.25);
+      float n2 = cnoise(position * 2.5 - uTime * 0.15) * 0.3;
+      float disp = (n + n2) * uMorph * 0.5;
 
-      float noise = cnoise(position * 1.5 + uTime * 0.3) * uMorph;
-      float displacement = noise * 0.6;
+      vec3 pos = position + normal * disp;
+      pos += normal * uExplode * (1.5 + n * 1.0);
 
-      vec3 pos = position + normal * displacement;
+      // Collapse: pull toward origin
+      pos = mix(pos, normalize(pos) * 0.8, uCollapse);
 
-      // Explode phase: push vertices outward
-      float explodeFactor = uExplode * 2.0;
-      pos += normal * explodeFactor * (0.5 + noise * 0.5);
+      vPos = pos;
+      vNorm = normalMatrix * normal;
+      vDisp = disp;
 
-      vDisplacement = displacement;
+      vec3 viewDir = normalize(cameraPosition - (modelMatrix * vec4(pos,1.0)).xyz);
+      vec3 worldNorm = normalize((modelMatrix * vec4(normal,0.0)).xyz);
+      vFresnel = pow(1.0 - max(dot(viewDir, worldNorm), 0.0), 3.0);
+
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
     }
   `;
 
-  const fragmentShader = `
+  // ════════════════════════════════════════════
+  // FRAGMENT SHADER — Iridescent cosmic surface
+  // ════════════════════════════════════════════
+  const coreFrag = `
     uniform float uTime;
     uniform float uPhase;
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying float vDisplacement;
+    varying vec3 vPos;
+    varying vec3 vNorm;
+    varying float vDisp;
+    varying float vFresnel;
 
     void main(){
-      // Iridescent color based on view angle and displacement
-      vec3 col1 = vec3(0.0, 0.949, 0.996); // #00f2fe cyan
-      vec3 col2 = vec3(0.0, 0.4, 1.0);     // #0066ff blue
-      vec3 col3 = vec3(0.0, 0.071, 0.902);  // #0012e6 deep blue
+      // Cosmic purple-to-cyan iridescence
+      vec3 deepPurple = vec3(0.12, 0.0, 0.25);
+      vec3 violet     = vec3(0.48, 0.18, 0.97);
+      vec3 magenta    = vec3(0.77, 0.44, 0.96);
+      vec3 cyan       = vec3(0.0, 0.95, 1.0);
+      vec3 white      = vec3(1.0);
 
-      float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), 2.0);
+      float t1 = sin(vDisp * 4.0 + uTime * 0.4) * 0.5 + 0.5;
+      float t2 = sin(vPos.x * 3.0 + vPos.y * 2.0 + uTime * 0.3) * 0.5 + 0.5;
 
-      // Phase-dependent color mixing
-      float t = sin(vDisplacement * 3.0 + uTime * 0.5) * 0.5 + 0.5;
-      vec3 color = mix(col1, col2, t);
-      color = mix(color, col3, fresnel * 0.6);
+      vec3 baseColor = mix(deepPurple, violet, t1);
+      baseColor = mix(baseColor, magenta, t2 * 0.4);
 
-      // Add shimmer
-      float shimmer = sin(vPosition.x * 10.0 + vPosition.y * 10.0 + uTime) * 0.5 + 0.5;
-      color += vec3(shimmer * 0.08);
+      // Fresnel edge glow
+      vec3 edgeColor = mix(cyan, white, vFresnel * 0.3);
+      baseColor = mix(baseColor, edgeColor, vFresnel * 0.7);
 
-      // Edge glow
-      float edgeGlow = fresnel * 0.8;
-      color += col1 * edgeGlow * 0.5;
+      // Shimmer
+      float shimmer = sin(vPos.x * 15.0 + vPos.z * 10.0 + uTime * 1.5) * 0.5 + 0.5;
+      baseColor += cyan * shimmer * 0.06 * vFresnel;
 
-      float alpha = 0.7 + fresnel * 0.3;
+      // Phase-dependent intensity
+      float intensity = 0.8 + uPhase * 0.2;
+      float alpha = 0.65 + vFresnel * 0.35;
 
-      gl_FragColor = vec4(color, alpha);
+      gl_FragColor = vec4(baseColor * intensity, alpha);
     }
   `;
 
-  // Core icosahedron artifact
-  const coreGeo = new THREE.IcosahedronGeometry(1.5, 5);
+  // ── Core Geometry ──
+  const uniforms = {
+    uTime:     {value:0},
+    uMorph:    {value:0.4},
+    uExplode:  {value:0},
+    uCollapse: {value:0},
+    uPhase:    {value:0},
+  };
+
   const coreMat = new THREE.ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      uTime:    {value:0},
-      uMorph:   {value:0.3},
-      uExplode: {value:0},
-      uPhase:   {value:0},
-    },
+    vertexShader: coreVert,
+    fragmentShader: coreFrag,
+    uniforms,
     transparent: true,
-    wireframe: false,
-    side: THREE.DoubleSide,
     depthWrite: false,
+    side: THREE.DoubleSide,
   });
+
+  const coreGeo = new THREE.IcosahedronGeometry(1.8, 6);
   const coreMesh = new THREE.Mesh(coreGeo, coreMat);
   scene.add(coreMesh);
 
-  // Wireframe overlay
-  const wireGeo = new THREE.IcosahedronGeometry(1.52, 3);
+  // ── Wireframe shell ──
+  const wireUniforms = {
+    uTime: uniforms.uTime,
+    uMorph: uniforms.uMorph,
+    uExplode: uniforms.uExplode,
+    uCollapse: uniforms.uCollapse,
+    uPhase: uniforms.uPhase,
+  };
   const wireMat = new THREE.ShaderMaterial({
-    vertexShader,
+    vertexShader: coreVert,
     fragmentShader: `
       uniform float uTime;
       uniform float uPhase;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-      varying float vDisplacement;
+      varying vec3 vNorm;
+      varying float vFresnel;
       void main(){
-        float fresnel = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0,0.0,1.0))), 3.0);
-        vec3 col = vec3(0.0, 0.949, 0.996);
-        gl_FragColor = vec4(col, fresnel * 0.4 * (1.0 - uPhase * 0.5));
+        vec3 col = mix(vec3(0.48,0.18,0.97), vec3(0.0,0.95,1.0), vFresnel);
+        float alpha = vFresnel * 0.25 * (1.0 + sin(uTime * 0.5) * 0.2);
+        gl_FragColor = vec4(col, alpha);
       }
     `,
-    uniforms: {
-      uTime:    coreMat.uniforms.uTime,
-      uMorph:   coreMat.uniforms.uMorph,
-      uExplode: coreMat.uniforms.uExplode,
-      uPhase:   coreMat.uniforms.uPhase,
-    },
+    uniforms: wireUniforms,
     transparent: true,
     wireframe: true,
     depthWrite: false,
   });
+  const wireGeo = new THREE.IcosahedronGeometry(1.85, 4);
   const wireMesh = new THREE.Mesh(wireGeo, wireMat);
   scene.add(wireMesh);
 
-  // ─── Particle System ───
-  const PARTICLE_COUNT = 2000;
-  const particleGeo = new THREE.BufferGeometry();
-  const positions  = new Float32Array(PARTICLE_COUNT * 3);
-  const velocities = new Float32Array(PARTICLE_COUNT * 3);
-  const randoms    = new Float32Array(PARTICLE_COUNT);
-  const basePositions = new Float32Array(PARTICLE_COUNT * 3);
-
-  for(let i = 0; i < PARTICLE_COUNT; i++){
-    // Sphere distribution
-    const theta = Math.random() * Math.PI * 2;
-    const phi   = Math.acos(2*Math.random()-1);
-    const r     = 1.8 + Math.random() * 0.5;
-    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
-    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-    positions[i*3+2] = r * Math.cos(phi);
-    basePositions[i*3]   = positions[i*3];
-    basePositions[i*3+1] = positions[i*3+1];
-    basePositions[i*3+2] = positions[i*3+2];
-    velocities[i*3]   = (Math.random()-0.5)*0.02;
-    velocities[i*3+1] = (Math.random()-0.5)*0.02;
-    velocities[i*3+2] = (Math.random()-0.5)*0.02;
-    randoms[i] = Math.random();
-  }
-  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-  // Network lines target positions (grid)
-  const gridPositions = new Float32Array(PARTICLE_COUNT * 3);
-  const gridCols = Math.ceil(Math.sqrt(PARTICLE_COUNT));
-  const gridSpacing = 0.12;
-  for(let i = 0; i < PARTICLE_COUNT; i++){
-    const col = i % gridCols;
-    const row = Math.floor(i / gridCols);
-    gridPositions[i*3]   = (col - gridCols/2) * gridSpacing;
-    gridPositions[i*3+1] = (row - gridCols/2) * gridSpacing;
-    gridPositions[i*3+2] = Math.sin(col*0.3)*Math.cos(row*0.3)*0.8;
-  }
-
-  const particleMat = new THREE.PointsMaterial({
-    color: 0x00f2fe,
-    size: 0.02,
+  // ── Outer glow ring ──
+  const ringGeo = new THREE.TorusGeometry(2.8, 0.008, 16, 128);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0x7b2ff7,
     transparent: true,
-    opacity: 0.6,
-    blending: THREE.AdditiveBlending,
+    opacity: 0.15,
     depthWrite: false,
-    sizeAttenuation: true,
   });
-  const particles = new THREE.Points(particleGeo, particleMat);
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  scene.add(ring);
+
+  // ══════════════════════════════════════
+  // PARTICLE FIELD — 3000 cosmic particles
+  // ══════════════════════════════════════
+  const PC = 3000;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(PC * 3);
+  const pBase = new Float32Array(PC * 3);
+  const pVel = new Float32Array(PC * 3);
+  const pRnd = new Float32Array(PC);
+
+  // Network node target positions (neural-net-like structure)
+  const pNet = new Float32Array(PC * 3);
+
+  for(let i=0;i<PC;i++){
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.acos(2*Math.random()-1);
+    const r = 2.2 + Math.random()*1.0;
+    pPos[i*3]   = pBase[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+    pPos[i*3+1] = pBase[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+    pPos[i*3+2] = pBase[i*3+2] = r*Math.cos(phi);
+    pVel[i*3]   = (Math.random()-0.5)*0.03;
+    pVel[i*3+1] = (Math.random()-0.5)*0.03;
+    pVel[i*3+2] = (Math.random()-0.5)*0.03;
+    pRnd[i] = Math.random();
+
+    // Neural network pattern: layered radial clusters
+    const layer = Math.floor(pRnd[i]*5);
+    const aOffset = (i/PC)*Math.PI*2*3 + layer*1.2;
+    const rNet = 1.5 + layer*0.8;
+    pNet[i*3]   = Math.cos(aOffset)*rNet*(0.6+Math.random()*0.4);
+    pNet[i*3+1] = (layer-2)*1.2 + (Math.random()-0.5)*0.6;
+    pNet[i*3+2] = Math.sin(aOffset)*rNet*(0.6+Math.random()*0.4);
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+
+  // Custom particle colors
+  const pColors = new Float32Array(PC * 3);
+  for(let i=0;i<PC;i++){
+    const t = pRnd[i];
+    if(t < 0.3){
+      pColors[i*3]=0.48; pColors[i*3+1]=0.18; pColors[i*3+2]=0.97; // violet
+    } else if(t < 0.6){
+      pColors[i*3]=0.77; pColors[i*3+1]=0.44; pColors[i*3+2]=0.96; // magenta
+    } else if(t < 0.85){
+      pColors[i*3]=0.0; pColors[i*3+1]=0.95; pColors[i*3+2]=1.0; // cyan
+    } else {
+      pColors[i*3]=1.0; pColors[i*3+1]=1.0; pColors[i*3+2]=1.0; // white
+    }
+  }
+  pGeo.setAttribute('color', new THREE.BufferAttribute(pColors,3));
+
+  const pMat = new THREE.PointsMaterial({
+    size:0.018,
+    transparent:true,
+    opacity:0.5,
+    blending:THREE.AdditiveBlending,
+    depthWrite:false,
+    sizeAttenuation:true,
+    vertexColors:true,
+  });
+  const particles = new THREE.Points(pGeo, pMat);
   scene.add(particles);
 
-  // ─── Scroll State ───
-  let scrollProgress = 0;
-  let targetScrollProgress = 0;
-  const sections = ['s-hero','s-hook','s-proof','s-cta'];
+  // ── Network connection lines ──
+  const lineCount = 200;
+  const lineGeo = new THREE.BufferGeometry();
+  const linePos = new Float32Array(lineCount * 6);
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
+  const lineMat = new THREE.LineBasicMaterial({
+    color:0x7b2ff7,
+    transparent:true,
+    opacity:0,
+    blending:THREE.AdditiveBlending,
+    depthWrite:false,
+  });
+  const lines = new THREE.LineSegments(lineGeo, lineMat);
+  scene.add(lines);
 
-  function updateScroll(){
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    targetScrollProgress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
-  }
-  window.addEventListener('scroll', updateScroll, {passive:true});
-
-  // Nav scroll state
-  window.addEventListener('scroll', function(){
-    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
-  }, {passive:true});
-
-  // Scroll progress bar
-  window.addEventListener('scroll', function(){
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    const pct = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
-    document.getElementById('scroll-progress').style.width = pct + '%';
-  }, {passive:true});
-
-  // ─── Section Visibility (GSAP ScrollTrigger) ───
+  // ══════════════════════════════════════
+  // GSAP ScrollTrigger — 1:1 scrub
+  // ══════════════════════════════════════
   gsap.registerPlugin(ScrollTrigger);
 
-  // Hero: visible 0% - 20%
-  gsap.timeline({
-    scrollTrigger:{
-      trigger:'.scroll-spacer',
-      start:'top top',
-      end:'20% top',
-      scrub:0.5,
-    }
-  })
-  .to('#s-hero',{opacity:0, duration:1});
+  // Master scroll progress
+  ScrollTrigger.create({
+    trigger:'.scroll-spacer',
+    start:'top top',
+    end:'bottom bottom',
+    scrub:0,
+    onUpdate: self => { scrollP = self.progress; }
+  });
 
-  // Hook: visible 15% - 45%
-  gsap.timeline({
-    scrollTrigger:{
-      trigger:'.scroll-spacer',
-      start:'12% top',
-      end:'45% top',
-      scrub:0.5,
-    }
-  })
-  .fromTo('#s-hook',{opacity:0},{opacity:1, duration:0.3})
-  .to('#s-hook',{opacity:1, duration:0.4})
-  .to('#s-hook',{opacity:0, duration:0.3});
+  // Section 1: Hero — 0% to 18%
+  gsap.timeline({scrollTrigger:{trigger:'.scroll-spacer',start:'top top',end:'18% top',scrub:0.3}})
+    .to('#s-hero',{opacity:0,filter:'blur(12px)',duration:1});
 
-  // Proof: visible 40% - 70%
-  gsap.timeline({
-    scrollTrigger:{
-      trigger:'.scroll-spacer',
-      start:'37% top',
-      end:'70% top',
-      scrub:0.5,
-    }
-  })
-  .fromTo('#s-proof',{opacity:0},{opacity:1, duration:0.3})
-  .to('#s-proof',{opacity:1, duration:0.4})
-  .to('#s-proof',{opacity:0, duration:0.3});
+  // Section 2: Shift — 14% to 48%
+  gsap.timeline({scrollTrigger:{trigger:'.scroll-spacer',start:'14% top',end:'48% top',scrub:0.3}})
+    .fromTo('#s-shift',{opacity:0,filter:'blur(8px)'},{opacity:1,filter:'blur(0px)',duration:0.35})
+    .to('#s-shift',{opacity:1,duration:0.3})
+    .to('#s-shift',{opacity:0,filter:'blur(12px)',duration:0.35});
 
-  // CTA: visible 65% - 100%
-  gsap.timeline({
-    scrollTrigger:{
-      trigger:'.scroll-spacer',
-      start:'62% top',
-      end:'90% top',
-      scrub:0.5,
-    }
-  })
-  .fromTo('#s-cta',{opacity:0},{opacity:1, duration:1});
+  // Section 3: Matrix — 42% to 72%
+  gsap.timeline({scrollTrigger:{trigger:'.scroll-spacer',start:'42% top',end:'72% top',scrub:0.3}})
+    .fromTo('#s-matrix',{opacity:0,filter:'blur(8px)'},{opacity:1,filter:'blur(0px)',duration:0.35})
+    .to('#s-matrix',{opacity:1,duration:0.3})
+    .to('#s-matrix',{opacity:0,filter:'blur(12px)',duration:0.35});
 
-  // ─── Animation Loop ───
+  // Section 4: Nexus — 66% to 95%
+  gsap.timeline({scrollTrigger:{trigger:'.scroll-spacer',start:'66% top',end:'88% top',scrub:0.3}})
+    .fromTo('#s-nexus',{opacity:0,filter:'blur(6px)'},{opacity:1,filter:'blur(0px)',duration:1});
+
+  // Nav
+  window.addEventListener('scroll', ()=>{
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY>60);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('scroll-progress').style.width = max>0 ? (window.scrollY/max*100)+'%' : '0%';
+  },{passive:true});
+
+  // ══════════════════════════════════════
+  // RENDER LOOP
+  // ══════════════════════════════════════
   const clock = new THREE.Clock();
 
-  function animate(){
-    requestAnimationFrame(animate);
-
-    const elapsed = clock.getElapsedTime();
-    const dt = clock.getDelta();
+  function render(){
+    requestAnimationFrame(render);
+    const t = clock.getElapsedTime();
 
     // Smooth scroll interpolation
-    scrollProgress += (targetScrollProgress - scrollProgress) * 0.06;
-    const p = scrollProgress;
+    smoothP += (scrollP - smoothP) * 0.04;
+    const p = smoothP;
 
-    // Update shader uniforms
-    coreMat.uniforms.uTime.value = elapsed;
-    coreMat.uniforms.uPhase.value = p;
+    uniforms.uTime.value = t;
+    uniforms.uPhase.value = p;
 
-    // Phase 1 (0-0.25): Dormant — gentle morph
-    // Phase 2 (0.25-0.5): Acceleration — heavy morph + explode
-    // Phase 3 (0.5-0.75): Convergence — organize
-    // Phase 4 (0.75-1.0): Nexus — collapse to stable
+    // ── Phase-driven uniforms ──
+    // State 1 (0-0.22): Quantum Origin — dormant crystalline
+    // State 2 (0.22-0.50): Hyperspace Shift — deconstruct, explode
+    // State 3 (0.50-0.75): Unified Matrix — organize network
+    // State 4 (0.75-1.0): Nexus Point — collapse, stabilize
 
-    let morphVal, explodeVal, scaleVal, rotSpeedX, rotSpeedY;
-
-    if(p < 0.25){
-      // Dormant
-      morphVal = 0.3 + p * 1.2;
-      explodeVal = 0;
-      scaleVal = 1.0;
-      rotSpeedX = 0.15;
-      rotSpeedY = 0.2;
-    } else if(p < 0.5){
-      // Acceleration
-      const t = (p - 0.25) / 0.25;
-      morphVal = 0.6 + t * 2.0;
-      explodeVal = t * 0.8;
-      scaleVal = 1.0 + t * 0.3;
-      rotSpeedX = 0.15 + t * 0.6;
-      rotSpeedY = 0.2 + t * 0.8;
+    if(p < 0.22){
+      const s = p / 0.22;
+      uniforms.uMorph.value = 0.4 + s * 0.4;
+      uniforms.uExplode.value = 0;
+      uniforms.uCollapse.value = 0;
+      coreMesh.rotation.x += 0.001;
+      coreMesh.rotation.y += 0.0015;
+    } else if(p < 0.50){
+      const s = (p - 0.22) / 0.28;
+      const ease = s * s;
+      uniforms.uMorph.value = 0.8 + ease * 2.5;
+      uniforms.uExplode.value = ease * 1.2;
+      uniforms.uCollapse.value = 0;
+      coreMesh.rotation.x += 0.002 + ease * 0.006;
+      coreMesh.rotation.y += 0.003 + ease * 0.008;
     } else if(p < 0.75){
-      // Convergence
-      const t = (p - 0.5) / 0.25;
-      morphVal = 2.6 - t * 2.0;
-      explodeVal = 0.8 - t * 0.8;
-      scaleVal = 1.3 - t * 0.2;
-      rotSpeedX = 0.75 - t * 0.5;
-      rotSpeedY = 1.0 - t * 0.7;
+      const s = (p - 0.50) / 0.25;
+      const ease = s * s * (3 - 2 * s);
+      uniforms.uMorph.value = 3.3 - ease * 2.5;
+      uniforms.uExplode.value = 1.2 - ease * 1.2;
+      uniforms.uCollapse.value = 0;
+      coreMesh.rotation.x += 0.008 - ease * 0.006;
+      coreMesh.rotation.y += 0.011 - ease * 0.009;
     } else {
-      // Nexus — collapse
-      const t = (p - 0.75) / 0.25;
-      morphVal = 0.6 - t * 0.5;
-      explodeVal = 0;
-      scaleVal = 1.1 - t * 0.3;
-      rotSpeedX = 0.25 - t * 0.2;
-      rotSpeedY = 0.3 - t * 0.25;
+      const s = (p - 0.75) / 0.25;
+      const ease = s * s * (3 - 2 * s);
+      uniforms.uMorph.value = 0.8 - ease * 0.6;
+      uniforms.uExplode.value = 0;
+      uniforms.uCollapse.value = ease * 0.6;
+      coreMesh.rotation.x += 0.002 - ease * 0.0015;
+      coreMesh.rotation.y += 0.002 - ease * 0.0015;
     }
 
-    coreMat.uniforms.uMorph.value = morphVal;
-    coreMat.uniforms.uExplode.value = explodeVal;
+    wireMesh.rotation.copy(coreMesh.rotation);
 
-    coreMesh.scale.setScalar(scaleVal);
-    wireMesh.scale.setScalar(scaleVal);
+    // Scale
+    const scaleBase = 1.0;
+    const scalePulse = Math.sin(t * 0.3) * 0.02;
+    let scalePhase;
+    if(p < 0.22) scalePhase = scaleBase;
+    else if(p < 0.50) scalePhase = scaleBase + ((p-0.22)/0.28)*0.4;
+    else if(p < 0.75) scalePhase = scaleBase + 0.4 - ((p-0.50)/0.25)*0.35;
+    else scalePhase = scaleBase + 0.05 - ((p-0.75)/0.25)*0.15;
+    const s = scalePhase + scalePulse;
+    coreMesh.scale.setScalar(s);
+    wireMesh.scale.setScalar(s);
 
-    coreMesh.rotation.x += rotSpeedX * 0.005;
-    coreMesh.rotation.y += rotSpeedY * 0.005;
-    wireMesh.rotation.x = coreMesh.rotation.x;
-    wireMesh.rotation.y = coreMesh.rotation.y;
+    // Ring
+    ring.rotation.x = Math.PI/2 + Math.sin(t*0.2)*0.15;
+    ring.rotation.z = t*0.05;
+    const ringScale = s * (1.0 + (p > 0.22 && p < 0.75 ? 0.3 : 0));
+    ring.scale.setScalar(ringScale);
+    ringMat.opacity = p < 0.22 ? 0.15 : (p < 0.5 ? 0.15 - ((p-0.22)/0.28)*0.12 : (p < 0.75 ? 0.03 + ((p-0.5)/0.25)*0.12 : 0.15));
 
-    // ─── Particle Animation ───
-    const posAttr = particleGeo.attributes.position;
-    const posArr  = posAttr.array;
+    // ── Particle animation ──
+    const pa = pGeo.attributes.position.array;
 
-    for(let i = 0; i < PARTICLE_COUNT; i++){
-      const i3 = i * 3;
-      const rnd = randoms[i];
+    for(let i=0;i<PC;i++){
+      const i3 = i*3;
+      const r = pRnd[i];
 
-      if(p < 0.3){
-        // Sphere orbit
-        const angle = elapsed * (0.1 + rnd * 0.15) + rnd * Math.PI * 2;
-        const r = 1.8 + rnd * 0.5 + Math.sin(elapsed * 0.5 + rnd * 10) * 0.15;
-        const phi = basePositions[i3+1] / (1.8 + 0.5) * Math.PI;
-        posArr[i3]   = basePositions[i3]   * Math.cos(angle * 0.1) - basePositions[i3+2] * Math.sin(angle * 0.1);
-        posArr[i3+1] = basePositions[i3+1] + Math.sin(elapsed * 0.3 + rnd * 6.28) * 0.05;
-        posArr[i3+2] = basePositions[i3]   * Math.sin(angle * 0.1) + basePositions[i3+2] * Math.cos(angle * 0.1);
-      } else if(p < 0.55){
-        // Explode outward
-        const t = (p - 0.3) / 0.25;
-        const explosionScale = 1.0 + t * 4.0;
-        const chaos = Math.sin(elapsed * 2.0 + rnd * 20.0) * t * 0.5;
-        posArr[i3]   = basePositions[i3]   * explosionScale + velocities[i3]   * elapsed * 3.0 + chaos;
-        posArr[i3+1] = basePositions[i3+1] * explosionScale + velocities[i3+1] * elapsed * 3.0 + chaos;
-        posArr[i3+2] = basePositions[i3+2] * explosionScale + velocities[i3+2] * elapsed * 3.0 + chaos;
-      } else if(p < 0.8){
-        // Organize into grid network
-        const t = Math.min((p - 0.55) / 0.25, 1.0);
-        const eased = t * t * (3 - 2 * t); // smoothstep
-        const curX = posArr[i3],   curY = posArr[i3+1], curZ = posArr[i3+2];
-        const tgtX = gridPositions[i3], tgtY = gridPositions[i3+1], tgtZ = gridPositions[i3+2];
-        posArr[i3]   = curX + (tgtX - curX) * eased * 0.08;
-        posArr[i3+1] = curY + (tgtY - curY) * eased * 0.08;
-        posArr[i3+2] = curZ + (tgtZ - curZ) * eased * 0.08;
-        // Subtle wave
-        posArr[i3+2] += Math.sin(elapsed + i * 0.01) * 0.02 * (1 - eased);
+      if(p < 0.22){
+        // Dormant orbit
+        const angle = t * (0.05 + r * 0.08);
+        const ca = Math.cos(angle), sa = Math.sin(angle);
+        const bx = pBase[i3], bz = pBase[i3+2];
+        pa[i3]   = bx*ca - bz*sa;
+        pa[i3+1] = pBase[i3+1] + Math.sin(t*0.2+r*6.28)*0.04;
+        pa[i3+2] = bx*sa + bz*ca;
+      } else if(p < 0.50){
+        // Hyperspace explosion
+        const s = (p - 0.22) / 0.28;
+        const scale = 1.0 + s * 5.0;
+        const chaos = Math.sin(t*2.5+r*25.0) * s * 0.8;
+        pa[i3]   = pBase[i3]*scale   + pVel[i3]*t*4.0   + chaos;
+        pa[i3+1] = pBase[i3+1]*scale + pVel[i3+1]*t*4.0 + chaos * 0.7;
+        pa[i3+2] = pBase[i3+2]*scale + pVel[i3+2]*t*4.0 + chaos;
+      } else if(p < 0.75){
+        // Organize into neural network
+        const s = (p - 0.50) / 0.25;
+        const ease = s*s*(3-2*s);
+        pa[i3]   += (pNet[i3]   - pa[i3])   * ease * 0.06;
+        pa[i3+1] += (pNet[i3+1] - pa[i3+1]) * ease * 0.06;
+        pa[i3+2] += (pNet[i3+2] - pa[i3+2]) * ease * 0.06;
+        // Subtle drift
+        pa[i3]   += Math.sin(t*0.3+i*0.01)*0.003*(1-ease);
+        pa[i3+1] += Math.cos(t*0.4+i*0.02)*0.003*(1-ease);
       } else {
-        // Collapse back to tight sphere
-        const t = Math.min((p - 0.8) / 0.2, 1.0);
-        const eased = t * t * (3 - 2 * t);
-        const tgtR = 1.2;
-        const theta = randoms[i] * Math.PI * 2;
-        const phi   = Math.acos(2 * ((i/PARTICLE_COUNT)) - 1);
-        const tgtX = tgtR * Math.sin(phi) * Math.cos(theta);
-        const tgtY = tgtR * Math.sin(phi) * Math.sin(theta);
-        const tgtZ = tgtR * Math.cos(phi);
-        posArr[i3]   += (tgtX - posArr[i3])   * eased * 0.05;
-        posArr[i3+1] += (tgtY - posArr[i3+1]) * eased * 0.05;
-        posArr[i3+2] += (tgtZ - posArr[i3+2]) * eased * 0.05;
+        // Collapse into tight core
+        const s = (p - 0.75) / 0.25;
+        const ease = s*s*(3-2*s);
+        const theta = r*Math.PI*2;
+        const phi = Math.acos(2*(i/PC)-1);
+        const cr = 1.0;
+        const tx = cr*Math.sin(phi)*Math.cos(theta);
+        const ty = cr*Math.sin(phi)*Math.sin(theta);
+        const tz = cr*Math.cos(phi);
+        pa[i3]   += (tx - pa[i3])   * ease * 0.04;
+        pa[i3+1] += (ty - pa[i3+1]) * ease * 0.04;
+        pa[i3+2] += (tz - pa[i3+2]) * ease * 0.04;
       }
     }
-    posAttr.needsUpdate = true;
+    pGeo.attributes.position.needsUpdate = true;
 
-    // Particle size and opacity based on phase
-    particleMat.opacity = 0.3 + Math.sin(p * Math.PI) * 0.5;
-    particleMat.size = 0.015 + (p > 0.3 && p < 0.7 ? 0.015 : 0);
+    // Particle appearance
+    pMat.opacity = 0.3 + Math.sin(p * Math.PI)*0.4;
+    pMat.size = p > 0.22 && p < 0.75 ? 0.025 : 0.018;
 
-    // Camera subtle movement
-    camera.position.x = Math.sin(elapsed * 0.1) * 0.3;
-    camera.position.y = Math.cos(elapsed * 0.15) * 0.2;
+    // ── Network lines (State 3) ──
+    const lineOpacity = p >= 0.50 && p < 0.80 ? Math.min((p-0.50)/0.08, 1.0) * (1.0-Math.max((p-0.72)/0.08,0)) * 0.12 : 0;
+    lineMat.opacity = lineOpacity;
+    if(lineOpacity > 0.001){
+      const la = lineGeo.attributes.position.array;
+      for(let l=0; l<lineCount; l++){
+        const li = Math.floor(pRnd[l] * PC);
+        const lj = Math.floor(pRnd[(l+100)%PC] * PC);
+        la[l*6]   = pa[li*3];   la[l*6+1] = pa[li*3+1]; la[l*6+2] = pa[li*3+2];
+        la[l*6+3] = pa[lj*3];   la[l*6+4] = pa[lj*3+1]; la[l*6+5] = pa[lj*3+2];
+      }
+      lineGeo.attributes.position.needsUpdate = true;
+    }
+
+    // ── Camera drift ──
+    camera.position.x = Math.sin(t*0.07)*0.4;
+    camera.position.y = Math.cos(t*0.09)*0.3;
+    camera.position.z = 6 - p*1.5;
     camera.lookAt(0, 0, 0);
 
     renderer.render(scene, camera);
   }
-  animate();
+  render();
 
-  // Resize
   window.addEventListener('resize', ()=>{
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
@@ -975,152 +1027,151 @@ canvas#webgl{
 })();
 </script>
 
-<!-- ═══ Waitlist / Invite / Auth Logic ═══ -->
+<!-- ═══ Waitlist / Invite / Auth ═══ -->
 <script>
 let verifiedCode = null;
 
-(async function() {
-  try {
+(async function(){
+  try{
     const r = await fetch('/api/newsletter?action=count');
     const d = await r.json();
     const el = document.getElementById('wl-count');
-    if (d.count > 0) el.textContent = d.count.toLocaleString();
-    else el.textContent = '0';
+    el.textContent = d.count > 0 ? d.count.toLocaleString() : '0';
   } catch { document.getElementById('wl-count').textContent = '0'; }
 })();
 
-function updateSubmit() {
+function updateSubmit(){
   document.getElementById('btn-submit').disabled =
     !document.getElementById('chk-terms').checked || !document.getElementById('chk-risk').checked;
 }
 
-async function verifyCode() {
+async function verifyCode(){
   const input = document.getElementById('invite-code');
   const errEl = document.getElementById('code-error');
   const btn = document.getElementById('btn-verify');
   const code = input.value.trim();
-  if (!code) { errEl.textContent = 'Enter your invite code'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Verifying...'; errEl.style.display = 'none';
-  try {
-    const r = await fetch('/api/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+  if(!code){errEl.textContent='Enter your invite code';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Verifying...';errEl.style.display='none';
+  try{
+    const r = await fetch('/api/invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
     const d = await r.json();
-    if (!r.ok) { errEl.textContent = d.error || 'Invalid code'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Verify Code'; return; }
+    if(!r.ok){errEl.textContent=d.error||'Invalid code';errEl.style.display='block';btn.disabled=false;btn.textContent='Verify Code';return;}
     verifiedCode = d.code;
-    document.getElementById('invite-section').style.display = 'none';
-    document.getElementById('signin-section').style.display = '';
-    document.getElementById('code-accepted').textContent = 'Code accepted. Sign in to continue.';
-  } catch { errEl.textContent = 'Connection error. Try again.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Verify Code'; }
+    document.getElementById('invite-section').style.display='none';
+    document.getElementById('signin-section').style.display='';
+    document.getElementById('code-accepted').textContent='Code accepted. Sign in to continue.';
+  }catch{errEl.textContent='Connection error. Try again.';errEl.style.display='block';btn.disabled=false;btn.textContent='Verify Code';}
 }
 
-function handleWaitlist(e) {
+function handleWaitlist(e){
   e.preventDefault();
   const email = document.getElementById('wl-email').value.trim();
   const newsletter = document.getElementById('chk-newsletter').checked;
   const btn = document.getElementById('btn-submit');
   const msg = document.getElementById('msg');
-  btn.disabled = true; btn.textContent = 'Submitting...';
-  fetch('/api/newsletter?action=subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, waitlist: true, newsletter, agreed_terms: true, agreed_risk: true, agreed_at: new Date().toISOString() }) })
-    .then(() => {
-      document.getElementById('waitlist-form').style.display = 'none';
-      msg.className = 'success';
-      msg.innerHTML = "You're on the list.<br><span style='color:rgba(255,255,255,.4);font-size:11px'>" + email + "</span><br><span style='color:rgba(255,255,255,.3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
-      const cEl = document.getElementById('wl-count');
-      const cur = parseInt(cEl.textContent.replace(/,/g,'')) || 0;
-      cEl.textContent = (cur + 1).toLocaleString();
+  btn.disabled=true;btn.textContent='Submitting...';
+  fetch('/api/newsletter?action=subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,waitlist:true,newsletter,agreed_terms:true,agreed_risk:true,agreed_at:new Date().toISOString()})})
+    .then(()=>{
+      document.getElementById('waitlist-form').style.display='none';
+      msg.className='success';
+      msg.innerHTML="You're on the list.<br><span style='color:rgba(255,255,255,.3);font-size:11px'>"+email+"</span><br><span style='color:rgba(255,255,255,.2);font-size:10px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
+      const cEl=document.getElementById('wl-count');
+      const cur=parseInt(cEl.textContent.replace(/,/g,''))||0;
+      cEl.textContent=(cur+1).toLocaleString();
     })
-    .catch(() => { msg.className = 'error'; msg.textContent = 'Something went wrong. Try again.'; btn.disabled = false; btn.textContent = 'Join Waitlist'; });
+    .catch(()=>{msg.className='error';msg.textContent='Something went wrong. Try again.';btn.disabled=false;btn.textContent='Request Access';});
   return false;
 }
 </script>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,signInWithPopup,signInWithRedirect,getRedirectResult,GoogleAuthProvider,onAuthStateChanged,signOut}
+  from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-const app = initializeApp({
-  apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
-  authDomain:    'wick.network',
-  projectId:     'wicknetwork',
-  storageBucket: 'wicknetwork.firebasestorage.app',
+const app=initializeApp({
+  apiKey:'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
+  authDomain:'wick.network',
+  projectId:'wicknetwork',
+  storageBucket:'wicknetwork.firebasestorage.app',
 });
-const auth = getAuth(app);
-window.auth = auth;
-window.signOut = signOut;
-const provider = new GoogleAuthProvider();
+const auth=getAuth(app);
+window.auth=auth;
+window.signOut=signOut;
+const provider=new GoogleAuthProvider();
 
-const msg = document.getElementById('msg');
-const signinBtn = document.getElementById('btn-signin');
-const signoutBtn = document.getElementById('btn-signout');
-const form = document.getElementById('waitlist-form');
+const msg=document.getElementById('msg');
+const signinBtn=document.getElementById('btn-signin');
+const signoutBtn=document.getElementById('btn-signout');
+const form=document.getElementById('waitlist-form');
 
-signinBtn.addEventListener('click', async () => {
-  try { await signInWithPopup(auth, provider); }
-  catch { signInWithRedirect(auth, provider); }
+signinBtn.addEventListener('click',async()=>{
+  try{await signInWithPopup(auth,provider);}
+  catch{signInWithRedirect(auth,provider);}
 });
 
-getRedirectResult(auth).catch(() => {});
+getRedirectResult(auth).catch(()=>{});
 
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    signinBtn.style.display = '';
-    signoutBtn.style.display = 'none';
-    form.style.display = '';
-    document.getElementById('invite-section').style.display = '';
-    document.getElementById('signin-section').style.display = 'none';
-    msg.style.display = 'none';
-    msg.className = '';
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    signinBtn.style.display='';
+    signoutBtn.style.display='none';
+    form.style.display='';
+    document.getElementById('invite-section').style.display='';
+    document.getElementById('signin-section').style.display='none';
+    msg.style.display='none';
+    msg.className='';
     return;
   }
 
-  signinBtn.style.display = 'none';
-  signoutBtn.style.display = '';
-  form.style.display = 'none';
-  document.getElementById('invite-section').style.display = 'none';
-  document.getElementById('signin-section').style.display = 'none';
+  signinBtn.style.display='none';
+  signoutBtn.style.display='';
+  form.style.display='none';
+  document.getElementById('invite-section').style.display='none';
+  document.getElementById('signin-section').style.display='none';
 
-  msg.className = '';
-  msg.style.display = 'block';
-  msg.textContent = 'Checking access...';
+  msg.className='';
+  msg.style.display='block';
+  msg.textContent='Checking access...';
 
-  try {
-    const token = await user.getIdToken();
-    const code = window.verifiedCode;
+  try{
+    const token=await user.getIdToken();
+    const code=window.verifiedCode;
 
-    if (code) {
-      const redeem = await fetch('/api/bot?action=redeem_code', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
+    if(code){
+      const redeem=await fetch('/api/bot?action=redeem_code',{
+        method:'POST',
+        headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({code}),
       });
-      if (redeem.ok) {
-        window.verifiedCode = null;
+      if(redeem.ok){
+        window.verifiedCode=null;
         await user.getIdToken(true);
       }
     }
 
-    const r = await fetch('/api/bot', {
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    const r=await fetch('/api/bot',{
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
     });
 
-    if (r.status === 403) {
-      msg.className = 'waitlist';
-      msg.innerHTML = "You're on the waitlist.<br><span style='color:rgba(255,255,255,.4);font-size:11px'>" + user.email + "</span><br><span style='color:rgba(255,255,255,.3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
+    if(r.status===403){
+      msg.className='waitlist';
+      msg.innerHTML="You're on the waitlist.<br><span style='color:rgba(255,255,255,.3);font-size:11px'>"+user.email+"</span><br><span style='color:rgba(255,255,255,.2);font-size:10px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
       return;
     }
 
-    if (r.ok) {
-      msg.className = 'approved';
-      msg.textContent = 'Access granted. Redirecting...';
+    if(r.ok){
+      msg.className='approved';
+      msg.textContent='Access granted. Redirecting...';
       window.location.replace('/bot');
       return;
     }
 
-    msg.className = 'error';
-    msg.textContent = 'Something went wrong. Try again.';
-  } catch {
-    msg.className = 'error';
-    msg.textContent = 'Connection error. Try again.';
+    msg.className='error';
+    msg.textContent='Something went wrong. Try again.';
+  }catch{
+    msg.className='error';
+    msg.textContent='Connection error. Try again.';
   }
 });
 </script>

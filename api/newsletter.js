@@ -9,15 +9,36 @@ module.exports = async (req, res) => {
   const action = req.query?.action;
 
   if (action === 'subscribe' && req.method === 'POST') {
-    const { email } = req.body || {};
+    const body = req.body || {};
+    const email = body.email;
     if (!email || !email.includes('@')) {
       return res.status(400).json({ error: 'Valid email required' });
     }
     const key = email.toLowerCase().replace(/[^a-z0-9@._-]/g, '_');
-    await db.collection('newsletter').doc(key).set({
+    const data = {
       email: email.toLowerCase(),
       subscribed: FieldValue.serverTimestamp(),
-    }, { merge: true });
+    };
+
+    if (body.newsletter !== undefined) data.newsletter = !!body.newsletter;
+    if (body.waitlist)                 data.waitlist = true;
+    if (body.agreed_terms)             data.agreed_terms = true;
+    if (body.agreed_risk)              data.agreed_risk = true;
+    if (body.agreed_at)                data.agreed_at = body.agreed_at;
+
+    await db.collection('newsletter').doc(key).set(data, { merge: true });
+
+    if (body.waitlist) {
+      await db.collection('waitlist').doc(key).set({
+        email: email.toLowerCase(),
+        newsletter: !!body.newsletter,
+        agreed_terms: true,
+        agreed_risk: true,
+        agreed_at: body.agreed_at || new Date().toISOString(),
+        joined: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+
     return res.json({ ok: true });
   }
 

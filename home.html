@@ -11,29 +11,52 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090A'/><text x='50' y='68' font-family='monospace' font-size='52' font-weight='900' text-anchor='middle' fill='white'>W</text></svg>">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#030712;--card:rgba(255,255,255,.03);--border:rgba(255,255,255,.06);--text1:#f0f4f8;--text2:#9ca3af;--text3:#4a5568;--accent:#ffb454;--mono:'JetBrains Mono','Fira Code','Courier New',monospace}
+:root{--bg:#030712;--card:rgba(255,255,255,.03);--border:rgba(255,255,255,.06);--text1:#f0f4f8;--text2:#9ca3af;--text3:#4a5568;--accent:#ffb454;--green:#4ade80;--mono:'JetBrains Mono','Fira Code','Courier New',monospace}
 body{background:var(--bg);color:var(--text1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
 body::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.01) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.01) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
 
-.shell{text-align:center;z-index:2;max-width:400px;width:100%}
+.shell{text-align:center;z-index:2;max-width:420px;width:100%}
 .logo{font-family:var(--mono);font-size:clamp(3rem,10vw,5rem);font-weight:900;letter-spacing:.3em;background:linear-gradient(180deg,#fff 40%,#6b7280 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
 .tagline{font-size:13px;font-family:var(--mono);color:var(--text3);letter-spacing:.2em;text-transform:uppercase;margin-bottom:48px}
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;margin-bottom:24px}
-.lock{font-size:32px;margin-bottom:16px}
-.card-title{font-size:17px;font-weight:700;margin-bottom:6px}
-.card-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;margin-bottom:16px;text-align:left}
+.lock{font-size:28px;margin-bottom:14px;text-align:center}
+.card-title{font-size:17px;font-weight:700;margin-bottom:6px;text-align:center}
+.card-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:24px;text-align:center}
 
-.btn-google{display:inline-flex;align-items:center;background:#fff;color:#1f2937;font-weight:600;font-size:15px;padding:14px 28px;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;transition:all .3s;width:100%;justify-content:center;gap:12px}
-.btn-google:hover{background:#f9fafb;box-shadow:0 8px 24px rgba(255,255,255,.06)}
-.btn-google svg{width:18px;height:18px;flex-shrink:0}
+/* Form */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.form-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text1);font-size:14px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:rgba(255,180,84,.4)}
+.form-input::placeholder{color:var(--text3)}
 
-#status{display:none;margin-top:16px;font-family:var(--mono);font-size:12px;padding:12px 16px;border-radius:8px;line-height:1.6}
-#status.waitlist{display:block;color:var(--accent);background:rgba(255,180,84,.08);border:1px solid rgba(255,180,84,.12)}
-#status.approved{display:block;color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.12)}
-#status.error{display:block;color:#f87171;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.12)}
+/* Checkboxes */
+.check-group{margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.check-group input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
+.check-label{font-size:12px;color:var(--text2);line-height:1.5}
+.check-label a{color:var(--accent);text-decoration:none}
+.check-label a:hover{text-decoration:underline}
 
-.signout{margin-top:16px;background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 18px;border-radius:6px;cursor:pointer;display:none}
+/* Buttons */
+.btn-submit{width:100%;padding:14px;background:var(--accent);color:#000;font-family:var(--mono);font-size:14px;font-weight:800;border:none;border-radius:8px;cursor:pointer;transition:all .3s;margin-top:20px;letter-spacing:.03em}
+.btn-submit:hover:not(:disabled){background:#ffc670;box-shadow:0 8px 24px rgba(255,180,84,.15)}
+.btn-submit:disabled{opacity:.35;cursor:not-allowed}
+
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+
+.btn-google{display:inline-flex;align-items:center;background:rgba(255,255,255,.06);color:var(--text2);font-weight:600;font-size:13px;padding:12px 20px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .3s;width:100%;justify-content:center;gap:10px}
+.btn-google:hover{background:rgba(255,255,255,.1);color:var(--text1);border-color:rgba(255,255,255,.12)}
+.btn-google svg{width:16px;height:16px;flex-shrink:0}
+
+#msg{display:none;margin-top:16px;font-family:var(--mono);font-size:12px;padding:12px 16px;border-radius:8px;line-height:1.6;text-align:center}
+#msg.success{display:block;color:var(--green);background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.1)}
+#msg.waitlist{display:block;color:var(--accent);background:rgba(255,180,84,.06);border:1px solid rgba(255,180,84,.1)}
+#msg.approved{display:block;color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.12)}
+#msg.error{display:block;color:#f87171;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.1)}
+
+.signout{margin-top:12px;background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 18px;border-radius:6px;cursor:pointer;display:none}
 .signout:hover{color:var(--text2);border-color:rgba(255,255,255,.12)}
 
 .footer{position:fixed;bottom:20px;display:flex;gap:16px;z-index:2}
@@ -50,12 +73,41 @@ body::before{content:"";position:absolute;inset:0;background-image:linear-gradie
   <div class="card">
     <div class="lock">🔒</div>
     <div class="card-title">Private Beta</div>
-    <div class="card-desc">WICK is an agentic trading system currently in private beta. Sign in to check your access or join the waitlist.</div>
+    <div class="card-desc">WICK is an agentic trading system currently in private beta. Join the waitlist or sign in if you have access.</div>
+
+    <!-- Waitlist form -->
+    <form id="waitlist-form" onsubmit="return handleWaitlist(event)">
+      <div class="form-group">
+        <label class="form-label" for="wl-email">Email</label>
+        <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
+      </div>
+
+      <label class="check-group">
+        <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
+        <span class="check-label">I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</span>
+      </label>
+
+      <label class="check-group">
+        <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
+        <span class="check-label">I understand that trading involves substantial risk of loss. WICK is not a financial advisor. Only trade money I can afford to lose.</span>
+      </label>
+
+      <label class="check-group">
+        <input type="checkbox" id="chk-newsletter" checked>
+        <span class="check-label">Send me updates and the WICK Weekly newsletter.</span>
+      </label>
+
+      <button class="btn-submit" type="submit" id="btn-submit" disabled>Join Waitlist</button>
+    </form>
+
+    <div class="divider">Already have access?</div>
+
     <button class="btn-google" id="btn-signin">
       <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-      Continue with Google
+      Sign in with Google
     </button>
-    <div id="status"></div>
+
+    <div id="msg"></div>
   </div>
 
   <button class="signout" id="btn-signout" onclick="signOut(auth)">Sign out</button>
@@ -65,6 +117,54 @@ body::before{content:"";position:absolute;inset:0;background-image:linear-gradie
   <a href="/terms">Terms</a>
   <a href="/privacy">Privacy</a>
 </div>
+
+<script>
+function updateSubmit() {
+  document.getElementById('btn-submit').disabled =
+    !document.getElementById('chk-terms').checked || !document.getElementById('chk-risk').checked;
+}
+
+function handleWaitlist(e) {
+  e.preventDefault();
+  const email = document.getElementById('wl-email').value.trim();
+  const newsletter = document.getElementById('chk-newsletter').checked;
+  const btn = document.getElementById('btn-submit');
+  const msg = document.getElementById('msg');
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const promises = [
+    fetch('/api/newsletter?action=subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        waitlist: true,
+        newsletter,
+        agreed_terms: true,
+        agreed_risk: true,
+        agreed_at: new Date().toISOString(),
+      }),
+    }),
+  ];
+
+  Promise.all(promises)
+    .then(() => {
+      document.getElementById('waitlist-form').style.display = 'none';
+      msg.className = 'success';
+      msg.innerHTML = "You're on the list.<br><span style='color:var(--text3);font-size:11px'>" + email + "</span><br><span style='color:var(--text3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
+    })
+    .catch(() => {
+      msg.className = 'error';
+      msg.textContent = 'Something went wrong. Try again.';
+      btn.disabled = false;
+      btn.textContent = 'Join Waitlist';
+    });
+
+  return false;
+}
+</script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -79,11 +179,13 @@ const app = initializeApp({
 });
 const auth = getAuth(app);
 window.auth = auth;
+window.signOut = signOut;
 const provider = new GoogleAuthProvider();
 
-const statusEl = document.getElementById('status');
+const msg = document.getElementById('msg');
 const signinBtn = document.getElementById('btn-signin');
 const signoutBtn = document.getElementById('btn-signout');
+const form = document.getElementById('waitlist-form');
 
 signinBtn.addEventListener('click', async () => {
   try { await signInWithPopup(auth, provider); }
@@ -96,17 +198,19 @@ onAuthStateChanged(auth, async user => {
   if (!user) {
     signinBtn.style.display = '';
     signoutBtn.style.display = 'none';
-    statusEl.style.display = 'none';
-    statusEl.className = '';
+    form.style.display = '';
+    msg.style.display = 'none';
+    msg.className = '';
     return;
   }
 
   signinBtn.style.display = 'none';
   signoutBtn.style.display = '';
+  form.style.display = 'none';
 
-  statusEl.className = '';
-  statusEl.style.display = 'block';
-  statusEl.textContent = 'Checking access…';
+  msg.className = '';
+  msg.style.display = 'block';
+  msg.textContent = 'Checking access…';
 
   try {
     const token = await user.getIdToken();
@@ -115,30 +219,29 @@ onAuthStateChanged(auth, async user => {
     });
 
     if (r.status === 403) {
-      // Not on allowlist — join waitlist
       fetch('/api/bot?action=waitlist', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: 'wick' }),
       }).catch(() => {});
 
-      statusEl.className = 'waitlist';
-      statusEl.innerHTML = 'You\'re on the waitlist.<br>' + user.email + '<br><span style="color:var(--text3);font-size:10px;margin-top:4px;display:inline-block">We\'ll email you when your spot opens up.</span>';
+      msg.className = 'waitlist';
+      msg.innerHTML = "You're on the waitlist.<br><span style='color:var(--text3);font-size:11px'>" + user.email + "</span><br><span style='color:var(--text3);font-size:10px;margin-top:4px;display:inline-block'>We'll email you when your spot opens up.</span>";
       return;
     }
 
     if (r.ok) {
-      statusEl.className = 'approved';
-      statusEl.textContent = 'Access granted. Redirecting…';
+      msg.className = 'approved';
+      msg.textContent = 'Access granted. Redirecting…';
       window.location.replace('/bot');
       return;
     }
 
-    statusEl.className = 'error';
-    statusEl.textContent = 'Something went wrong. Try again.';
+    msg.className = 'error';
+    msg.textContent = 'Something went wrong. Try again.';
   } catch {
-    statusEl.className = 'error';
-    statusEl.textContent = 'Connection error. Try again.';
+    msg.className = 'error';
+    msg.textContent = 'Connection error. Try again.';
   }
 });
 </script>

@@ -8,7 +8,7 @@
 <meta property="og:title" content="WICK — Prediction Market Agent">
 <meta property="og:description" content="Invite-only autonomous Polymarket agent. 4-desk intelligence pipeline. News arbitrage. Sports. Geopolitics.">
 <meta property="og:url" content="https://wick.network">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%232962FF'/><text x='50' y='68' font-family='monospace' font-size='52' font-weight='900' text-anchor='middle' fill='white'>W</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -26,7 +26,8 @@ body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(
 .page{position:relative;z-index:1}
 section{max-width:1000px;margin:0 auto;padding:0 24px}
 .hero{text-align:center;padding:80px 24px 48px}
-.logo{font-family:var(--mono);font-size:clamp(3.5rem,10vw,5.5rem);font-weight:900;letter-spacing:.3em;background:linear-gradient(180deg,#0f172a 40%,#2962FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.logo{margin-bottom:6px;display:flex;justify-content:center}
+.logo svg{width:clamp(280px,50vw,480px);height:auto}
 .tagline{font-size:13px;font-family:var(--mono);color:var(--text3);letter-spacing:.25em;text-transform:uppercase;margin-bottom:16px}
 .subtitle{font-size:clamp(1rem,2.5vw,1.15rem);color:var(--text2);max-width:520px;margin:0 auto 28px;line-height:1.8}
 
@@ -126,7 +127,8 @@ section{max-width:1000px;margin:0 auto;padding:0 24px}
 footer{max-width:1000px;margin:0 auto;padding:32px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border)}
 footer a{color:var(--text3);text-decoration:none;font-size:11px;font-family:var(--mono)}
 footer a:hover{color:var(--text2)}
-.foot-logo{font-family:var(--mono);font-size:13px;font-weight:900;letter-spacing:.2em;color:var(--accent)}
+.foot-logo{display:inline-flex;align-items:center}
+.foot-logo svg{width:80px;height:auto}
 .foot-links{display:flex;gap:16px}
 .disclaimer{max-width:1000px;margin:0 auto;padding:0 24px 40px;font-size:10px;color:rgba(255,255,255,.2);text-align:center;line-height:1.6}
 </style>
@@ -136,7 +138,7 @@ footer a:hover{color:var(--text2)}
 
 <!-- ═══ HERO ═══ -->
 <div class="hero">
-  <div class="logo">WICK</div>
+  <div class="logo"><svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#0f172a"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></div>
   <div class="tagline">Invite Only</div>
   <p class="subtitle">An autonomous Polymarket agent that scans prediction markets, matches news catalysts, and trades mispriced odds — so you don't have to. Currently in private beta.</p>
   <div class="counter-row">
@@ -336,7 +338,7 @@ footer a:hover{color:var(--text2)}
 
 <!-- Footer -->
 <footer>
-  <span class="foot-logo">WICK</span>
+  <span class="foot-logo"><svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#0f172a"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></span>
   <div class="foot-links">
     <a href="/terms">Terms</a>
     <a href="/privacy">Privacy</a>

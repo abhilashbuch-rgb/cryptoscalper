@@ -2,10 +2,9 @@ const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
 
 const STRATEGIES = [
-  { id: 'brilliant', name: 'WICK Scalper', description: 'Momentum-based scalper. Buys dips, sells rips. 2-minute cadence with 12-signal scoring.', tier: 'free', risk: 'balanced', winRateGuide: '58–64%', locked: false },
-  { id: 'turtle',    name: 'Turtle Trend', description: 'Slow and steady trend follower. Wider stops, longer holds. Better for volatile markets.', tier: 'free', risk: 'conservative', winRateGuide: '52–58%', locked: false },
-  { id: 'sniper',    name: 'Sniper',       description: 'High-conviction only. Waits for extreme confluence before entering. Fewer trades, bigger wins.', tier: 'pro', risk: 'aggressive', winRateGuide: '45–55%', locked: false },
-  { id: 'grid',      name: 'Grid Trader',  description: 'Places layered limit orders across a price range. Captures chop. Best in sideways markets.', tier: 'pro', risk: 'balanced', winRateGuide: '60–70%', locked: true },
+  { id: 'negrisk_arb', name: 'NegRisk Arbitrage', description: 'Scans multi-outcome brackets for sum violations. Buys NO across all outcomes for locked mathematical profit. 80%+ win rate.', tier: 'free', risk: 'conservative', winRateGuide: '80–95%', locked: false },
+  { id: 'catalyst',    name: 'Catalyst Hunter',   description: 'Matches breaking news to open contracts. Trades before the crowd reprices. Higher variance, bigger payoffs.', tier: 'free', risk: 'balanced', winRateGuide: '60–70%', locked: false },
+  { id: 'sports',      name: 'Sports Edge',       description: 'Live score monitoring. Trades in-play sports markets when odds lag behind real-time results.', tier: 'pro', risk: 'aggressive', winRateGuide: '55–65%', locked: false },
 ];
 
 const BADGE_CATALOG = [
@@ -122,68 +121,22 @@ module.exports = async (req, res) => {
     return res.json({ ok: true });
   }
 
-  // ── Connect broker ──
+  // ── Connect wallet (Polymarket only) ──
   if (action === 'connect' && req.method === 'POST') {
     const body = req.body || {};
-    const broker = body.broker;
-    const update = { broker, configured: true, updated: FieldValue.serverTimestamp() };
+    const update = { broker: 'polymarket', configured: true, updated: FieldValue.serverTimestamp() };
 
-    if (broker === 'alpaca') {
-      update.alpaca_key_id = body.alpaca_key_id;
-      update.alpaca_secret_key = body.alpaca_secret_key;
-      update.mode = body.mode || 'paper';
-
-      // Validate with Alpaca
-      try {
-        const base = (body.mode === 'live') ? 'https://api.alpaca.markets' : 'https://paper-api.alpaca.markets';
-        const acctRes = await fetch(`${base}/v2/account`, {
-          headers: { 'APCA-API-KEY-ID': body.alpaca_key_id, 'APCA-API-SECRET-KEY': body.alpaca_secret_key },
-        });
-        if (!acctRes.ok) throw new Error('Invalid Alpaca credentials');
-        const acct = await acctRes.json();
-        update.portfolio_value = acct.portfolio_value;
-        update.buying_power = acct.buying_power;
-      } catch (err) {
-        return res.status(400).json({ error: err.message });
-      }
-
+    update.poly_private_key = body.poly_private_key;
+    update.mode = body.mode || 'sandbox';
+    if (body.poly_private_key) {
+      const addr = '0x' + body.poly_private_key.slice(-40);
+      update.wallet_address = addr;
       await userRef.set(update, { merge: true });
-      return res.json({ ok: true, portfolio_value: update.portfolio_value, buying_power: update.buying_power, mode: update.mode });
+      return res.json({ ok: true, address: addr, mode: update.mode });
     }
 
-    if (broker === 'robinhood') {
-      update.rh_api_key_id = body.rh_api_key_id;
-      update.rh_private_key = body.rh_private_key;
-      update.mode = 'live';
-      await userRef.set(update, { merge: true });
-      return res.json({ ok: true, key_preview: body.rh_api_key_id?.slice(0, 8) + '…' });
-    }
-
-    if (broker === 'coinbase') {
-      update.cb_key_name = body.cb_key_name;
-      update.cb_private_key = body.cb_private_key;
-      update.mode = 'live';
-      await userRef.set(update, { merge: true });
-      return res.json({ ok: true, key_preview: body.cb_key_name?.slice(0, 12) + '…' });
-    }
-
-    if (broker === 'kraken') {
-      update.kr_api_key = body.kr_api_key;
-      update.kr_api_secret = body.kr_api_secret;
-      update.mode = 'live';
-      await userRef.set(update, { merge: true });
-      return res.json({ ok: true, key_preview: body.kr_api_key?.slice(0, 8) + '…' });
-    }
-
-    if (broker === 'polymarket') {
-      update.poly_private_key = body.poly_private_key;
-      update.mode = 'live';
-      const addr = '0x' + body.poly_private_key?.slice(-40) || '0x0000';
-      await userRef.set(update, { merge: true });
-      return res.json({ ok: true, address: addr });
-    }
-
-    return res.status(400).json({ error: 'Unknown broker' });
+    await userRef.set(update, { merge: true });
+    return res.json({ ok: true, mode: update.mode });
   }
 
   // ── Settings ──
@@ -253,11 +206,11 @@ module.exports = async (req, res) => {
   return res.json({
     configured: !!data.configured,
     bot_active: !!data.bot_active,
-    mode: data.mode || 'paper',
-    broker: data.broker || 'alpaca',
+    mode: data.mode || 'sandbox',
+    broker: 'polymarket',
+    wallet_address: data.wallet_address || null,
     subscribed: !!data.subscribed,
-    portfolio_value: data.portfolio_value || '100000.00',
-    buying_power: data.buying_power || '100000.00',
+    balance: data.balance || '10000.00',
     stats: {
       win_rate_pct: closed > 0 ? Math.round((wins / closed) * 100) : 0,
       total_trades: closed,
@@ -269,6 +222,6 @@ module.exports = async (req, res) => {
     badges: { earned: earnedBadges, catalog: BADGE_CATALOG },
     settings: data.settings || {},
     available_strategies: STRATEGIES,
-    selected_strategy: data.settings?.strategy || 'brilliant',
+    selected_strategy: data.settings?.strategy || 'negrisk_arb',
   });
 };

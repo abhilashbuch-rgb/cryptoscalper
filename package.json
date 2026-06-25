@@ -1,7 +1,7 @@
 {
   "name": "cryptoscalper",
   "version": "1.0.0",
-  "description": "Agentic crypto scalping bot powered by Claude AI + Robinhood",
+  "description": "WICK — Autonomous Polymarket prediction market agent with NegRisk arbitrage",
   "main": "trader.js",
   "scripts": {
     "start": "node trader.js",

@@ -12,19 +12,17 @@
   --card:   #0a0e16;
   --card2:  #0e1420;
   --border: #161e2e;
-  --green:  #ffb454;
+  --green:  #4D8FFF;
   --red:    #ff4455;
-  --amber:  #ffaa00;
-  --blue:   #a06bff;
+  --amber:  #4D8FFF;
+  --blue:   #2962FF;
   --text1:  #f0f4f8;
   --text2:  #8899aa;
   --text3:  #4a5568;
   --mono:   'JetBrains Mono','Fira Code','Courier New',monospace;
-  /* Paradigm: mode-aware accent — cyan for sandbox, red for live */
-  --accent: #22d3ee;
-  --accent-glow: rgba(34,211,238,.15);
-  --accent-border: rgba(34,211,238,.25);
-  /* Transition speed for all state changes */
+  --accent: #2962FF;
+  --accent-glow: rgba(41,98,255,.15);
+  --accent-border: rgba(41,98,255,.25);
   --snap: 150ms;
 }
 
@@ -42,13 +40,13 @@
 
 /* ── PARADIGM 3: TradingView dual-mode — body-level class swap ── */
 body.mode-live {
-  --accent: #f43f5e;
-  --accent-glow: rgba(244,63,94,.12);
-  --accent-border: rgba(244,63,94,.25);
+  --accent: #ef4444;
+  --accent-glow: rgba(239,68,68,.12);
+  --accent-border: rgba(239,68,68,.25);
 }
-body.mode-live .tile { border-color: rgba(244,63,94,.08); }
-body.mode-live .tile:hover { border-color: rgba(244,63,94,.2); }
-body.mode-live .nav { border-bottom-color: rgba(244,63,94,.15); }
+body.mode-live .tile { border-color: rgba(239,68,68,.08); }
+body.mode-live .tile:hover { border-color: rgba(239,68,68,.2); }
+body.mode-live .nav { border-bottom-color: rgba(239,68,68,.15); }
 body.mode-live .tile-value { color: #fde8e8; }
 
 body {
@@ -63,8 +61,8 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+    linear-gradient(rgba(41,98,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(41,98,255,.015) 1px, transparent 1px);
   background-size: 48px 48px;
   pointer-events: none; z-index: 0;
 }
@@ -123,8 +121,8 @@ body::before {
   border: 1px solid var(--border); color: var(--text3);
   cursor: pointer; transition: all .15s; white-space: nowrap;
 }
-.dash-nav-btn:hover { border-color: rgba(160,107,255,.3); color: var(--text2); }
-.dash-nav-btn.active { background: rgba(160,107,255,.12); border-color: rgba(160,107,255,.3); color: #c4b5fd; }
+.dash-nav-btn:hover { border-color: rgba(41,98,255,.3); color: var(--text2); }
+.dash-nav-btn.active { background: rgba(41,98,255,.12); border-color: rgba(41,98,255,.3); color: #4D8FFF; }
 
 .tile-grid {
   display: grid;
@@ -157,7 +155,7 @@ body::before {
 }
 .tile-title .tile-badge {
   font-size: 9px; padding: 2px 8px; border-radius: 10px;
-  background: rgba(160,107,255,.1); color: #c4b5fd; font-weight: 700;
+  background: rgba(41,98,255,.1); color: #4D8FFF; font-weight: 700;
 }
 .tile-value {
   font-size: 26px; font-weight: 800;
@@ -263,10 +261,10 @@ body::before {
   width: 340px; flex-shrink: 0;
 }
 .auth-card {
-  background: rgba(18,22,30,.9); border: 1px solid rgba(255,255,255,.08);
+  background: rgba(10,14,22,.95); border: 1px solid rgba(41,98,255,.15);
   border-radius: 20px; padding: 40px 32px; text-align: center;
   backdrop-filter: blur(20px);
-  box-shadow: 0 24px 80px rgba(0,0,0,.4);
+  box-shadow: 0 24px 80px rgba(0,0,0,.4), 0 0 60px rgba(41,98,255,.05);
 }
 .auth-logo { font-family: var(--mono); font-size: 24px; font-weight: 800; letter-spacing: .18em; color: var(--green); margin-bottom: 4px; }
 .auth-sub  { font-size: 10px; color: var(--text3); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 32px; }
@@ -310,7 +308,7 @@ body::before {
   color: var(--text3); background: var(--card);
   transition: all .3s; flex-shrink: 0;
 }
-.wiz-step-dot.active { border-color: var(--green); color: var(--green); background: rgba(255,180,84,.08); }
+.wiz-step-dot.active { border-color: var(--green); color: var(--green); background: rgba(41,98,255,.08); }
 .wiz-step-dot.done   { border-color: var(--green); color: #000; background: var(--green); }
 .wiz-step-line {
   flex: 1; height: 2px; background: var(--border);
@@ -400,8 +398,8 @@ body::before {
 
 .bot-name   { font-size: 16px; font-weight: 700; }
 .bot-mode   { font-size: 11px; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: .06em; }
-.bot-mode.paper { background: rgba(255,170,0,.15); color: var(--amber); border: 1px solid rgba(255,170,0,.3); }
-.bot-mode.live  { background: rgba(255,180,84,.12); color: var(--green); border: 1px solid rgba(255,180,84,.3); }
+.bot-mode.paper { background: rgba(41,98,255,.12); color: var(--amber); border: 1px solid rgba(41,98,255,.25); }
+.bot-mode.live  { background: rgba(41,98,255,.12); color: var(--green); border: 1px solid rgba(41,98,255,.25); }
 .bot-sub    { font-size: 12px; color: var(--text2); margin-left: 26px; }
 
 .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
@@ -412,7 +410,7 @@ body::before {
   background: var(--card2); border: 1px solid var(--border);
   border-radius: 14px; cursor: pointer; transition: background .2s, border-color .2s;
 }
-.toggle.on  { background: rgba(255,180,84,.25); border-color: rgba(255,180,84,.5); }
+.toggle.on  { background: rgba(41,98,255,.25); border-color: rgba(41,98,255,.5); }
 .toggle::after {
   content: '';
   position: absolute; top: 3px; left: 3px;
@@ -429,8 +427,8 @@ body::before {
   font-family: var(--mono); font-size: 12px; font-weight: 700; cursor: pointer;
   transition: all .15s; letter-spacing: .06em;
 }
-.mode-btn.active.paper { border-color: var(--amber); color: var(--amber); background: rgba(255,170,0,.08); }
-.mode-btn.active.live  { border-color: var(--green); color: var(--green); background: rgba(255,180,84,.08); }
+.mode-btn.active.paper { border-color: var(--amber); color: var(--amber); background: rgba(41,98,255,.08); }
+.mode-btn.active.live  { border-color: var(--green); color: var(--green); background: rgba(41,98,255,.08); }
 
 /* ── Form fields ── */
 .form-group { margin-bottom: 14px; }
@@ -467,8 +465,8 @@ body::before {
   background: var(--card); cursor: pointer;
   transition: all .2s; text-align: center;
 }
-.broker-card:hover { border-color: rgba(255,180,84,.3); }
-.broker-card.selected { border-color: var(--green); background: rgba(255,180,84,.04); }
+.broker-card:hover { border-color: rgba(41,98,255,.3); }
+.broker-card.selected { border-color: var(--green); background: rgba(41,98,255,.04); }
 .broker-icon { font-size: 32px; margin-bottom: 10px; display: block; }
 .broker-name { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
 .broker-tag  { font-size: 10px; font-family: var(--mono); color: var(--text3); letter-spacing: .06em; }
@@ -485,9 +483,9 @@ body::before {
   font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
   letter-spacing: .05em; display: inline-block;
 }
-.badge.buy  { background: rgba(160,107,255,.15); color: var(--blue); border: 1px solid rgba(160,107,255,.3); }
+.badge.buy  { background: rgba(41,98,255,.15); color: var(--blue); border: 1px solid rgba(41,98,255,.3); }
 .badge.sell { background: rgba(255,68,85,.12);  color: var(--red);  border: 1px solid rgba(255,68,85,.25); }
-.badge.open { background: rgba(255,170,0,.12);  color: var(--amber); border: 1px solid rgba(255,170,0,.3); }
+.badge.open { background: rgba(41,98,255,.12);  color: var(--amber); border: 1px solid rgba(41,98,255,.3); }
 .win  { color: var(--green); }
 .loss { color: var(--red); }
 
@@ -495,8 +493,8 @@ body::before {
 
 /* ── Subscribe CTA ── */
 .cta-card {
-  background: linear-gradient(135deg, rgba(255,180,84,.06), rgba(160,107,255,.06));
-  border: 1px solid rgba(255,180,84,.2);
+  background: linear-gradient(135deg, rgba(41,98,255,.06), rgba(77,143,255,.06));
+  border: 1px solid rgba(41,98,255,.2);
   border-radius: 10px; padding: 28px 24px; text-align: center; margin-bottom: 16px;
 }
 .cta-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
@@ -529,7 +527,7 @@ body::before {
   font-family: var(--mono); font-size: 10px; font-weight: 800;
   padding: 2px 8px; border-radius: 4px; flex-shrink: 0; min-width: 44px; text-align: center;
 }
-.poly-pill.bullish { background: rgba(255,180,84,.12); color: var(--green); border: 1px solid rgba(255,180,84,.25); }
+.poly-pill.bullish { background: rgba(41,98,255,.12); color: var(--green); border: 1px solid rgba(41,98,255,.25); }
 .poly-pill.bearish { background: rgba(255,68,85,.1);  color: var(--red);   border: 1px solid rgba(255,68,85,.2); }
 .poly-pill.neutral { background: rgba(255,255,255,.05); color: var(--text3); border: 1px solid var(--border); }
 .poly-q   { font-size: 12px; color: var(--text2); flex: 1; line-height: 1.4; }
@@ -599,11 +597,11 @@ body::before {
   transition: border-color .15s, background .15s;
   text-align: left;
 }
-.strat-card:hover:not(.locked) { border-color: rgba(255,180,84,.45); }
+.strat-card:hover:not(.locked) { border-color: rgba(41,98,255,.45); }
 .strat-card.selected {
   border-color: var(--green);
-  background: rgba(255,180,84,.05);
-  box-shadow: 0 0 0 1px rgba(255,180,84,.2) inset;
+  background: rgba(41,98,255,.05);
+  box-shadow: 0 0 0 1px rgba(41,98,255,.2) inset;
 }
 .strat-card.locked { opacity: .45; cursor: default; }
 .strat-emoji { font-size: 22px; margin-bottom: 8px; line-height: 1; display: block; }
@@ -616,10 +614,10 @@ body::before {
   font-family: var(--mono); font-size: 9px; font-weight: 700;
   padding: 2px 6px; border-radius: 3px; letter-spacing: .06em;
 }
-.sbadge.free         { background: rgba(255,180,84,.15); color: var(--green); border: 1px solid rgba(255,180,84,.3); }
-.sbadge.paid         { background: rgba(160,107,255,.12); color: var(--blue); border: 1px solid rgba(160,107,255,.3); }
-.sbadge.MODERATE     { background: rgba(255,170,0,.1);  color: var(--amber);  border: 1px solid rgba(255,170,0,.25); }
-.sbadge.CONSERVATIVE { background: rgba(255,180,84,.1); color: var(--green);  border: 1px solid rgba(255,180,84,.2); }
+.sbadge.free         { background: rgba(41,98,255,.12); color: var(--green); border: 1px solid rgba(41,98,255,.25); }
+.sbadge.paid         { background: rgba(41,98,255,.12); color: var(--blue); border: 1px solid rgba(41,98,255,.3); }
+.sbadge.MODERATE     { background: rgba(41,98,255,.1);  color: var(--amber);  border: 1px solid rgba(41,98,255,.2); }
+.sbadge.CONSERVATIVE { background: rgba(41,98,255,.1); color: var(--green);  border: 1px solid rgba(41,98,255,.2); }
 .sbadge.AGGRESSIVE   { background: rgba(255,68,85,.1);  color: var(--red);    border: 1px solid rgba(255,68,85,.2); }
 .sbadge.EXTREME      { background: rgba(255,68,85,.18); color: var(--red);    border: 1px solid rgba(255,68,85,.35); }
 
@@ -629,7 +627,7 @@ body::before {
   border: 1px solid var(--border); background: var(--card2);
   transition: all .2s; position: relative; overflow: hidden;
 }
-.badge-crest.earned { border-color: rgba(160,107,255,.3); }
+.badge-crest.earned { border-color: rgba(41,98,255,.3); }
 .badge-crest.locked { opacity: .3; filter: grayscale(1); }
 .badge-crest .bc-tier {
   font-family: var(--mono); font-size: 8px; font-weight: 800;
@@ -649,8 +647,8 @@ body::before {
 .bc-silver .bc-shield { background: rgba(192,192,192,.1); border: 2px solid rgba(192,192,192,.3); color: #C0C0C0; }
 .bc-gold .bc-tier { color: #FFD700; }
 .bc-gold .bc-shield { background: rgba(255,215,0,.1); border: 2px solid rgba(255,215,0,.35); color: #FFD700; }
-.bc-platinum .bc-tier { color: #a06bff; }
-.bc-platinum .bc-shield { background: rgba(160,107,255,.1); border: 2px solid rgba(160,107,255,.35); color: #a06bff; }
+.bc-platinum .bc-tier { color: #2962FF; }
+.bc-platinum .bc-shield { background: rgba(41,98,255,.1); border: 2px solid rgba(41,98,255,.35); color: #2962FF; }
 .bc-diamond .bc-tier { color: #4DF0FF; }
 .bc-diamond .bc-shield { background: rgba(77,240,255,.08); border: 2px solid rgba(77,240,255,.3); color: #4DF0FF; }
 .badge-crest.earned::after {
@@ -659,7 +657,7 @@ body::before {
 .bc-bronze.earned::after { background: linear-gradient(90deg, transparent, #CD7F32, transparent); }
 .bc-silver.earned::after { background: linear-gradient(90deg, transparent, #C0C0C0, transparent); }
 .bc-gold.earned::after { background: linear-gradient(90deg, transparent, #FFD700, transparent); }
-.bc-platinum.earned::after { background: linear-gradient(90deg, transparent, #a06bff, transparent); }
+.bc-platinum.earned::after { background: linear-gradient(90deg, transparent, #2962FF, transparent); }
 .bc-diamond.earned::after { background: linear-gradient(90deg, transparent, #4DF0FF, transparent); }
 
 /* ── Launch summary ── */
@@ -687,7 +685,7 @@ body::before {
   border-radius: 19px; cursor: pointer; transition: all .3s;
   margin: 0 auto 12px;
 }
-.launch-toggle.on  { background: rgba(255,180,84,.25); border-color: var(--green); }
+.launch-toggle.on  { background: rgba(41,98,255,.25); border-color: var(--green); }
 .launch-toggle::after {
   content: '';
   position: absolute; top: 4px; left: 4px;
@@ -785,24 +783,24 @@ body::before {
         The agent<br><span>trades for you.</span>
       </div>
       <div style="font-size:15px; color:var(--text2); line-height:1.7; max-width:400px;">
-        12-signal scoring system. 10 real-time data sources. Trades BTC, ETH, SOL every 2 minutes while you sleep.
+        4-desk intelligence pipeline. NegRisk arbitrage. Scans prediction markets and trades mispriced odds while you sleep.
       </div>
       <div class="auth-features">
         <div class="auth-feat">
           <div class="auth-feat-dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div>
-          Paper trading is free. No deposit required.
+          Sandbox mode is free. No deposit required.
         </div>
         <div class="auth-feat">
-          <div class="auth-feat-dot" style="background:#a06bff;box-shadow:0 0 6px #a06bff;"></div>
-          4 strategy archetypes. From Conservative to Breakout.
+          <div class="auth-feat-dot" style="background:#2962FF;box-shadow:0 0 6px #2962FF;"></div>
+          NegRisk arbitrage. 80%+ mathematical win rate.
         </div>
         <div class="auth-feat">
           <div class="auth-feat-dot" style="background:#4D8FFF;box-shadow:0 0 6px #4D8FFF;"></div>
-          Alpaca, Robinhood, Coinbase, Kraken, Polymarket.
+          Polymarket CLOB. Geopolitics. Sports. Crypto.
         </div>
         <div class="auth-feat">
-          <div class="auth-feat-dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80;"></div>
-          $25 free fuel on signup. Pay only when you profit.
+          <div class="auth-feat-dot" style="background:#4D8FFF;box-shadow:0 0 6px #4D8FFF;"></div>
+          Self-learning. Nightly calibration. Auto-tunes itself.
         </div>
       </div>
     </div>
@@ -843,7 +841,7 @@ body::before {
 (function() {
   const mosaic = document.getElementById('auth-mosaic');
   if (!mosaic) return;
-  const colors = ['#ffb454','#a06bff','#4D8FFF','#4ade80','#ff4455','#ffaa00','#c4b5fd','#00C805'];
+  const colors = ['#2962FF','#4D8FFF','#6BA3FF','#1652F0','#3B82F6','#93C5FD','#DBEAFE','#1E40AF'];
   const count = Math.ceil((window.innerWidth / 48) * (window.innerHeight / 48));
   for (let i = 0; i < count; i++) {
     const tile = document.createElement('div');
@@ -871,13 +869,13 @@ body::before {
 <!-- INVITE-ONLY GATE (shown when user is not on allowlist)                    -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <div id="invite-gate" style="display:none; min-height:80vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
-  <div style="font-family:var(--mono); font-size:42px; font-weight:900; letter-spacing:.15em; margin-bottom:12px; background:linear-gradient(135deg,#ffb454,#ff6b35); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">WICK</div>
+  <div style="font-family:var(--mono); font-size:42px; font-weight:900; letter-spacing:.15em; margin-bottom:12px; background:linear-gradient(135deg,#2962FF,#4D8FFF); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">WICK</div>
   <div style="font-size:13px; font-family:var(--mono); color:var(--text3); letter-spacing:.2em; text-transform:uppercase; margin-bottom:32px;">Invite Only</div>
   <div style="max-width:440px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:36px 32px;">
     <div style="font-size:36px; margin-bottom:16px;">🔒</div>
     <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--text1);">You're on the waitlist</div>
     <div style="font-size:14px; color:var(--text2); line-height:1.7; margin-bottom:24px;">WICK is currently in private beta. We'll send you an email when your spot opens up.</div>
-    <div id="invite-email" style="font-family:var(--mono); font-size:12px; color:var(--accent); background:rgba(255,180,84,.08); border:1px solid rgba(255,180,84,.15); border-radius:8px; padding:10px 16px; margin-bottom:20px;"></div>
+    <div id="invite-email" style="font-family:var(--mono); font-size:12px; color:var(--accent); background:rgba(41,98,255,.08); border:1px solid rgba(41,98,255,.15); border-radius:8px; padding:10px 16px; margin-bottom:20px;"></div>
     <div style="font-size:12px; color:var(--text3); line-height:1.6;">Have an invite code? Contact <span style="color:var(--text2); font-weight:600;">support@wick.network</span></div>
   </div>
   <button onclick="signOut(window._firebaseAuth)" style="margin-top:24px; background:none; border:1px solid var(--border); color:var(--text3); font-family:var(--mono); font-size:12px; padding:8px 20px; border-radius:6px; cursor:pointer;">Sign out</button>
@@ -903,264 +901,14 @@ body::before {
       <div class="wiz-step-label" id="label-3">Activate</div>
     </div>
 
-    <!-- ── Step 1: Connect Network (Print on Command) ── -->
+    <!-- ── Step 1: Connect Polymarket ── -->
     <div class="wiz-panel active" id="wiz-step-1">
-      <div class="wiz-title">Manage Trading Network</div>
-      <div class="wiz-desc">Each pipeline is independently controlled. Connect, activate, and let the agent execute.</div>
+      <div class="wiz-title">Connect to Polymarket</div>
+      <div class="wiz-desc">WICK trades prediction markets on Polymarket. Start in sandbox mode with simulated funds, or connect your Polygon wallet for live trading.</div>
 
-      <!-- 4-Tab Layout -->
-      <div style="display:flex; gap:0; margin-bottom:0; border-bottom:1px solid var(--border);">
-        <button onclick="wizSwitchTab('robinhood')" id="wiz-tab-rh" class="dash-nav-btn active" style="border-radius:8px 8px 0 0; border-bottom:2px solid #00C805; flex:1; color:#00C805;">Robinhood</button>
-        <button onclick="wizSwitchTab('coinbase')" id="wiz-tab-cb" class="dash-nav-btn" style="border-radius:8px 8px 0 0; border-bottom:2px solid transparent; flex:1;">Coinbase</button>
-        <button onclick="wizSwitchTab('alpaca')" id="wiz-tab-al" class="dash-nav-btn" style="border-radius:8px 8px 0 0; border-bottom:2px solid transparent; flex:1;">Options</button>
-        <button onclick="wizSwitchTab('polymarket')" id="wiz-tab-pm" class="dash-nav-btn" style="border-radius:8px 8px 0 0; border-bottom:2px solid transparent; flex:1;">Predictions</button>
-      </div>
-
-      <div id="wiz-broker-section" style="display:block;"><div id="wiz-broker-grid" style="display:none;"></div><div id="wiz-broker-label" style="display:none;"></div></div>
-      <!-- ═══ ALPACA OPTIONS TAB ═══ -->
-      <div id="wiz-alpaca-form" style="display:none; padding-top:24px;">
-
-        <!-- Options Desk Standby Banner -->
-        <div style="background:#080b0f;border:1px solid rgba(251,191,36,.12);border-radius:12px;padding:24px;margin-bottom:20px;text-align:center">
-          <div style="font-family:var(--mono);font-size:9px;color:#FBBF24;letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px">Alpaca Options Desk</div>
-          <div style="font-size:28px;font-weight:800;font-family:var(--mono);color:var(--text1);margin-bottom:6px" id="al-equity-display">$0.00</div>
-          <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:20px" id="al-status-display">Not connected</div>
-
-          <!-- Standby state for options -->
-          <div style="background:rgba(251,191,36,.04);border:1px solid rgba(251,191,36,.10);border-radius:10px;padding:16px;margin-bottom:16px">
-            <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:8px">
-              <span style="width:8px;height:8px;border-radius:50%;background:#FBBF24;opacity:.5"></span>
-              <span style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;color:#FBBF24">OPTIONS DESK: STANDBY</span>
-            </div>
-            <div style="font-size:12px;color:#8899aa;line-height:1.6">
-              The Delta-Hedging Engine requires an Alpaca margin account with options trading approval. Connect your standard Alpaca API keys below to trade crypto and equities. Options routing will activate automatically once margin verification is detected.
-            </div>
-          </div>
-
-          <button onclick="wizConnect()" id="al-master-switch" style="width:100%;max-width:360px;padding:16px;background:#FBBF24;color:#000;font-family:var(--mono);font-size:15px;font-weight:800;border:none;border-radius:12px;cursor:pointer;letter-spacing:.06em">CONNECT ALPACA</button>
-        </div>
-
-        <!-- Account balance + max trade -->
-        <div id="al-account-info" style="display:none; margin-bottom:16px;">
-          <div style="display:flex; gap:12px; margin-bottom:12px;">
-            <div style="flex:1; padding:12px; background:rgba(251,191,36,.04); border:1px solid rgba(251,191,36,.12); border-radius:10px;">
-              <div style="font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">Portfolio</div>
-              <div style="font-size:18px; font-weight:800; font-family:var(--mono); color:var(--text1);" id="al-portfolio-val">$0</div>
-            </div>
-            <div style="flex:1; padding:12px; background:rgba(251,191,36,.04); border:1px solid rgba(251,191,36,.12); border-radius:10px;">
-              <div style="font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">Buying Power</div>
-              <div style="font-size:18px; font-weight:800; font-family:var(--mono); color:#FBBF24;" id="al-buying-power">$0</div>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:8px;">
-            <label class="form-label">Max per trade (USD)</label>
-            <input class="form-input" id="al-max-trade" type="number" placeholder="50" min="1" style="font-size:14px;">
-          </div>
-          <div style="font-size:10px; color:var(--text3); line-height:1.5;">Options are capped at 5% of buying power by default. This overrides that if lower.</div>
-        </div>
-
-        <!-- Safety tips -->
-        <div style="padding:12px 14px; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:8px; margin-bottom:16px;">
-          <div style="font-size:10px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; margin-bottom:8px;">SAFE TRADING GUIDELINES</div>
-          <div style="font-size:11px; color:var(--text3); line-height:1.7;">
-            <div style="margin-bottom:4px;">Options carry higher risk than stocks. Contracts can expire worthless.</div>
-            <div style="margin-bottom:4px;">The agent targets ITM contracts with 0.65 delta to minimize time decay.</div>
-            <div style="margin-bottom:4px;">Premium stop-loss at -15% protects against runaway losses.</div>
-            <div>Start with paper trading to test the 930 breakout scanner risk-free.</div>
-          </div>
-        </div>
-
-        <!-- What this does -->
-        <div style="padding:14px 16px; background:rgba(251,191,36,.04); border:1px solid rgba(251,191,36,.15); border-radius:10px; margin-bottom:16px;">
-          <div style="font-size:11px; font-family:var(--mono); color:#FBBF24; font-weight:700; letter-spacing:.08em; margin-bottom:8px;">930 BREAKOUT SCANNER</div>
-          <div style="font-size:12px; color:var(--text2); line-height:1.6;">The agent scans for unusual options volume at market open. When it detects a breakout — AAPL calls surging 3x, NVDA puts spiking — it enters an ITM contract, rides it up, and exits automatically. Stocks and options only. US market hours.</div>
-        </div>
-
-        <!-- Hidden infrastructure -->
-        <details style="border:1px solid var(--border); border-radius:10px; overflow:hidden;">
-          <summary style="padding:12px 16px; cursor:pointer; font-size:11px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; background:rgba(255,255,255,.02);">Engine Infrastructure & Logistics</summary>
-          <div style="padding:16px;">
-            <div style="font-size:12px; color:var(--text2); margin-bottom:14px;">Create a free account at <a href="https://alpaca.markets" target="_blank" style="color:#FBBF24; font-weight:600;">alpaca.markets</a>. Go to API Keys and generate a new key. Paste both values below.</div>
-            <div class="form-group">
-              <label class="form-label">Alpaca API Key ID</label>
-              <input class="form-input" id="alpaca-key-id" type="text" placeholder="PKxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Alpaca Secret Key</label>
-              <input class="form-input" id="alpaca-secret" type="password" placeholder="Your secret key" autocomplete="off">
-            </div>
-            <div class="form-hint">AES-256 encrypted. Cannot withdraw funds. Supports paper and live trading.</div>
-          </div>
-        </details>
-
-        <!-- Advanced Strategy Matrix -->
-        <details style="border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:10px;">
-          <summary style="padding:12px 16px; cursor:pointer; font-size:11px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; background:rgba(255,255,255,.02);">Advanced Strategy Matrix</summary>
-          <div style="padding:16px; font-size:12px; color:var(--text2); line-height:1.8;">
-            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>Scan window</span><span style="color:var(--text1); font-family:var(--mono);">9:30 - 10:00 AM ET</span></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>Volume threshold</span><span style="color:var(--text1); font-family:var(--mono);">3x 20-day avg</span></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>Contract target</span><span style="color:var(--text1); font-family:var(--mono);">ITM/ATM, 0-3 DTE</span></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>Delta target</span><span style="color:var(--text1); font-family:var(--mono);">~0.65</span></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>Max position</span><span style="color:var(--text1); font-family:var(--mono);">5% of buying power</span></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>Take profit</span><span style="color:#4ade80; font-family:var(--mono);">+20% premium</span></div>
-            <div style="display:flex; justify-content:space-between; padding:4px 0;"><span>Stop loss</span><span style="color:var(--red); font-family:var(--mono);">-15% premium</span></div>
-            <div class="form-hint" style="margin-top:10px;">Hardcoded institutional defaults. The agent handles all parameter selection automatically.</div>
-          </div>
-        </details>
-
-        <!-- Security block — Alpaca -->
-        <div style="margin-top:20px;padding:16px;background:rgba(255,255,255,.015);border:1px solid var(--border);border-radius:10px">
-          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin-bottom:8px">SECURITY & CUSTODY</div>
-          <div style="font-size:12px;color:var(--text1);line-height:1.7">
-            <p style="margin-bottom:8px"><strong>WICK is an agentic bot that only knows how to evaluate and win trades.</strong> It reads market data, analyzes signals, and places orders when the math confirms an edge.</p>
-            <p style="margin-bottom:8px"><strong>Non-custodial by design.</strong> WICK operates via secure, isolated API keys. Your funds never leave your Alpaca account, and WICK has absolutely zero technical permission or capability to withdraw or transfer your capital. You retain 100% custody at all times. Alpaca accounts are FINRA-registered and SIPC-protected.</p>
-            <p style="margin:0;color:var(--text3)">All credentials are AES-256 encrypted at rest. Revoke access anytime from your Alpaca dashboard → API Keys.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ ROBINHOOD TAB ═══ -->
-      <div id="wiz-rh-form" style="padding-top:24px;">
-        <!-- Master Switch -->
-        <div style="text-align:center; margin-bottom:24px;">
-          <div style="font-family:var(--mono); font-size:9px; color:#00C805; letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px;">Robinhood Crypto Pipeline</div>
-          <div style="font-size:36px; font-weight:800; font-family:var(--mono); color:var(--text1); margin-bottom:4px;" id="rh-equity-display">$0.00</div>
-          <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-bottom:20px;" id="rh-status-display">Not connected</div>
-          <button onclick="wizConnect()" id="rh-master-switch" style="width:100%; max-width:360px; padding:16px; background:#00C805; color:#000; font-family:var(--mono); font-size:15px; font-weight:800; border:none; border-radius:12px; cursor:pointer; letter-spacing:.06em;">ACTIVATE AGENTIC PIPELINE</button>
-        </div>
-
-        <!-- Account balance + max trade -->
-        <div id="rh-account-info" style="display:none; margin-bottom:16px;">
-          <div style="display:flex; gap:12px; margin-bottom:12px;">
-            <div style="flex:1; padding:12px; background:rgba(0,200,5,.04); border:1px solid rgba(0,200,5,.12); border-radius:10px;">
-              <div style="font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">Portfolio</div>
-              <div style="font-size:18px; font-weight:800; font-family:var(--mono); color:var(--text1);" id="rh-portfolio-val">$0</div>
-            </div>
-            <div style="flex:1; padding:12px; background:rgba(0,200,5,.04); border:1px solid rgba(0,200,5,.12); border-radius:10px;">
-              <div style="font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">Buying Power</div>
-              <div style="font-size:18px; font-weight:800; font-family:var(--mono); color:#00C805;" id="rh-buying-power">$0</div>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:8px;">
-            <label class="form-label">Max per trade (USD)</label>
-            <input class="form-input" id="rh-max-trade" type="number" placeholder="50" min="1" style="font-size:14px;">
-          </div>
-          <div style="font-size:10px; color:var(--text3); line-height:1.5;">The agent will never exceed this amount on a single trade. If you enter more than your buying power, the order is rejected.</div>
-        </div>
-
-        <!-- Safety tips -->
-        <div style="padding:12px 14px; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:8px; margin-bottom:16px;">
-          <div style="font-size:10px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; margin-bottom:8px;">SAFE TRADING GUIDELINES</div>
-          <div style="font-size:11px; color:var(--text3); line-height:1.7;">
-            <div style="margin-bottom:4px;">Start with paper trading to test without risk.</div>
-            <div style="margin-bottom:4px;">Never trade more than you can afford to lose.</div>
-            <div style="margin-bottom:4px;">The agent never sells at a loss. Positions are held until recovery.</div>
-            <div>You can disconnect your keys and stop trading at any time.</div>
-          </div>
-        </div>
-
-        <!-- Hidden infrastructure (collapsible) -->
-        <details style="border:1px solid var(--border); border-radius:10px; overflow:hidden;">
-          <summary style="padding:12px 16px; cursor:pointer; font-size:11px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; background:rgba(255,255,255,.02);">Engine Infrastructure & Logistics</summary>
-          <div style="padding:16px;">
-            <div id="rh-screen-1">
-              <div style="font-size:13px; color:var(--text2); margin-bottom:16px;">WICK generates a secure key automatically. Paste it into Robinhood, come back with the API Key ID.</div>
-              <button type="button" onclick="rhAutoSetup()" id="rh-auto-btn" style="width:100%; padding:14px; background:rgba(0,200,5,.12); border:1px solid rgba(0,200,5,.25); color:#00C805; font-family:var(--mono); font-size:13px; font-weight:700; border-radius:8px; cursor:pointer; margin-bottom:10px;">Generate Key & Open Robinhood</button>
-              <div id="rh-clipboard-confirm" style="display:none; padding:10px; background:rgba(74,222,128,.06); border:1px solid rgba(74,222,128,.15); border-radius:6px; text-align:center; margin-bottom:10px;">
-                <div style="font-size:12px; color:#4ade80; font-weight:700;">Key copied to clipboard</div>
-                <div style="font-size:11px; color:var(--text2); margin-top:4px;">Paste into Robinhood, then paste the API Key ID below.</div>
-                <button type="button" onclick="rhGoToScreen2()" style="margin-top:10px; width:100%; padding:10px; background:var(--card2); border:1px solid var(--border); color:var(--text1); font-family:var(--mono); font-size:12px; font-weight:700; border-radius:6px; cursor:pointer;">I have my API Key ID</button>
-              </div>
-            </div>
-            <div id="rh-screen-2" style="display:none;">
-              <div class="form-group">
-                <label class="form-label">Robinhood API Key ID</label>
-                <input class="form-input" id="rh-key-id" type="text" placeholder="rh-api-xxxxxxxx-xxxx-xxxx" autocomplete="off" spellcheck="false">
-              </div>
-              <input type="hidden" id="rh-private-key">
-              <button type="button" onclick="rhBackToScreen1()" style="background:none; border:none; color:var(--text3); font-size:10px; font-family:var(--mono); cursor:pointer; text-decoration:underline;">Back</button>
-            </div>
-            <div id="rh-manual-form" style="display:none; margin-top:10px;">
-              <div class="form-group"><label class="form-label">API Key ID</label><input class="form-input" id="rh-manual-key-id" type="text" placeholder="rh-api-..." autocomplete="off"></div>
-              <div class="form-group"><label class="form-label">Private Key</label><input class="form-input" id="rh-manual-private-key" type="password" placeholder="..." autocomplete="off"></div>
-            </div>
-            <div style="text-align:center; margin-top:8px;"><button type="button" onclick="rhShowManual()" style="background:none; border:none; color:var(--text3); font-size:10px; font-family:var(--mono); cursor:pointer; text-decoration:underline;">Enter keys manually</button></div>
-          </div>
-        </details>
-
-        <!-- Security block — Robinhood -->
-        <div style="margin-top:20px;padding:16px;background:rgba(255,255,255,.015);border:1px solid var(--border);border-radius:10px">
-          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin-bottom:8px">SECURITY & CUSTODY</div>
-          <div style="font-size:12px;color:var(--text1);line-height:1.7">
-            <p style="margin-bottom:8px"><strong>WICK is an agentic bot that only knows how to evaluate and win trades.</strong> It reads market data, analyzes signals, and places orders when the math confirms an edge.</p>
-            <p style="margin-bottom:8px"><strong>Non-custodial by design.</strong> WICK operates via secure, isolated API keys. Your funds never leave your Robinhood account, and WICK has absolutely zero technical permission or capability to withdraw or transfer your capital. You retain 100% custody at all times.</p>
-            <p style="margin:0;color:var(--text3)">All credentials are AES-256 encrypted at rest. Revoke access anytime by deleting the API key from Robinhood's settings.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ COINBASE TAB ═══ -->
-      <div id="wiz-coinbase-form" style="display:none; padding-top:24px;">
-        <!-- Master Switch -->
-        <div style="text-align:center; margin-bottom:24px;">
-          <div style="font-family:var(--mono); font-size:9px; color:#0052FF; letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px;">Coinbase Advanced Trade Pipeline</div>
-          <div style="font-size:36px; font-weight:800; font-family:var(--mono); color:var(--text1); margin-bottom:4px;" id="cb-equity-display">$0.00</div>
-          <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-bottom:20px;" id="cb-status-display">Not connected</div>
-          <button onclick="wizConnect()" id="cb-master-switch" style="width:100%; max-width:360px; padding:16px; background:#0052FF; color:#fff; font-family:var(--mono); font-size:15px; font-weight:800; border:none; border-radius:12px; cursor:pointer; letter-spacing:.06em;">ACTIVATE AGENTIC PIPELINE</button>
-        </div>
-
-        <!-- Account balance + max trade -->
-        <div id="cb-account-info" style="display:none; margin-bottom:16px;">
-          <div style="display:flex; gap:12px; margin-bottom:12px;">
-            <div style="flex:1; padding:12px; background:rgba(0,82,255,.04); border:1px solid rgba(0,82,255,.12); border-radius:10px;">
-              <div style="font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">Portfolio</div>
-              <div style="font-size:18px; font-weight:800; font-family:var(--mono); color:var(--text1);" id="cb-portfolio-val">$0</div>
-            </div>
-            <div style="flex:1; padding:12px; background:rgba(0,82,255,.04); border:1px solid rgba(0,82,255,.12); border-radius:10px;">
-              <div style="font-size:9px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">Buying Power</div>
-              <div style="font-size:18px; font-weight:800; font-family:var(--mono); color:#0052FF;" id="cb-buying-power">$0</div>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:8px;">
-            <label class="form-label">Max per trade (USD)</label>
-            <input class="form-input" id="cb-max-trade" type="number" placeholder="50" min="1" style="font-size:14px;">
-          </div>
-          <div style="font-size:10px; color:var(--text3); line-height:1.5;">Orders exceeding your buying power are automatically rejected.</div>
-        </div>
-
-        <!-- Safety tips -->
-        <div style="padding:12px 14px; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:8px; margin-bottom:16px;">
-          <div style="font-size:10px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; margin-bottom:8px;">SAFE TRADING GUIDELINES</div>
-          <div style="font-size:11px; color:var(--text3); line-height:1.7;">
-            <div style="margin-bottom:4px;">The agent never sells at a loss. Positions are held until recovery.</div>
-            <div style="margin-bottom:4px;">Set a max trade amount you're comfortable with.</div>
-            <div>You can disconnect your keys and stop trading at any time.</div>
-          </div>
-        </div>
-
-        <!-- Hidden infrastructure -->
-        <details style="border:1px solid var(--border); border-radius:10px; overflow:hidden;">
-          <summary style="padding:12px 16px; cursor:pointer; font-size:11px; font-family:var(--mono); color:var(--text3); letter-spacing:.06em; background:rgba(255,255,255,.02);">Engine Infrastructure & Logistics</summary>
-          <div style="padding:16px;">
-            <div class="form-group"><label class="form-label">Key Name</label><input class="form-input" id="cb-key-name" type="text" placeholder="organizations/.../apiKeys/..." autocomplete="off" style="font-size:11px;"></div>
-            <div class="form-group"><label class="form-label">Private Key (PEM)</label><textarea class="form-input" id="cb-private-key" rows="3" placeholder="-----BEGIN EC PRIVATE KEY-----" autocomplete="off" style="resize:vertical; font-size:11px; line-height:1.4;"></textarea></div>
-            <div class="form-hint">AES-256 encrypted. Cannot withdraw funds.</div>
-          </div>
-        </details>
-
-        <!-- Security block — Coinbase -->
-        <div style="margin-top:20px;padding:16px;background:rgba(255,255,255,.015);border:1px solid var(--border);border-radius:10px">
-          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;font-weight:700;margin-bottom:8px">SECURITY & CUSTODY</div>
-          <div style="font-size:12px;color:var(--text1);line-height:1.7">
-            <p style="margin-bottom:8px"><strong>WICK is an agentic bot that only knows how to evaluate and win trades.</strong> It reads market data, analyzes signals, and places orders when the math confirms an edge.</p>
-            <p style="margin-bottom:8px"><strong>Non-custodial by design.</strong> WICK operates via secure, isolated API keys. Your funds never leave your Coinbase account, and WICK has absolutely zero technical permission or capability to withdraw or transfer your capital. You retain 100% custody at all times.</p>
-            <p style="margin:0;color:var(--text3)">All credentials are AES-256 encrypted at rest. Revoke access anytime from your Coinbase Advanced Trade API settings.</p>
-          </div>
-        </div>
-      </div>
-
+      <div id="wiz-broker-section" style="display:none;"><div id="wiz-broker-grid" style="display:none;"></div><div id="wiz-broker-label" style="display:none;"></div></div>
       <!-- ═══ POLYMARKET TAB — Full Multi-Agent Terminal ═══ -->
-      <div id="wiz-polymarket-form" style="display:none; padding-top:0;">
+      <div id="wiz-polymarket-form" style="display:block; padding-top:0;">
         <div style="background:#080b0f;border:1px solid #1a2030;border-radius:14px;overflow:hidden">
 
           <!-- ── HEADER: Title + Mode Toggle + Ignition ── -->
@@ -1183,7 +931,7 @@ body::before {
             </div>
             <!-- Mode selector: SANDBOX / LIVE -->
             <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:fit-content">
-              <button id="pm-mode-sandbox" onclick="pmSetMode('sandbox')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:#1a2a3a;color:#22d3ee;transition:all .2s">SANDBOX</button>
+              <button id="pm-mode-sandbox" onclick="pmSetMode('sandbox')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:rgba(41,98,255,.12);color:#4D8FFF;transition:all .2s">SANDBOX</button>
               <button id="pm-mode-live" onclick="pmSetMode('live')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">LIVE TRADING</button>
             </div>
           </div>
@@ -1214,7 +962,7 @@ body::before {
             </div>
             <div style="background:#080b0f;padding:14px 16px">
               <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Active Desks</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#4ade80;margin-top:4px" id="pm-desks">4</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#4D8FFF;margin-top:4px" id="pm-desks">4</div>
             </div>
             <div style="background:#080b0f;padding:14px 16px">
               <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase" id="pm-balance-label">Sandbox Balance</div>
@@ -1235,7 +983,7 @@ body::before {
             <div style="background:#080b0f;padding:12px 16px">
               <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Avg Slippage (Sv)</div>
               <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
-                <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#4ade80" id="pm-slip-avg">0.000</div>
+                <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#4D8FFF" id="pm-slip-avg">0.000</div>
                 <div style="font-family:var(--mono);font-size:9px;color:#4a5568" id="pm-slip-n">0 trades</div>
               </div>
               <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-slip-worst">Worst: 0.000</div>
@@ -1252,18 +1000,18 @@ body::before {
           <!-- ── DESK STATUS STRIP ── -->
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1a2030;border-top:1px solid #1a2030">
             <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#22d3ee" id="pm-desk-research-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#22d3ee;font-weight:700">RESEARCH</span>
+              <span style="width:6px;height:6px;border-radius:50%;background:#4D8FFF" id="pm-desk-research-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4D8FFF;font-weight:700">RESEARCH</span>
               <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-research-val">—</span>
             </div>
             <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#a855f7" id="pm-desk-math-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#a855f7;font-weight:700">MATH</span>
+              <span style="width:6px;height:6px;border-radius:50%;background:#6BA3FF" id="pm-desk-math-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#6BA3FF;font-weight:700">MATH</span>
               <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-math-val">—</span>
             </div>
             <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#f59e0b" id="pm-desk-exec-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#f59e0b;font-weight:700">EXECUTION</span>
+              <span style="width:6px;height:6px;border-radius:50%;background:#2962FF" id="pm-desk-exec-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#2962FF;font-weight:700">EXECUTION</span>
               <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-exec-val">—</span>
             </div>
             <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
@@ -1277,7 +1025,7 @@ body::before {
           <div style="padding:14px 16px;border-top:1px solid #1a2030">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
               <span style="font-family:var(--mono);font-size:9px;color:#4a5568;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Agent Desk Logs</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#22d3ee" id="pm-feed-status">Waiting for ignition…</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4D8FFF" id="pm-feed-status">Waiting for ignition…</span>
             </div>
             <div id="pm-terminal" style="background:#050810;border:1px solid #111820;border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
               <div style="color:#2a3545">// flip the switch to begin scanning</div>
@@ -1294,16 +1042,16 @@ body::before {
                 <div style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:8px">MARKET FOCUS</div>
                 <div style="display:flex;flex-wrap:wrap;gap:6px" id="pm-targets">
                   <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" checked style="accent-color:#22d3ee"> Geopolitics / Macro
+                    <input type="checkbox" checked style="accent-color:#4D8FFF"> Geopolitics / Macro
                   </label>
                   <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" checked style="accent-color:#f59e0b"> Crypto Milestones
+                    <input type="checkbox" checked style="accent-color:#2962FF"> Crypto Milestones
                   </label>
                   <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" checked style="accent-color:#4ade80"> Major Sports
+                    <input type="checkbox" checked style="accent-color:#2962FF"> Major Sports
                   </label>
                   <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" style="accent-color:#a855f7"> Pop Culture
+                    <input type="checkbox" style="accent-color:#2962FF"> Pop Culture
                   </label>
                 </div>
               </div>
@@ -1312,9 +1060,9 @@ body::before {
               <div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                   <span style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700">CONFIDENCE THRESHOLD</span>
-                  <span style="font-family:var(--mono);font-size:12px;color:#4ade80;font-weight:700" id="pm-conf-val">75%</span>
+                  <span style="font-family:var(--mono);font-size:12px;color:#4D8FFF;font-weight:700" id="pm-conf-val">75%</span>
                 </div>
-                <input type="range" id="pm-conf-slider" min="50" max="95" value="75" step="5" style="width:100%;accent-color:#4ade80" oninput="document.getElementById('pm-conf-val').textContent=this.value+'%'">
+                <input type="range" id="pm-conf-slider" min="50" max="95" value="75" step="5" style="width:100%;accent-color:#2962FF" oninput="document.getElementById('pm-conf-val').textContent=this.value+'%'">
                 <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:#3a4a5a;margin-top:2px">
                   <span>50% (aggressive)</span><span>95% (ultra-selective)</span>
                 </div>
@@ -1324,9 +1072,9 @@ body::before {
               <div style="background:#0a0f18;border:1px solid #141c28;border-radius:8px;padding:12px 14px">
                 <div style="font-family:var(--mono);font-size:8px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:8px">HOW THE INTELLIGENCE PIPELINE WORKS</div>
                 <div style="font-size:11px;color:#8899aa;line-height:1.7">
-                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#22d3ee;font-weight:700;flex-shrink:0">1.</span> <strong style="color:#c0ccd8">Research Desk</strong> scrapes Reuters, AP, ESPN, and Reddit in real time. Keywords are matched against 30+ active Polymarket contracts.</div>
-                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#a855f7;font-weight:700;flex-shrink:0">2.</span> <strong style="color:#c0ccd8">Math Desk</strong> evaluates implied probability vs order book pricing. Checks ΣPᵢ = 1.00 boundary. Flags sum violations and Kelly edge > 0.5%.</div>
-                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#f59e0b;font-weight:700;flex-shrink:0">3.</span> <strong style="color:#c0ccd8">Execution Desk</strong> (Claude AI) reviews all findings. If conviction exceeds your threshold, it calls buy_yes or buy_no with size + price.</div>
+                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#4D8FFF;font-weight:700;flex-shrink:0">1.</span> <strong style="color:#c0ccd8">Research Desk</strong> scrapes Reuters, AP, ESPN, and Reddit in real time. Keywords are matched against 30+ active Polymarket contracts.</div>
+                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#6BA3FF;font-weight:700;flex-shrink:0">2.</span> <strong style="color:#c0ccd8">Math Desk</strong> evaluates implied probability vs order book pricing. Checks ΣPᵢ = 1.00 boundary. Flags sum violations and Kelly edge > 0.5%.</div>
+                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#2962FF;font-weight:700;flex-shrink:0">3.</span> <strong style="color:#c0ccd8">Execution Desk</strong> (Claude AI) reviews all findings. If conviction exceeds your threshold, it calls buy_yes or buy_no with size + price.</div>
                   <div style="display:flex;gap:8px"><span style="color:#f43f5e;font-weight:700;flex-shrink:0">4.</span> <strong style="color:#c0ccd8">Chief Risk Officer</strong> enforces position limits (10% max), $50 hard cap, and 5% drawdown circuit breaker. Vetoes override everything.</div>
                 </div>
               </div>
@@ -1347,19 +1095,13 @@ body::before {
           <div style="padding:12px 20px;border-top:1px solid #1a2030;display:flex;align-items:center;justify-content:space-between;opacity:.5">
             <div>
               <span style="font-family:var(--mono);font-size:9px;color:#4a5568;font-weight:700;letter-spacing:.08em">KALSHI (CFTC-REGULATED)</span>
-              <span style="font-size:7px;font-family:var(--mono);font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(255,180,84,.1);color:var(--green);letter-spacing:.06em;margin-left:8px">COMING SOON</span>
+              <span style="font-size:7px;font-family:var(--mono);font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(41,98,255,.1);color:var(--green);letter-spacing:.06em;margin-left:8px">COMING SOON</span>
             </div>
             <button id="kalshi-waitlist-btn" onclick="joinWaitlist('kalshi')" style="padding:5px 12px;background:transparent;border:1px solid #1a2030;color:#4a5568;font-family:var(--mono);font-size:9px;font-weight:700;border-radius:5px;cursor:pointer">Notify Me</button>
-            <div id="kalshi-waitlist-success" style="display:none;color:#4ade80;font-family:var(--mono);font-size:9px;font-weight:700">Saved ✓</div>
+            <div id="kalshi-waitlist-success" style="display:none;color:#4D8FFF;font-family:var(--mono);font-size:9px;font-weight:700">Saved ✓</div>
           </div>
 
         </div>
-      </div>
-
-      <!-- Kraken (hidden, legacy) -->
-      <div id="wiz-kraken-form" style="display:none;">
-        <div class="form-group"><label class="form-label">Kraken API Key</label><input class="form-input" id="kr-api-key" type="text" autocomplete="off"></div>
-        <div class="form-group"><label class="form-label">Kraken Private Key</label><input class="form-input" id="kr-api-secret" type="password" autocomplete="off"></div>
       </div>
 
       <div id="wiz-connect-error" class="form-error" style="display:none"></div>
@@ -1377,14 +1119,6 @@ body::before {
 
       <div class="form-label" style="margin-bottom:12px;">Strategy</div>
       <div class="strategy-grid" id="wiz-strategy-grid"></div>
-
-      <div class="form-label">Asset class</div>
-      <div class="mode-switch" style="margin-top:6px;">
-        <button class="mode-btn" id="wiz-type-crypto" onclick="wizSetBotType('crypto')">CRYPTO</button>
-        <button class="mode-btn" id="wiz-type-stocks" onclick="wizSetBotType('stocks')">STOCKS</button>
-        <button class="mode-btn" id="wiz-type-both"   onclick="wizSetBotType('both')">BOTH</button>
-      </div>
-      <div id="wiz-type-desc" style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:8px; margin-bottom:20px; line-height:1.6;"></div>
 
       <div class="form-label">Risk profile</div>
       <div class="mode-switch" style="margin-top:6px;">
@@ -1412,20 +1146,20 @@ body::before {
 
       <div class="launch-summary" id="launch-summary">
         <div class="launch-row">
-          <span class="launch-key">Broker</span>
-          <span class="launch-val" id="launch-broker">Alpaca</span>
+          <span class="launch-key">Platform</span>
+          <span class="launch-val" id="launch-broker">Polymarket</span>
         </div>
         <div class="launch-row">
           <span class="launch-key">Mode</span>
-          <span class="launch-val" id="launch-mode">Paper</span>
+          <span class="launch-val" id="launch-mode">Sandbox</span>
         </div>
         <div class="launch-row">
           <span class="launch-key">Strategy</span>
           <span class="launch-val" id="launch-strategy">WICK Scalper</span>
         </div>
         <div class="launch-row">
-          <span class="launch-key">Assets</span>
-          <span class="launch-val" id="launch-assets">Crypto</span>
+          <span class="launch-key">Markets</span>
+          <span class="launch-val" id="launch-assets">All categories</span>
         </div>
         <div class="launch-row">
           <span class="launch-key">Risk</span>
@@ -1458,24 +1192,7 @@ body::before {
 <div id="dashboard" style="display:none">
   <div class="app-shell" style="max-width:1400px;padding:16px;">
 
-    <!-- Broker tabs — switch between connected brokers -->
-    <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto" id="dash-broker-tabs">
-      <button onclick="switchDashBroker('robinhood')" id="dbt-robinhood" class="dash-nav-btn active" style="border-radius:8px 8px 0 0;flex:1;min-width:0;border-bottom:2px solid #00C805;color:#00C805">
-        <span style="font-size:8px;margin-right:4px">●</span> Robinhood
-      </button>
-      <button onclick="switchDashBroker('coinbase')" id="dbt-coinbase" class="dash-nav-btn" style="border-radius:8px 8px 0 0;flex:1;min-width:0;border-bottom:2px solid transparent">
-        <span style="font-size:8px;margin-right:4px;color:#0052FF">●</span> Coinbase
-      </button>
-      <button onclick="switchDashBroker('alpaca')" id="dbt-alpaca" class="dash-nav-btn" style="border-radius:8px 8px 0 0;flex:1;min-width:0;border-bottom:2px solid transparent">
-        <span style="font-size:8px;margin-right:4px;color:#FBBF24">●</span> Alpaca
-      </button>
-      <button onclick="switchDashBroker('polymarket')" id="dbt-polymarket" class="dash-nav-btn" style="border-radius:8px 8px 0 0;flex:1;min-width:0;border-bottom:2px solid transparent;opacity:.5">
-        <span style="font-size:8px;margin-right:4px;color:#1652F0">●</span> Polymarket <sup style="font-size:7px;color:var(--text3)">SOON</sup>
-      </button>
-      <button disabled class="dash-nav-btn" style="border-radius:8px 8px 0 0;flex:1;min-width:0;border-bottom:2px solid transparent;opacity:.3;cursor:default">
-        <span style="font-size:8px;margin-right:4px">●</span> Kalshi <sup style="font-size:7px;color:var(--text3)">SOON</sup>
-      </button>
-    </div>
+    <!-- Polymarket-only — no broker tabs needed -->
 
     <!-- Control Room — everything on one page -->
     <div class="tile-grid">
@@ -1494,7 +1211,7 @@ body::before {
       </div>
       <div class="tile">
         <div class="tile-title">Portfolio</div>
-        <div class="tile-value" style="color:#a06bff;" id="stat-portfolio">—</div>
+        <div class="tile-value" style="color:#4D8FFF;" id="stat-portfolio">—</div>
         <div class="tile-sub" id="stat-buying-power">— buying power</div>
       </div>
       <div class="tile">
@@ -1574,7 +1291,7 @@ body::before {
       <div id="badges-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px;"></div>
     </div>
 
-    <div class="tile" id="referral-card" style="background:linear-gradient(135deg, rgba(255,180,84,.04), rgba(160,107,255,.04)); border-color:rgba(255,180,84,.15);">
+    <div class="tile" id="referral-card" style="background:linear-gradient(135deg, rgba(41,98,255,.04), rgba(77,143,255,.04)); border-color:rgba(41,98,255,.15);">
       <div class="card-title">Invite friends, get $25 fuel</div>
       <div style="font-size:13px; color:var(--text2); line-height:1.6; margin-bottom:12px;">Share your link. When someone signs up, you both get $25 in free fuel credits.</div>
       <div style="display:flex; gap:8px; align-items:center;">
@@ -1592,14 +1309,6 @@ body::before {
       <div class="card-title">Strategy &amp; Risk</div>
       <div class="form-label" style="margin-bottom:12px;">Choose strategy</div>
       <div class="strategy-grid" id="strategy-grid"></div>
-
-      <div class="form-label">Asset class</div>
-      <div class="mode-switch" style="margin-top:6px;">
-        <button class="mode-btn" id="type-crypto" onclick="setBotType('crypto')">CRYPTO</button>
-        <button class="mode-btn" id="type-stocks" onclick="setBotType('stocks')">STOCKS</button>
-        <button class="mode-btn" id="type-both"   onclick="setBotType('both')">BOTH</button>
-      </div>
-      <div id="type-desc" style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:8px; margin-bottom:20px; line-height:1.6;"></div>
 
       <div class="form-label">Risk profile</div>
       <div class="mode-switch" style="margin-top:6px;">
@@ -1622,13 +1331,6 @@ body::before {
       <!-- Trade Controls -->
       <div style="border-top:1px solid var(--border); margin-top:20px; padding-top:20px;">
         <div class="card-title" style="margin-bottom:16px;">Trade Controls</div>
-
-        <div class="form-label">Symbols to trade</div>
-        <div style="display:flex; gap:8px; margin-top:6px; margin-bottom:16px;">
-          <button class="mode-btn active live" id="sym-btc" onclick="toggleSymbol('BTC/USD',this)">BTC</button>
-          <button class="mode-btn active live" id="sym-eth" onclick="toggleSymbol('ETH/USD',this)">ETH</button>
-          <button class="mode-btn active live" id="sym-sol" onclick="toggleSymbol('SOL/USD',this)">SOL</button>
-        </div>
 
         <div class="form-label">Trade frequency</div>
         <div class="mode-switch" style="margin-top:6px; margin-bottom:16px;">
@@ -1662,13 +1364,6 @@ body::before {
           <div class="form-hint">Multiplier for ATR-based take-profit and stop-loss. Higher = wider targets, fewer but bigger trades.</div>
         </div>
 
-        <div class="form-label">Trading hours</div>
-        <div class="mode-switch" style="margin-top:6px; margin-bottom:16px;">
-          <button class="mode-btn active live" id="hours-247" onclick="setHours('24/7')">24/7</button>
-          <button class="mode-btn" id="hours-us" onclick="setHours('us')">US HOURS</button>
-          <button class="mode-btn" id="hours-asia" onclick="setHours('asia')">ASIA HOURS</button>
-          <button class="mode-btn" id="hours-eu" onclick="setHours('eu')">EU HOURS</button>
-        </div>
       </div>
 
       <!-- Signal Weights -->
@@ -1685,19 +1380,11 @@ body::before {
           <input type="range" id="w-reddit" min="0" max="100" value="50" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-reddit-val').textContent=this.value">
         </div>
         <div class="form-group">
-          <label class="form-label">Stocktwits sentiment — <span id="w-stocktwits-val" style="color:var(--green)">50</span></label>
-          <input type="range" id="w-stocktwits" min="0" max="100" value="50" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-stocktwits-val').textContent=this.value">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Funding rates — <span id="w-funding-val" style="color:var(--green)">70</span></label>
-          <input type="range" id="w-funding" min="0" max="100" value="70" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-funding-val').textContent=this.value">
-        </div>
-        <div class="form-group">
           <label class="form-label">News headlines — <span id="w-news-val" style="color:var(--green)">40</span></label>
           <input type="range" id="w-news" min="0" max="100" value="40" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-news-val').textContent=this.value">
         </div>
         <div class="form-group">
-          <label class="form-label">Polymarket predictions — <span id="w-poly-val" style="color:var(--green)">30</span></label>
+          <label class="form-label">Market implied probability — <span id="w-poly-val" style="color:var(--green)">30</span></label>
           <input type="range" id="w-poly" min="0" max="100" value="30" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-poly-val').textContent=this.value">
         </div>
       </div>
@@ -1766,7 +1453,7 @@ body::before {
       <!-- Panel: Fuel -->
       <!-- Panel: Fuel -->
 
-        <div class="tile" id="fuel-card" style="background:linear-gradient(135deg, rgba(255,180,84,.04), rgba(160,107,255,.04)); border-color:rgba(255,180,84,.2);">
+        <div class="tile" id="fuel-card" style="background:linear-gradient(135deg, rgba(41,98,255,.04), rgba(77,143,255,.04)); border-color:rgba(41,98,255,.2);">
           <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
             <span>Balance</span>
             <span id="fuel-tier" style="font-size:10px; color:var(--green); text-transform:none; letter-spacing:0;"></span>
@@ -1784,10 +1471,10 @@ body::before {
             Fuel depleted -- agent paused. Buy fuel to resume live trading.
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="nav-btn" onclick="buyFuel(25)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(255,180,84,.3); color:var(--green);">+$25</button>
-            <button class="nav-btn" onclick="buyFuel(50)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(255,180,84,.3); color:var(--green);">+$50</button>
-            <button class="nav-btn" onclick="buyFuel(100)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(255,180,84,.3); color:var(--green);">+$100</button>
-            <button class="nav-btn" onclick="buyFuel(250)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(255,180,84,.3); color:var(--green);">+$250</button>
+            <button class="nav-btn" onclick="buyFuel(25)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$25</button>
+            <button class="nav-btn" onclick="buyFuel(50)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$50</button>
+            <button class="nav-btn" onclick="buyFuel(100)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$100</button>
+            <button class="nav-btn" onclick="buyFuel(250)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$250</button>
           </div>
         </div>
 
@@ -1805,56 +1492,18 @@ body::before {
 
       <!-- Panel: Broker -->
 
-        <div class="tile tile-wide" id="alpaca-card">
-          <div id="alpaca-mode-hint" style="font-size:12px; color:var(--green); font-family:var(--mono); margin-bottom:14px;"></div>
-
-          <div class="form-label" style="margin-bottom:8px;">Select broker</div>
-          <div class="mode-switch" style="margin-bottom:20px;">
-            <button class="mode-btn active live" id="broker-alpaca" onclick="setBroker('alpaca')">ALPACA</button>
-            <button class="mode-btn" id="broker-robinhood" onclick="setBroker('robinhood')">ROBINHOOD</button>
-          </div>
-
-          <div id="alpaca-section">
-            <div class="form-group">
-              <label class="form-label">Alpaca API Key ID</label>
-              <input class="form-input" id="dash-alpaca-key" type="text" placeholder="PKxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Alpaca Secret Key</label>
-              <input class="form-input" id="dash-alpaca-secret" type="password" placeholder="••••••••" autocomplete="off">
-            </div>
-          </div>
-
-          <div id="rh-section" style="display:none">
-            <div id="dash-rh-screen-1">
-              <button type="button" onclick="dashRhAutoSetup()" id="dash-rh-auto-btn" style="width:100%; padding:14px; background:var(--green); color:#000; font-family:var(--mono); font-size:14px; font-weight:800; border:none; border-radius:8px; cursor:pointer; letter-spacing:.04em; margin-bottom:10px;">Generate Key & Open Robinhood</button>
-              <div style="font-size:11px; color:var(--text3); text-align:center; line-height:1.5; margin-bottom:12px;">Generates a secure key, copies it to clipboard, and opens Robinhood settings.</div>
-              <div id="dash-rh-confirm" style="display:none; padding:12px; background:rgba(74,222,128,.06); border:1px solid rgba(74,222,128,.2); border-radius:8px; text-align:center; margin-bottom:12px;">
-                <div style="font-size:12px; color:#4ade80; font-weight:700; margin-bottom:6px;">Key copied to clipboard</div>
-                <div style="font-size:11px; color:var(--text2); line-height:1.5;">Paste into Robinhood, then paste the API Key ID below.</div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Robinhood API Key ID</label>
-                <input class="form-input" id="dash-rh-key" type="text" placeholder="rh-api-xxxxxxxx-xxxx-xxxx" autocomplete="off" spellcheck="false">
-              </div>
-              <input type="hidden" id="dash-rh-pem">
-            </div>
-            <div id="dash-rh-manual" style="display:none;">
-              <div class="form-group">
-                <label class="form-label">API Key ID</label>
-                <input class="form-input" id="dash-rh-manual-key" type="text" placeholder="rh-api-..." autocomplete="off" spellcheck="false">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Private Key (Base64)</label>
-                <input class="form-input" id="dash-rh-manual-pem" type="password" placeholder="..." autocomplete="off" spellcheck="false">
-              </div>
-            </div>
-          </div>
-
-          <div id="connect-error" class="form-error" style="display:none"></div>
-          <div id="connect-success" class="form-success" style="display:none"></div>
-          <button class="btn-primary" id="btn-connect" onclick="connectBroker()">Connect & Validate Keys</button>
-        </div>
+    <div class="tile tile-wide" id="wallet-card">
+      <div class="tile-title">Polymarket Wallet</div>
+      <div id="wallet-status" style="font-size:12px; color:var(--accent); font-family:var(--mono); margin-bottom:14px;"></div>
+      <div class="form-group">
+        <label class="form-label">Wallet Private Key (Polygon)</label>
+        <input class="form-input" id="dash-poly-key" type="password" placeholder="0x..." autocomplete="off" spellcheck="false">
+      </div>
+      <div style="font-size:10px; color:var(--text3); line-height:1.5; margin-bottom:14px;">Your key is AES-256 encrypted. WICK can only place trades — it cannot withdraw or transfer your funds.</div>
+      <div id="connect-error" class="form-error" style="display:none"></div>
+      <div id="connect-success" class="form-success" style="display:none"></div>
+      <button class="btn-primary" id="btn-connect" onclick="connectWallet()">Connect Wallet</button>
+    </div>
 
 
       <!-- Panel: Settings -->
@@ -1963,7 +1612,7 @@ document.addEventListener('visibilitychange', () => {
 
 // ── Sidebar panel navigation ─────────────────────────────────────────────────
 // Broker tab colors
-const BROKER_TAB_COLORS = { robinhood:'#00C805', coinbase:'#0052FF', alpaca:'#FBBF24', polymarket:'#1652F0' };
+const BROKER_TAB_COLORS = { polymarket:'#2962FF' };
 
 window.switchDashBroker = async function(broker) {
   // Update ALL tab visuals
@@ -2204,42 +1853,14 @@ window.wizSelectTradeType = function (type) {
   section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
-const BROKER_COLORS = { robinhood: '#00C805', coinbase: '#0052FF', alpaca: '#FBBF24', polymarket: '#0066FF' };
-const BROKER_FORMS  = ['wiz-alpaca-form', 'wiz-rh-form', 'wiz-coinbase-form', 'wiz-kraken-form', 'wiz-polymarket-form'];
-const BROKER_MAP    = { robinhood: 'wiz-rh-form', coinbase: 'wiz-coinbase-form', alpaca: 'wiz-alpaca-form', polymarket: 'wiz-polymarket-form' };
-
-// 3-tab switcher for wizard step 1
-window.wizSwitchTab = function (broker) {
-  window._broker = broker;
-  const tabs = { rh: 'robinhood', cb: 'coinbase', al: 'alpaca', pm: 'polymarket' };
-  const colors = { robinhood: '#00C805', coinbase: '#0052FF', alpaca: '#FBBF24', polymarket: '#0066FF' };
-
-  ['rh', 'cb', 'al', 'pm'].forEach(key => {
-    const tab = document.getElementById('wiz-tab-' + key);
-    if (!tab) return;
-    const isActive = tabs[key] === broker;
-    tab.style.borderBottomColor = isActive ? colors[tabs[key]] : 'transparent';
-    tab.style.color = isActive ? colors[tabs[key]] : '';
-    tab.className = 'dash-nav-btn' + (isActive ? ' active' : '');
-  });
-
-  // Show/hide ALL forms
-  const allForms = { robinhood: 'wiz-rh-form', coinbase: 'wiz-coinbase-form', alpaca: 'wiz-alpaca-form', polymarket: 'wiz-polymarket-form' };
-  Object.entries(allForms).forEach(([b, formId]) => {
-    const el = document.getElementById(formId);
-    if (el) el.style.display = b === broker ? '' : 'none';
-  });
-  const kf = document.getElementById('wiz-kraken-form'); if (kf) kf.style.display = 'none';
-
-  // Update connect button color and visibility
+// Polymarket-only — no broker tabs needed
+window._broker = 'polymarket';
+window.wizSwitchTab = function () {
+  window._broker = 'polymarket';
+  const form = document.getElementById('wiz-polymarket-form');
+  if (form) form.style.display = 'block';
   const btn = document.getElementById('wiz-btn-connect');
-  if (btn) {
-    btn.style.background = colors[broker] || 'var(--green)';
-    btn.style.display = broker === 'polymarket' ? 'none' : '';
-  }
-
-  document.getElementById('wiz-connect-error').style.display = 'none';
-  document.getElementById('wiz-connect-success').style.display = 'none';
+  if (btn) btn.style.display = 'none';
 };
 
 // Waitlist join
@@ -2293,8 +1914,8 @@ window.pmSetMode = function(mode) {
   } else {
     document.body.classList.remove('mode-live');
     document.body.classList.add('mode-sandbox');
-    sb.style.background = '#1a2a3a'; sb.style.color = '#22d3ee';
-    sb.style.boxShadow = '0 0 12px rgba(34,211,238,.15)';
+    sb.style.background = 'rgba(41,98,255,.12)'; sb.style.color = '#4D8FFF';
+    sb.style.boxShadow = '0 0 12px rgba(41,98,255,.15)';
     lv.style.background = '#0c1018'; lv.style.color = '#4a5568';
     lv.style.boxShadow = 'none';
     setup.style.display = 'none';
@@ -2306,8 +1927,8 @@ window.pmSetMode = function(mode) {
 };
 
 const DESK_COLORS = {
-  RESEARCH: '#22d3ee', MATH: '#a855f7', EXECUTION: '#f59e0b',
-  CRO: '#f43f5e', SYSTEM: '#3b82f6', CLAUDE: '#4ade80',
+  RESEARCH: '#4D8FFF', MATH: '#6BA3FF', EXECUTION: '#2962FF',
+  CRO: '#f43f5e', SYSTEM: '#3b82f6', CLAUDE: '#4D8FFF',
 };
 
 function pmLog(desk, message, status) {
@@ -2427,7 +2048,7 @@ async function pmRunScan() {
       pmUpdateDesk('exec', 'hold', true);
       pmLog('CLAUDE', `◆ HOLD — ${(dec.reason || 'No clear edge').slice(0, 100)}`, 'HOLD');
     } else {
-      verdictEl.textContent = action.toUpperCase(); verdictEl.style.color = '#4ade80';
+      verdictEl.textContent = action.toUpperCase(); verdictEl.style.color = '#4D8FFF';
       pmUpdateDesk('exec', action, true);
       pmLog('CLAUDE', `⚡ ${action.toUpperCase()} "${(dec.market || '?').slice(0, 50)}" @ $${dec.price || '?'} · $${dec.size || '?'} · Confidence: ${dec.confidence || '?'}%`, 'TRADE');
       pmLog('EXECUTION', `📥 ${(dec.reason || '').slice(0, 120)}`, 'REASON');
@@ -2454,7 +2075,7 @@ async function pmRunScan() {
       pmLog('RESEARCH', `🐋 BIG FISH DETECTED: ${fish.polymarket_whales} Polymarket whale(s), ${fish.crypto_whales} crypto whale(s)`, 'WHALE');
       (fish.top_signals || []).forEach(w => {
         const emoji = w.type.includes('WHALE') ? '🐋' : '📊';
-        const dirColor = w.direction === 'ACCUMULATION' ? '#4ade80' : '#f43f5e';
+        const dirColor = w.direction === 'ACCUMULATION' ? '#4D8FFF' : '#f43f5e';
         pmLog('RESEARCH', `${emoji} ${w.type}: ${w.target} — ${w.spike} volume spike (${w.direction})`, 'WHALE');
       });
     }
@@ -2479,7 +2100,7 @@ async function pmPollPerformance() {
       if (bs.score !== null && bs.score !== undefined) {
         brierEl.textContent = bs.score.toFixed(4);
         // Color: green < 0.10, amber < 0.25, red >= 0.25
-        brierEl.style.color = bs.score < 0.10 ? '#4ade80' : bs.score < 0.25 ? '#f59e0b' : '#f43f5e';
+        brierEl.style.color = bs.score < 0.10 ? '#4D8FFF' : bs.score < 0.25 ? '#6BA3FF' : '#f43f5e';
         if (brierLbl) brierLbl.style.color = brierEl.style.color;
       } else {
         brierEl.textContent = '—';
@@ -2497,7 +2118,7 @@ async function pmPollPerformance() {
     if (slAvg) {
       const avg = sl.avg_slippage || 0;
       slAvg.textContent = avg.toFixed(4);
-      slAvg.style.color = avg < 0.005 ? '#4ade80' : avg < 0.02 ? '#f59e0b' : '#f43f5e';
+      slAvg.style.color = avg < 0.005 ? '#4D8FFF' : avg < 0.02 ? '#6BA3FF' : '#f43f5e';
     }
     if (slN) slN.textContent = `${sl.n || 0} trades`;
     if (slWorst) slWorst.textContent = `Worst: ${(sl.worst_slippage || 0).toFixed(4)}`;
@@ -2508,7 +2129,7 @@ async function pmPollPerformance() {
     const engDetail = document.getElementById('pm-engine-detail');
     if (engStatus) {
       engStatus.textContent = eng.status || 'ACTIVE';
-      engStatus.style.color = eng.status === 'ACTIVE' ? '#4ade80' : '#f43f5e';
+      engStatus.style.color = eng.status === 'ACTIVE' ? '#4D8FFF' : '#f43f5e';
     }
     if (engDetail) engDetail.textContent = `${eng.consecutive_losses || 0} losses · ${eng.markets_scanned || 0} markets`;
 
@@ -2624,7 +2245,7 @@ window.rhAutoSetup = async function () {
 
     btn.textContent = 'Key copied — Robinhood is open';
     btn.style.background = 'rgba(74,222,128,.15)';
-    btn.style.color = '#4ade80';
+    btn.style.color = '#4D8FFF';
     document.getElementById('rh-clipboard-confirm').style.display = 'block';
   } catch (err) {
     btn.textContent = 'Open Robinhood API Settings';
@@ -2698,162 +2319,28 @@ window.wizConnect = async function () {
   errEl.style.display = 'none';
   okEl.style.display  = 'none';
 
-  if (window._broker === 'alpaca') {
-    const keyId  = document.getElementById('alpaca-key-id').value.trim();
-    const secret = document.getElementById('alpaca-secret').value.trim();
-    if (!keyId || !secret) { errEl.textContent = 'Both fields are required'; errEl.style.display = 'block'; return; }
-
-    btn.disabled = true; btn.textContent = 'Validating…';
+  const privKey = document.getElementById('poly-private-key')?.value?.trim();
+  if (privKey) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Connecting wallet...'; }
     try {
       const r = await apiFetch('/api/bot?action=connect', {
         method: 'POST',
-        body: JSON.stringify({ broker: 'alpaca', alpaca_key_id: keyId, alpaca_secret_key: secret, mode: 'paper' }),
+        body: JSON.stringify({ poly_private_key: privKey, mode: _pmMode }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = `✓ Alpaca connected · Portfolio $${parseFloat(d.portfolio_value||0).toLocaleString()}`;
+      okEl.textContent = `Wallet connected: ${d.address?.slice(0,8)}...${d.address?.slice(-4)}`;
       okEl.style.display = 'block';
-      window._configured = true;
-      setTimeout(() => goLiveAfterConnect(), 1200);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-    }
-
-  } else if (window._broker === 'robinhood') {
-    // Check generated flow first, then manual
-    let apiKeyId, privateKey;
-    const manualForm = document.getElementById('rh-manual-form');
-    if (manualForm && manualForm.style.display !== 'none') {
-      apiKeyId   = document.getElementById('rh-manual-key-id').value.trim();
-      privateKey = document.getElementById('rh-manual-private-key').value.trim();
-    } else {
-      apiKeyId   = document.getElementById('rh-key-id').value.trim();
-      privateKey = document.getElementById('rh-private-key').value.trim() || window._rhGeneratedPrivateKey || '';
-    }
-    if (!apiKeyId || !privateKey) {
-      errEl.textContent = apiKeyId ? 'Generate your key pair first (Step 1)' : 'Paste your Robinhood API Key ID';
-      errEl.style.display = 'block'; return;
-    }
-
-    btn.disabled = true; btn.textContent = 'Validating…';
-    try {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ broker: 'robinhood', rh_api_key_id: apiKeyId, rh_private_key: privateKey }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = `✓ Robinhood connected · key ${d.key_preview}`;
-      okEl.style.display = 'block';
-      window._configured = true;
-      window._botType = 'crypto';
-      window._rhGeneratedPrivateKey = null;
-      setTimeout(() => goLiveAfterConnect(), 1200);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-    }
-
-  } else if (window._broker === 'alpaca') {
-    const keyId  = document.getElementById('alpaca-key-id').value.trim();
-    const secret = document.getElementById('alpaca-secret').value.trim();
-    if (!keyId || !secret) { errEl.textContent = 'Both API Key and Secret required'; errEl.style.display = 'block'; return; }
-
-    btn.disabled = true; btn.textContent = 'Validating...';
-    try {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ broker: 'alpaca', alpaca_key_id: keyId, alpaca_secret_key: secret, mode: 'paper' }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = 'Alpaca connected - Portfolio $' + parseFloat(d.portfolio_value||0).toLocaleString();
-      okEl.style.display = 'block';
-      document.getElementById('al-equity-display').textContent = '$' + parseFloat(d.portfolio_value||0).toLocaleString();
-      document.getElementById('al-status-display').textContent = 'Connected - ' + d.mode + ' mode';
-      document.getElementById('al-master-switch').textContent = 'PIPELINE ACTIVE';
-      document.getElementById('al-master-switch').style.background = 'rgba(251,191,36,.15)';
-      document.getElementById('al-master-switch').style.color = '#FBBF24';
       window._configured = true;
       setTimeout(() => wizGo(2), 1200);
     } catch (err) {
       errEl.textContent = err.message; errEl.style.display = 'block';
     } finally {
-      btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
+      if (btn) { btn.disabled = false; btn.textContent = 'Connect Wallet'; }
     }
-
-  } else if (window._broker === 'coinbase') {
-    const keyName = document.getElementById('cb-key-name').value.trim();
-    const privKey = document.getElementById('cb-private-key').value.trim();
-    if (!keyName || !privKey) { errEl.textContent = 'Both fields are required'; errEl.style.display = 'block'; return; }
-
-    btn.disabled = true; btn.textContent = 'Validating…';
-    try {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ broker: 'coinbase', cb_key_name: keyName, cb_private_key: privKey }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = `✓ Coinbase connected · key ${d.key_preview}`;
-      okEl.style.display = 'block';
-      window._configured = true;
-      window._botType = 'crypto';
-      setTimeout(() => goLiveAfterConnect(), 1200);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-    }
-
-  } else if (window._broker === 'kraken') {
-    const apiKey    = document.getElementById('kr-api-key').value.trim();
-    const apiSecret = document.getElementById('kr-api-secret').value.trim();
-    if (!apiKey || !apiSecret) { errEl.textContent = 'Both fields are required'; errEl.style.display = 'block'; return; }
-
-    btn.disabled = true; btn.textContent = 'Validating…';
-    try {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ broker: 'kraken', kr_api_key: apiKey, kr_api_secret: apiSecret }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = `✓ Kraken connected · key ${d.key_preview}`;
-      okEl.style.display = 'block';
-      window._configured = true;
-      window._botType = 'crypto';
-      setTimeout(() => goLiveAfterConnect(), 1200);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-    }
-
-  } else if (window._broker === 'polymarket') {
-    const privKey = document.getElementById('poly-private-key').value.trim();
-    if (!privKey) { errEl.textContent = 'Wallet private key required'; errEl.style.display = 'block'; return; }
-
-    btn.disabled = true; btn.textContent = 'Connecting wallet...';
-    try {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ broker: 'polymarket', poly_private_key: privKey }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = `Connected: ${d.address?.slice(0,8)}...${d.address?.slice(-4)}`;
-      okEl.style.display = 'block';
-      window._configured = true;
-      setTimeout(() => goLiveAfterConnect(), 1200);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-    }
+  } else {
+    window._configured = true;
+    wizGo(2);
   }
 };
 
@@ -3283,7 +2770,7 @@ function applyStatusToUI(d) {
     if (eqEl) eqEl.textContent = '$' + pv.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
     if (stEl) stEl.textContent = d.configured ? (d.bot_active ? 'Active' : 'Connected') : 'Not connected';
     if (swEl && d.configured) {
-      const colors = { robinhood: '#00C805', coinbase: '#0052FF', alpaca: '#FBBF24' };
+      const colors = { polymarket: '#2962FF' };
       swEl.textContent = d.bot_active ? 'PIPELINE ACTIVE' : 'ACTIVATE PIPELINE';
       if (d.bot_active) {
         swEl.style.background = 'rgba(255,255,255,.06)';
@@ -3315,7 +2802,7 @@ function applyStatusToUI(d) {
         ? `Agent running · ${d.mode} mode · scanning every 2 min`
         : `Connected but agent is OFF — toggle it on to start trading`;
       connBadge.textContent = active ? 'ACTIVE' : 'IDLE';
-      connBadge.style.background = active ? 'rgba(0,200,5,.12)' : 'rgba(255,170,0,.12)';
+      connBadge.style.background = active ? 'rgba(0,200,5,.12)' : 'rgba(41,98,255,.12)';
       connBadge.style.color = active ? 'var(--green)' : 'var(--amber)';
     } else {
       connDot.style.background = 'var(--red)';
@@ -3692,7 +3179,7 @@ window.dashRhAutoSetup = async function () {
 
     btn.textContent = 'Key copied — Robinhood is open';
     btn.style.background = 'rgba(74,222,128,.15)';
-    btn.style.color = '#4ade80';
+    btn.style.color = '#4D8FFF';
     document.getElementById('dash-rh-confirm').style.display = 'block';
   } catch {
     btn.textContent = 'Generate Key & Open Robinhood'; btn.disabled = false;

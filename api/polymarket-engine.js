@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const { db } = require('../lib/firebase-config');
+const { PolymarketAlphaEngine } = require('../lib/polymarket-alpha');
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -205,6 +206,54 @@ module.exports = async (req, res) => {
     }
 
     return res.json({ markets, catalysts, arbitrage, sports });
+  }
+
+  // ── NegRisk Arbitrage Scan ──
+  if (action === 'negrisk_scan') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const mode = userData.mode || 'sandbox';
+    const hurdleRate = userData.settings?.hurdleRate || 1.03;
+
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode, hurdleRate });
+    const result = await engine.runArbitrageScan();
+
+    return res.json(result);
+  }
+
+  // ── Execute NegRisk Arbitrage (sandbox simulates, live places orders) ──
+  if (action === 'negrisk_execute' && req.method === 'POST') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { bracketId, legSize } = req.body || {};
+    if (!bracketId) return res.status(400).json({ error: 'bracketId required' });
+
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const mode = userData.mode || 'sandbox';
+
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
+    const brackets = await engine.fetchActiveNegRiskBrackets();
+    const target = brackets.find(b => b.id === bracketId);
+
+    if (!target) return res.status(404).json({ error: 'Bracket not found or no longer active' });
+
+    const results = await engine.executeBracketArbitrage(target, legSize);
+    return res.json({ ok: true, legs: results, mode });
+  }
+
+  // ── Performance History ──
+  if (action === 'history') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const engine = new PolymarketAlphaEngine(decoded.uid);
+    const metrics = await engine.getPerformanceMetrics();
+    return res.json(metrics);
   }
 
   // ── Feed ──

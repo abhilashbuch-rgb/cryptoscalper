@@ -42,5 +42,14 @@ module.exports = async (req, res) => {
     return res.json({ ok: true });
   }
 
+  if (action === 'count') {
+    try {
+      const snap = await db.collection('waitlist').count().get();
+      return res.json({ count: snap.data().count || 0 });
+    } catch {
+      return res.json({ count: 0 });
+    }
+  }
+
   return res.status(400).json({ error: 'Unknown action' });
 };

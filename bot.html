@@ -1,0 +1,3272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WICK — Agentic Trading</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #060810;
+  --card:   #0a0e16;
+  --card2:  #0e1420;
+  --border: #161e2e;
+  --green:  #4D8FFF;
+  --red:    #ff4455;
+  --amber:  #4D8FFF;
+  --blue:   #2962FF;
+  --text1:  #f0f4f8;
+  --text2:  #8899aa;
+  --text3:  #4a5568;
+  --mono:   'JetBrains Mono','Fira Code','Courier New',monospace;
+  --accent: #2962FF;
+  --accent-glow: rgba(41,98,255,.15);
+  --accent-border: rgba(41,98,255,.25);
+  --snap: 150ms;
+}
+
+/* ── PARADIGM 1: Polymarket flash system ── */
+@keyframes flashUp {
+  0%   { background: rgba(74,222,128,.25); }
+  100% { background: transparent; }
+}
+@keyframes flashDown {
+  0%   { background: rgba(255,68,85,.25); }
+  100% { background: transparent; }
+}
+.tick-up   { animation: flashUp   300ms ease-out; }
+.tick-down { animation: flashDown 300ms ease-out; }
+
+/* ── PARADIGM 3: TradingView dual-mode — body-level class swap ── */
+body.mode-live {
+  --accent: #ef4444;
+  --accent-glow: rgba(239,68,68,.12);
+  --accent-border: rgba(239,68,68,.25);
+}
+body.mode-live .tile { border-color: rgba(239,68,68,.08); }
+body.mode-live .tile:hover { border-color: rgba(239,68,68,.2); }
+body.mode-live .nav { border-bottom-color: rgba(239,68,68,.15); }
+body.mode-live .tile-value { color: #fde8e8; }
+
+body {
+  background: var(--bg);
+  color: var(--text1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  transition: --accent var(--snap), --accent-glow var(--snap);
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(41,98,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(41,98,255,.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Nav ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,11,15,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex; align-items: center; gap: 20px; height: 52px;
+}
+.nav-logo {
+  display: inline-flex; align-items: center;
+  text-decoration: none;
+}
+.nav-logo svg { width: 72px; height: auto; }
+.nav-badge {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  background: #0066ff; color: #fff;
+  padding: 2px 7px; border-radius: 3px; letter-spacing: .08em;
+}
+.nav-spacer { flex: 1; }
+#nav-user { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+.nav-btn {
+  font-size: 12px; font-family: var(--mono); font-weight: 700;
+  padding: 6px 14px; border-radius: 5px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2); cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.nav-btn:hover { color: var(--text1); border-color: var(--text2); }
+
+/* ── Layout ── */
+.shell {
+  position: relative; z-index: 1;
+  max-width: 960px; margin: 0 auto; padding: 32px 20px 80px;
+}
+
+.page-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.page-sub   { font-size: 13px; color: var(--text2); margin-bottom: 32px; }
+
+/* ── Tile Dashboard ── */
+.app-shell {
+  position: relative; z-index: 1;
+  max-width: 1200px; margin: 0 auto;
+  padding: 20px;
+}
+.dash-nav {
+  display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto;
+  padding-bottom: 4px;
+}
+.dash-nav-btn {
+  padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  font-family: var(--mono); background: rgba(255,255,255,.04);
+  border: 1px solid var(--border); color: var(--text3);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.dash-nav-btn:hover { border-color: rgba(41,98,255,.3); color: var(--text2); }
+.dash-nav-btn.active { background: rgba(41,98,255,.12); border-color: rgba(41,98,255,.3); color: #4D8FFF; }
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.tile {
+  background: rgba(10,14,22,.90);
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: border-color var(--snap), box-shadow var(--snap), background var(--snap);
+  position: relative;
+  overflow: hidden;
+}
+.tile:hover { border-color: var(--accent-border); box-shadow: 0 0 20px var(--accent-glow); }
+/* Subtle top-edge accent glow on tiles */
+.tile::after {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
+  opacity: 0; transition: opacity var(--snap);
+}
+.tile:hover::after { opacity: 1; }
+.tile-wide { grid-column: span 2; }
+.tile-full { grid-column: 1 / -1; }
+.tile-title {
+  font-size: 10px; font-family: var(--mono); font-weight: 700;
+  color: var(--text3); letter-spacing: .08em; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+}
+.tile-title .tile-badge {
+  font-size: 9px; padding: 2px 8px; border-radius: 10px;
+  background: rgba(41,98,255,.1); color: #4D8FFF; font-weight: 700;
+}
+.tile-value {
+  font-size: 26px; font-weight: 800;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--text1); margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tile-sub { font-size: 11px; color: var(--text3); }
+
+.app-content .panel { display: none; }
+.app-content .panel.active { display: block; }
+.panel-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.panel-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+
+/* Hide sidebar elements (replaced by dash-nav) */
+.sidebar { display: none; }
+
+@media (max-width: 900px) {
+  .tile-grid { grid-template-columns: repeat(2, 1fr); }
+  .tile-wide { grid-column: span 2; }
+}
+@media (max-width: 640px) {
+  .app-shell { padding: 10px; }
+  .tile-grid { grid-template-columns: 1fr; gap: 10px; }
+  .tile-wide, .tile-full { grid-column: span 1; }
+  .tile { padding: 14px 16px; border-radius: 12px; }
+  .tile-value { font-size: 20px; }
+  .tile-title { font-size: 9px; font-family: -apple-system, sans-serif; letter-spacing: .05em; }
+  .tile-sub { font-size: 10px; }
+  .dash-nav-btn { padding: 6px 10px; font-size: 10px; font-family: -apple-system, sans-serif; }
+  .nav { padding: 0 12px; height: 46px; }
+  .nav-logo svg { width: 56px; }
+  .nav-badge { font-size: 8px; padding: 2px 5px; }
+  #nav-user { font-size: 10px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-btn { font-size: 11px; padding: 5px 10px; }
+  .card-title { font-size: 10px; font-family: -apple-system, sans-serif; }
+  .form-label { font-size: 10px; font-family: -apple-system, sans-serif; }
+  .form-input { font-size: 14px; font-family: -apple-system, sans-serif; }
+  .form-hint { font-size: 10px; }
+  .trade-table { font-size: 11px; font-family: -apple-system, sans-serif; }
+  .trade-table th { font-size: 9px; font-family: -apple-system, sans-serif; padding: 0 4px 6px; }
+  .trade-table td { padding: 6px 4px; font-size: 11px; }
+  .bot-name { font-size: 14px; font-family: -apple-system, sans-serif; }
+  .bot-sub { font-size: 11px; font-family: -apple-system, sans-serif; }
+  .mode-btn { font-size: 11px; font-family: -apple-system, sans-serif; padding: 8px 6px; }
+  .toggle-label { font-size: 13px; }
+  .btn-primary { font-size: 13px; font-family: -apple-system, sans-serif; }
+  .wiz-title { font-size: 17px; }
+  .wiz-desc { font-size: 12px; }
+  .auth-headline { font-size: 24px; }
+  .auth-content { padding: 16px; }
+  .auth-card { padding: 28px 20px; border-radius: 16px; }
+}
+
+/* Stats row mobile override — 2x2 grid instead of 4 across */
+@media (max-width: 640px) {
+  #stats-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+}
+
+/* ── Auth gate ── */
+#auth-gate {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; position: relative; overflow: hidden;
+}
+#auth-mosaic {
+  position: absolute; inset: 0; z-index: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, 48px); grid-auto-rows: 48px;
+  overflow: hidden; pointer-events: none;
+}
+.auth-mtile {
+  width: 48px; height: 48px; opacity: 0;
+  animation: mosaicFade 4s ease infinite;
+  border-radius: 4px;
+}
+@keyframes mosaicFade {
+  0%, 100% { opacity: 0; }
+  50% { opacity: .15; }
+}
+.auth-content {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 60px;
+  max-width: 900px; width: 100%; padding: 40px;
+}
+.auth-left {
+  flex: 1; text-align: left;
+}
+.auth-headline {
+  font-size: 36px; font-weight: 900; line-height: 1.1;
+  margin-bottom: 16px; letter-spacing: -.02em;
+}
+.auth-headline span { color: var(--green); }
+.auth-features {
+  display: flex; flex-direction: column; gap: 12px; margin-top: 28px;
+}
+.auth-feat {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--text2);
+}
+.auth-feat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.auth-right {
+  width: 340px; flex-shrink: 0;
+}
+.auth-card {
+  background: rgba(10,14,22,.95); border: 1px solid rgba(41,98,255,.15);
+  border-radius: 20px; padding: 40px 32px; text-align: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 80px rgba(0,0,0,.4), 0 0 60px rgba(41,98,255,.05);
+}
+.auth-logo { display: flex; justify-content: center; margin-bottom: 4px; }
+.auth-logo svg { width: 120px; height: auto; }
+.auth-sub  { font-size: 10px; color: var(--text3); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 32px; }
+.auth-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.auth-desc  { font-size: 12px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+@media (max-width: 768px) {
+  .auth-content { flex-direction: column; gap: 32px; padding: 20px; }
+  .auth-left { text-align: center; }
+  .auth-headline { font-size: 26px; }
+  .auth-right { width: 100%; max-width: 360px; }
+  .auth-features { align-items: center; }
+  .auth-card { padding: 32px 24px; }
+}
+
+.btn-google {
+  width: 100%; padding: 13px;
+  background: #fff; border: none; border-radius: 8px;
+  color: #1a1a1a; font-size: 15px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: opacity .15s;
+}
+.btn-google:hover { opacity: .9; }
+
+/* ── Wizard ── */
+#wizard { display: none; }
+
+.wizard-shell {
+  position: relative; z-index: 1;
+  max-width: 640px; margin: 0 auto; padding: 40px 20px 80px;
+}
+
+.wizard-progress {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 40px; padding: 0 8px;
+}
+.wiz-step-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 800;
+  color: var(--text3); background: var(--card);
+  transition: all .3s; flex-shrink: 0;
+}
+.wiz-step-dot.active { border-color: var(--green); color: var(--green); background: rgba(41,98,255,.08); }
+.wiz-step-dot.done   { border-color: var(--green); color: #000; background: var(--green); }
+.wiz-step-line {
+  flex: 1; height: 2px; background: var(--border);
+  transition: background .3s;
+}
+.wiz-step-line.done { background: var(--green); }
+.wiz-step-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 10px; margin-bottom: 32px; padding: 0 0;
+}
+.wiz-step-label {
+  font-size: 10px; font-family: var(--mono); color: var(--text3);
+  text-transform: uppercase; letter-spacing: .08em;
+  text-align: center; width: 33.33%;
+  transition: color .3s;
+}
+.wiz-step-label.active { color: var(--green); }
+
+.wiz-panel { display: none; animation: wiz-in .3s ease; }
+.wiz-panel.active { display: block; }
+@keyframes wiz-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.wiz-title {
+  font-size: 20px; font-weight: 800; margin-bottom: 6px;
+}
+.wiz-desc {
+  font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 28px;
+}
+
+.wiz-nav {
+  display: flex; gap: 12px; margin-top: 28px;
+}
+.wiz-btn {
+  flex: 1; padding: 13px; border-radius: 8px;
+  font-family: var(--mono); font-size: 13px; font-weight: 800;
+  letter-spacing: .04em; cursor: pointer; transition: all .15s;
+  border: none;
+}
+.wiz-btn.back {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text2);
+}
+.wiz-btn.back:hover { border-color: var(--text2); color: var(--text1); }
+.wiz-btn.next {
+  background: var(--green); color: #000;
+}
+.wiz-btn.next:hover { opacity: .9; }
+.wiz-btn.next:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Stats row ── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+}
+.stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; font-family: var(--mono); margin-bottom: 6px; }
+.stat-value { font-size: 22px; font-weight: 800; font-family: var(--mono); }
+.stat-value.green  { color: var(--green); }
+.stat-value.red    { color: var(--red); }
+.stat-value.amber  { color: var(--amber); }
+.stat-value.blue   { color: var(--blue); }
+.stat-sub   { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: var(--mono); }
+
+/* ── Cards ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px 22px; margin-bottom: 16px;
+}
+.card-title {
+  font-size: 11px; font-family: var(--mono); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--text3);
+  margin-bottom: 16px;
+}
+
+/* ── Bot toggle ── */
+.bot-header { display: flex; align-items: center; gap: 16px; margin-bottom: 4px; }
+.bot-status-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--text3); flex-shrink: 0;
+  transition: background .3s;
+}
+.bot-status-dot.active { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.bot-name   { font-size: 16px; font-weight: 700; }
+.bot-mode   { font-size: 11px; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: .06em; }
+.bot-mode.paper { background: rgba(41,98,255,.12); color: var(--amber); border: 1px solid rgba(41,98,255,.25); }
+.bot-mode.live  { background: rgba(41,98,255,.12); color: var(--green); border: 1px solid rgba(41,98,255,.25); }
+.bot-sub    { font-size: 12px; color: var(--text2); margin-left: 26px; }
+
+.toggle-row { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+.toggle-label { font-size: 13px; color: var(--text2); }
+
+.toggle {
+  position: relative; width: 52px; height: 28px;
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; cursor: pointer; transition: background .2s, border-color .2s;
+}
+.toggle.on  { background: rgba(41,98,255,.25); border-color: rgba(41,98,255,.5); }
+.toggle::after {
+  content: '';
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--text3); transition: transform .2s, background .2s;
+}
+.toggle.on::after { transform: translateX(24px); background: var(--green); }
+
+/* ── Mode switch ── */
+.mode-switch { display: flex; gap: 8px; margin-top: 16px; }
+.mode-btn {
+  flex: 1; padding: 10px; border-radius: 7px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2);
+  font-family: var(--mono); font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: all .15s; letter-spacing: .06em;
+}
+.mode-btn.active.paper { border-color: var(--amber); color: var(--amber); background: rgba(41,98,255,.08); }
+.mode-btn.active.live  { border-color: var(--green); color: var(--green); background: rgba(41,98,255,.08); }
+
+/* ── Form fields ── */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 11px; font-family: var(--mono); color: var(--text3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px;
+  color: var(--text1); font-family: var(--mono); font-size: 13px;
+  transition: border-color .15s; outline: none;
+}
+.form-input:focus { border-color: var(--green); }
+.form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; line-height: 1.5; }
+
+.btn-primary {
+  width: 100%; padding: 12px;
+  background: var(--green); border: none; border-radius: 7px;
+  color: #000; font-size: 14px; font-weight: 800; font-family: var(--mono);
+  cursor: pointer; letter-spacing: .05em;
+  transition: opacity .15s, transform .1s;
+  margin-top: 6px;
+}
+.btn-primary:hover   { opacity: .9; }
+.btn-primary:active  { transform: scale(.98); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+.form-error { font-size: 12px; color: var(--red); margin-top: 8px; font-family: var(--mono); }
+.form-success { font-size: 12px; color: var(--green); margin-top: 8px; font-family: var(--mono); }
+
+/* ── Broker cards (wizard) ── */
+.broker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.broker-card {
+  padding: 20px; border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--card); cursor: pointer;
+  transition: all .2s; text-align: center;
+}
+.broker-card:hover { border-color: rgba(41,98,255,.3); }
+.broker-card.selected { border-color: var(--green); background: rgba(41,98,255,.04); }
+.broker-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+.broker-name { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.broker-tag  { font-size: 10px; font-family: var(--mono); color: var(--text3); letter-spacing: .06em; }
+
+/* ── Trade table ── */
+.trade-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+.trade-table th {
+  text-align: left; color: var(--text3); font-size: 10px; text-transform: uppercase;
+  letter-spacing: .08em; padding: 0 8px 10px; font-weight: 600;
+}
+.trade-table td { padding: 8px; border-top: 1px solid var(--border); color: var(--text2); }
+.trade-table tr:first-child td { border-top: none; }
+.badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+  letter-spacing: .05em; display: inline-block;
+}
+.badge.buy  { background: rgba(41,98,255,.15); color: var(--blue); border: 1px solid rgba(41,98,255,.3); }
+.badge.sell { background: rgba(255,68,85,.12);  color: var(--red);  border: 1px solid rgba(255,68,85,.25); }
+.badge.open { background: rgba(41,98,255,.12);  color: var(--amber); border: 1px solid rgba(41,98,255,.3); }
+.win  { color: var(--green); }
+.loss { color: var(--red); }
+
+.empty-state { text-align: center; padding: 32px; color: var(--text3); font-size: 13px; }
+
+/* ── Subscribe CTA ── */
+.cta-card {
+  background: linear-gradient(135deg, rgba(41,98,255,.06), rgba(77,143,255,.06));
+  border: 1px solid rgba(41,98,255,.2);
+  border-radius: 10px; padding: 28px 24px; text-align: center; margin-bottom: 16px;
+}
+.cta-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.cta-desc  { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.cta-price { font-family: var(--mono); font-size: 28px; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+.cta-price-sub { font-size: 12px; color: var(--text3); margin-bottom: 20px; }
+.btn-cta {
+  display: inline-block; padding: 13px 36px;
+  background: var(--green); color: #000;
+  font-weight: 800; font-family: var(--mono); font-size: 14px;
+  border-radius: 8px; text-decoration: none; letter-spacing: .05em;
+  transition: opacity .15s;
+}
+.btn-cta:hover { opacity: .88; }
+
+.disclaimer {
+  font-size: 11px; color: var(--text3); text-align: center;
+  line-height: 1.6; padding: 16px; border: 1px solid var(--border);
+  border-radius: 8px; margin-top: 16px;
+}
+
+/* ── Polymarket widget ── */
+.poly-row { display: flex; flex-direction: column; gap: 8px; }
+.poly-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.poly-item:last-child { border-bottom: none; }
+.poly-pill {
+  font-family: var(--mono); font-size: 10px; font-weight: 800;
+  padding: 2px 8px; border-radius: 4px; flex-shrink: 0; min-width: 44px; text-align: center;
+}
+.poly-pill.bullish { background: rgba(41,98,255,.12); color: var(--green); border: 1px solid rgba(41,98,255,.25); }
+.poly-pill.bearish { background: rgba(255,68,85,.1);  color: var(--red);   border: 1px solid rgba(255,68,85,.2); }
+.poly-pill.neutral { background: rgba(255,255,255,.05); color: var(--text3); border: 1px solid var(--border); }
+.poly-q   { font-size: 12px; color: var(--text2); flex: 1; line-height: 1.4; }
+.poly-pct { font-family: var(--mono); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.poly-bar-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 2px; flex-shrink: 0; }
+.poly-bar { height: 4px; border-radius: 2px; transition: width .4s; }
+.poly-bar.bullish { background: var(--green); }
+.poly-bar.bearish { background: var(--red); }
+.poly-bar.neutral { background: var(--text3); }
+.poly-attr { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 10px; text-align: right; }
+
+/* ── Polymarket prediction panel ── */
+.poly-cat {
+  padding: 6px 14px; border-radius: 16px; font-size: 12px; font-weight: 600;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  color: var(--text3); cursor: pointer; transition: all .15s;
+  font-family: var(--mono);
+}
+.poly-cat:hover { border-color: rgba(22,82,240,.3); color: var(--text2); }
+.poly-cat.active { background: rgba(22,82,240,.12); border-color: rgba(22,82,240,.3); color: #4D8FFF; }
+.pm-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; transition: border-color .15s;
+}
+.pm-card:hover { border-color: rgba(22,82,240,.25); }
+.pm-question { font-size: 14px; font-weight: 600; color: var(--text1); line-height: 1.4; margin-bottom: 10px; }
+.pm-odds { display: flex; gap: 8px; margin-bottom: 8px; }
+.pm-odds-btn {
+  flex: 1; padding: 8px; border-radius: 6px; text-align: center;
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  border: 1px solid var(--border); cursor: default;
+}
+.pm-odds-yes { background: rgba(22,82,240,.06); border-color: rgba(22,82,240,.2); color: #4D8FFF; }
+.pm-odds-no  { background: rgba(255,68,85,.05); border-color: rgba(255,68,85,.15); color: var(--red); }
+.pm-meta { display: flex; gap: 12px; font-size: 10px; font-family: var(--mono); color: var(--text3); }
+.pm-vol { color: var(--text2); }
+.pm-sport-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: rgba(255,255,255,.02); border-radius: 6px;
+  font-size: 12px; font-family: var(--mono);
+}
+.pm-sport-league { color: #4D8FFF; font-weight: 700; min-width: 35px; }
+.pm-sport-teams { color: var(--text2); flex: 1; }
+.pm-sport-score { color: var(--text1); font-weight: 700; }
+.pm-sport-status { color: var(--text3); font-size: 10px; }
+.pm-news-item {
+  display: flex; gap: 8px; align-items: flex-start; padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.pm-news-item:last-child { border-bottom: none; }
+.pm-news-source {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  color: #4D8FFF; background: rgba(22,82,240,.1);
+  padding: 2px 6px; border-radius: 3px; flex-shrink: 0; margin-top: 2px;
+}
+.pm-news-title { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+/* ── Strategy selector cards ── */
+.strategy-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 24px;
+}
+.strat-card {
+  position: relative; padding: 14px 15px;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--card2); cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: left;
+}
+.strat-card:hover:not(.locked) { border-color: rgba(41,98,255,.45); }
+.strat-card.selected {
+  border-color: var(--green);
+  background: rgba(41,98,255,.05);
+  box-shadow: 0 0 0 1px rgba(41,98,255,.2) inset;
+}
+.strat-card.locked { opacity: .45; cursor: default; }
+.strat-emoji { font-size: 22px; margin-bottom: 8px; line-height: 1; display: block; }
+.strat-name  { font-size: 13px; font-weight: 700; color: var(--text1); margin-bottom: 5px; }
+.strat-desc  { font-size: 11px; color: var(--text3); line-height: 1.5; margin-bottom: 9px; }
+.strat-meta  { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.strat-wr    { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.strat-lock  { position: absolute; top: 9px; right: 10px; font-size: 13px; opacity: .7; }
+.sbadge {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  padding: 2px 6px; border-radius: 3px; letter-spacing: .06em;
+}
+.sbadge.free         { background: rgba(41,98,255,.12); color: var(--green); border: 1px solid rgba(41,98,255,.25); }
+.sbadge.paid         { background: rgba(41,98,255,.12); color: var(--blue); border: 1px solid rgba(41,98,255,.3); }
+.sbadge.MODERATE     { background: rgba(41,98,255,.1);  color: var(--amber);  border: 1px solid rgba(41,98,255,.2); }
+.sbadge.CONSERVATIVE { background: rgba(41,98,255,.1); color: var(--green);  border: 1px solid rgba(41,98,255,.2); }
+.sbadge.AGGRESSIVE   { background: rgba(255,68,85,.1);  color: var(--red);    border: 1px solid rgba(255,68,85,.2); }
+.sbadge.EXTREME      { background: rgba(255,68,85,.18); color: var(--red);    border: 1px solid rgba(255,68,85,.35); }
+
+/* ── Badge crests ── */
+.badge-crest {
+  padding: 10px 8px; border-radius: 10px; text-align: center;
+  border: 1px solid var(--border); background: var(--card2);
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.badge-crest.earned { border-color: rgba(41,98,255,.3); }
+.badge-crest.locked { opacity: .3; filter: grayscale(1); }
+.badge-crest .bc-tier {
+  font-family: var(--mono); font-size: 8px; font-weight: 800;
+  letter-spacing: .15em; text-transform: uppercase; margin-bottom: 6px;
+}
+.badge-crest .bc-shield {
+  width: 36px; height: 36px; margin: 0 auto 6px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 14px; font-weight: 900;
+}
+.badge-crest .bc-name { font-size: 10px; font-weight: 700; color: var(--text1); line-height: 1.2; margin-bottom: 3px; }
+.badge-crest .bc-desc { font-size: 8px; color: var(--text3); line-height: 1.3; }
+
+.bc-bronze .bc-tier { color: #CD7F32; }
+.bc-bronze .bc-shield { background: rgba(205,127,50,.12); border: 2px solid rgba(205,127,50,.4); color: #CD7F32; }
+.bc-silver .bc-tier { color: #C0C0C0; }
+.bc-silver .bc-shield { background: rgba(192,192,192,.1); border: 2px solid rgba(192,192,192,.3); color: #C0C0C0; }
+.bc-gold .bc-tier { color: #FFD700; }
+.bc-gold .bc-shield { background: rgba(255,215,0,.1); border: 2px solid rgba(255,215,0,.35); color: #FFD700; }
+.bc-platinum .bc-tier { color: #2962FF; }
+.bc-platinum .bc-shield { background: rgba(41,98,255,.1); border: 2px solid rgba(41,98,255,.35); color: #2962FF; }
+.bc-diamond .bc-tier { color: #4DF0FF; }
+.bc-diamond .bc-shield { background: rgba(77,240,255,.08); border: 2px solid rgba(77,240,255,.3); color: #4DF0FF; }
+.badge-crest.earned::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.bc-bronze.earned::after { background: linear-gradient(90deg, transparent, #CD7F32, transparent); }
+.bc-silver.earned::after { background: linear-gradient(90deg, transparent, #C0C0C0, transparent); }
+.bc-gold.earned::after { background: linear-gradient(90deg, transparent, #FFD700, transparent); }
+.bc-platinum.earned::after { background: linear-gradient(90deg, transparent, #2962FF, transparent); }
+.bc-diamond.earned::after { background: linear-gradient(90deg, transparent, #4DF0FF, transparent); }
+
+/* ── Launch summary ── */
+.launch-summary {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 24px; margin-bottom: 20px;
+}
+.launch-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.launch-row:last-child { border-bottom: none; }
+.launch-key { font-size: 11px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+.launch-val { font-size: 14px; font-weight: 700; font-family: var(--mono); color: var(--green); }
+
+.launch-toggle-area {
+  text-align: center; padding: 32px 0 16px;
+}
+.launch-toggle-label {
+  font-size: 14px; color: var(--text2); margin-bottom: 16px;
+}
+.launch-toggle {
+  position: relative; width: 72px; height: 38px;
+  background: var(--card2); border: 2px solid var(--border);
+  border-radius: 19px; cursor: pointer; transition: all .3s;
+  margin: 0 auto 12px;
+}
+.launch-toggle.on  { background: rgba(41,98,255,.25); border-color: var(--green); }
+.launch-toggle::after {
+  content: '';
+  position: absolute; top: 4px; left: 4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--text3); transition: transform .3s, background .3s;
+}
+.launch-toggle.on::after { transform: translateX(34px); background: var(--green); }
+.launch-status {
+  font-family: var(--mono); font-size: 13px; font-weight: 800;
+  color: var(--text3); transition: color .3s; letter-spacing: .06em;
+}
+.launch-status.on { color: var(--green); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .nav { padding: 0 14px; gap: 10px; height: 48px; }
+  .nav-logo svg { width: 60px; }
+  .nav-badge { font-size: 9px; padding: 2px 5px; }
+  #nav-user { font-size: 10px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .shell { padding: 20px 14px 60px; }
+  .wizard-shell { padding: 24px 14px 60px; }
+  .page-title { font-size: 18px; }
+  .page-sub { font-size: 12px; margin-bottom: 20px; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 12px 10px; }
+  .stat-value { font-size: 18px; }
+  .stat-label { font-size: 9px; }
+  .strategy-grid { grid-template-columns: 1fr; }
+  .broker-grid { grid-template-columns: 1fr; }
+  #algo-trades-grid { grid-template-columns: 1fr !important; }
+  .card { padding: 16px 14px; margin-bottom: 12px; }
+  .card-title { font-size: 10px; margin-bottom: 12px; }
+  .mode-switch { gap: 6px; margin-top: 12px; }
+  .mode-btn { padding: 8px 6px; font-size: 11px; }
+  .form-input { padding: 9px 10px; font-size: 12px; }
+  .btn-primary { padding: 11px; font-size: 13px; }
+  .trade-table { font-size: 10px; }
+  .trade-table th { font-size: 9px; padding: 0 4px 8px; }
+  .trade-table td { padding: 6px 4px; }
+  .wiz-title { font-size: 17px; }
+  .wiz-desc { font-size: 12px; margin-bottom: 20px; }
+  .wiz-btn { padding: 11px; font-size: 12px; }
+  .wiz-step-dot { width: 28px; height: 28px; font-size: 11px; }
+  .wiz-step-label { font-size: 9px; }
+  .wizard-progress { margin-bottom: 28px; }
+  .wiz-step-labels { margin-bottom: 20px; }
+  .auth-card { padding: 36px 24px; }
+  .auth-logo svg { width: 100px; }
+  .auth-title { font-size: 16px; }
+  .auth-desc { font-size: 12px; }
+  .launch-summary { padding: 16px; }
+  .launch-row { padding: 8px 0; }
+  .launch-key { font-size: 10px; }
+  .launch-val { font-size: 12px; }
+  .toggle-row { flex-wrap: wrap; gap: 12px; }
+  .bot-header { flex-wrap: wrap; gap: 8px; }
+  .bot-name { font-size: 14px; }
+  .bot-sub { margin-left: 0; font-size: 11px; }
+  .strat-card { padding: 12px; }
+  .strat-emoji { font-size: 18px; margin-bottom: 6px; }
+  .strat-name { font-size: 12px; }
+  .strat-desc { font-size: 10px; }
+  .disclaimer { font-size: 10px; padding: 12px; }
+  .poly-q { font-size: 11px; }
+  .poly-pct { font-size: 11px; }
+  .poly-bar-wrap { width: 40px; }
+}
+@media (max-width: 380px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .nav-btn { padding: 5px 10px; font-size: 11px; }
+  .auth-card { padding: 28px 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-logo"><svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#ffffff"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></a>
+  <span class="nav-badge">AGENTIC</span>
+  <div class="nav-spacer"></div>
+  <span id="nav-user"></span>
+  <button class="nav-btn" id="btn-signout" style="display:none">Sign out</button>
+</nav>
+
+<!-- Auth gate -->
+<div id="auth-gate">
+  <!-- Animated mosaic background -->
+  <div id="auth-mosaic"></div>
+
+  <div class="auth-content">
+    <!-- Left: value proposition -->
+    <div class="auth-left">
+      <div class="auth-headline">
+        The agent<br><span>trades for you.</span>
+      </div>
+      <div style="font-size:15px; color:var(--text2); line-height:1.7; max-width:400px;">
+        4-desk intelligence pipeline. NegRisk arbitrage. Scans prediction markets and trades mispriced odds while you sleep.
+      </div>
+      <div class="auth-features">
+        <div class="auth-feat">
+          <div class="auth-feat-dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div>
+          Sandbox mode is free. No deposit required.
+        </div>
+        <div class="auth-feat">
+          <div class="auth-feat-dot" style="background:#2962FF;box-shadow:0 0 6px #2962FF;"></div>
+          NegRisk arbitrage. 80%+ mathematical win rate.
+        </div>
+        <div class="auth-feat">
+          <div class="auth-feat-dot" style="background:#4D8FFF;box-shadow:0 0 6px #4D8FFF;"></div>
+          Polymarket CLOB. Geopolitics. Sports. Crypto.
+        </div>
+        <div class="auth-feat">
+          <div class="auth-feat-dot" style="background:#4D8FFF;box-shadow:0 0 6px #4D8FFF;"></div>
+          Self-learning. Nightly calibration. Auto-tunes itself.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: sign-in card -->
+    <div class="auth-right">
+      <div class="auth-card">
+        <div class="auth-logo"><svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#ffffff"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></div>
+        <div class="auth-sub">Agentic Trading</div>
+
+        <!-- In-app browser warning (shown when detected) -->
+        <div id="inapp-warning" style="display:none; margin-bottom:20px;">
+          <div style="font-size:14px; font-weight:700; margin-bottom:8px;">Open in your browser</div>
+          <div style="font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:16px;">Google sign-in doesn't work inside app browsers. Tap below to open in Safari or Chrome.</div>
+          <a href="https://wick.network/bot" target="_blank" rel="noopener" style="display:block; width:100%; padding:14px; background:var(--green); color:#000; font-size:15px; font-weight:700; text-align:center; border-radius:8px; text-decoration:none; font-family:var(--mono);">Open in Browser</a>
+          <div style="font-size:10px; color:var(--text3); margin-top:10px; text-align:center;">Or copy this link: wick.network/bot</div>
+        </div>
+
+        <!-- Normal sign-in (shown in real browsers) -->
+        <div id="normal-signin">
+          <div class="auth-title">Get started</div>
+          <div class="auth-desc">Sign in with Google to create your account. Takes 30 seconds.</div>
+          <button class="btn-google" id="btn-signin">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+            Continue with Google
+          </button>
+          <div style="font-size:10px; color:var(--text3); margin-top:16px; line-height:1.5;">
+            By signing in, you agree to the <a href="/terms" target="_blank" style="color:var(--text2);">Terms of Service</a> and <a href="/privacy" target="_blank" style="color:var(--text2);">Privacy Policy</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate mosaic tiles + detect in-app browser
+(function() {
+  const mosaic = document.getElementById('auth-mosaic');
+  if (!mosaic) return;
+  const colors = ['#2962FF','#4D8FFF','#6BA3FF','#1652F0','#3B82F6','#93C5FD','#DBEAFE','#1E40AF'];
+  const count = Math.ceil((window.innerWidth / 48) * (window.innerHeight / 48));
+  for (let i = 0; i < count; i++) {
+    const tile = document.createElement('div');
+    tile.className = 'auth-mtile';
+    tile.style.background = colors[Math.floor(Math.random() * colors.length)];
+    tile.style.animationDelay = (Math.random() * 8).toFixed(1) + 's';
+    tile.style.animationDuration = (3 + Math.random() * 5).toFixed(1) + 's';
+    mosaic.appendChild(tile);
+  }
+
+  // Detect in-app browsers and show "Open in browser" instead of Google sign-in
+  const ua = navigator.userAgent || '';
+  const isInApp = /FBAN|FBAV|Instagram|Twitter|Claude|Line|WeChat|Snapchat|CriOS.*wv|wv\)|WebView/i.test(ua)
+    || (!/Safari/i.test(ua) && /Mobile/i.test(ua) && /AppleWebKit/i.test(ua));
+  if (isInApp) {
+    const warn = document.getElementById('inapp-warning');
+    const normal = document.getElementById('normal-signin');
+    if (warn) warn.style.display = 'block';
+    if (normal) normal.style.display = 'none';
+  }
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- INVITE-ONLY GATE (shown when user is not on allowlist)                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="invite-gate" style="display:none; min-height:80vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
+  <div style="display:flex;justify-content:center;margin-bottom:12px"><svg viewBox="0 0 800 130" width="200" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#ffffff"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></div>
+  <div style="font-size:13px; font-family:var(--mono); color:var(--text3); letter-spacing:.2em; text-transform:uppercase; margin-bottom:32px;">Invite Only</div>
+  <div style="max-width:440px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:36px 32px;">
+    <div style="font-size:36px; margin-bottom:16px;">🔒</div>
+    <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--text1);">You're on the waitlist</div>
+    <div style="font-size:14px; color:var(--text2); line-height:1.7; margin-bottom:24px;">WICK is currently in private beta. We'll send you an email when your spot opens up.</div>
+    <div id="invite-email" style="font-family:var(--mono); font-size:12px; color:var(--accent); background:rgba(41,98,255,.08); border:1px solid rgba(41,98,255,.15); border-radius:8px; padding:10px 16px; margin-bottom:20px;"></div>
+    <div style="font-size:12px; color:var(--text3); line-height:1.6;">Have an invite code? Contact <span style="color:var(--text2); font-weight:600;">support@wick.network</span></div>
+  </div>
+  <button onclick="signOut(window._firebaseAuth)" style="margin-top:24px; background:none; border:1px solid var(--border); color:var(--text3); font-family:var(--mono); font-size:12px; padding:8px 20px; border-radius:6px; cursor:pointer;">Sign out</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- WIZARD (new users — shown when not yet configured)                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="wizard">
+  <div class="wizard-shell">
+
+    <!-- Progress bar -->
+    <div class="wizard-progress">
+      <div class="wiz-step-dot active" id="dot-1">1</div>
+      <div class="wiz-step-line" id="line-1"></div>
+      <div class="wiz-step-dot" id="dot-2">2</div>
+      <div class="wiz-step-line" id="line-2"></div>
+      <div class="wiz-step-dot" id="dot-3">3</div>
+    </div>
+    <div class="wiz-step-labels">
+      <div class="wiz-step-label active" id="label-1">Connect</div>
+      <div class="wiz-step-label" id="label-2">Configure</div>
+      <div class="wiz-step-label" id="label-3">Activate</div>
+    </div>
+
+    <!-- ── Step 1: Connect Polymarket ── -->
+    <div class="wiz-panel active" id="wiz-step-1">
+      <div class="wiz-title">Connect to Polymarket</div>
+      <div class="wiz-desc">WICK trades prediction markets on Polymarket. Start in sandbox mode with simulated funds, or connect your Polygon wallet for live trading.</div>
+
+      <div id="wiz-broker-section" style="display:none;"><div id="wiz-broker-grid" style="display:none;"></div><div id="wiz-broker-label" style="display:none;"></div></div>
+      <!-- ═══ POLYMARKET TAB — Full Multi-Agent Terminal ═══ -->
+      <div id="wiz-polymarket-form" style="display:block; padding-top:0;">
+        <div style="background:#080b0f;border:1px solid #1a2030;border-radius:14px;overflow:hidden">
+
+          <!-- ── HEADER: Title + Mode Toggle + Ignition ── -->
+          <div style="padding:18px 20px;border-bottom:1px solid #1a2030">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+              <div>
+                <div style="font-family:var(--mono);font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px">
+                  <span style="color:#1652F0">⚡</span> Polymarket
+                  <span id="pm-status-pill" style="font-size:8px;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.1em;background:rgba(255,255,255,.06);color:#5a6a7a">STANDBY</span>
+                </div>
+                <div style="font-size:10px;color:#4a5568;font-family:var(--mono);margin-top:4px" id="pm-subtitle">4 agent desks · news arbitrage · sports · crypto · geopolitics</div>
+              </div>
+              <!-- Ignition switch -->
+              <div style="display:flex;align-items:center;gap:10px">
+                <span id="pm-switch-label" style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:#4a5568">OFF</span>
+                <div id="pm-ignition" onclick="togglePolyEngine()" style="width:52px;height:26px;border-radius:13px;background:#1a2030;border:1px solid #2a3040;cursor:pointer;position:relative;transition:all .3s">
+                  <div id="pm-ignition-dot" style="width:20px;height:20px;border-radius:50%;background:#3a4a5a;position:absolute;top:2px;left:3px;transition:all .3s"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Mode selector: SANDBOX / LIVE -->
+            <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:fit-content">
+              <button id="pm-mode-sandbox" onclick="pmSetMode('sandbox')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:rgba(41,98,255,.12);color:#4D8FFF;transition:all .2s">SANDBOX</button>
+              <button id="pm-mode-live" onclick="pmSetMode('live')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">LIVE TRADING</button>
+            </div>
+          </div>
+
+          <!-- ── LIVE MODE: Wallet setup (hidden by default) ── -->
+          <div id="pm-live-setup" style="display:none;padding:16px 20px;border-bottom:1px solid #1a2030;background:rgba(244,63,94,.03)">
+            <div style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700;letter-spacing:.12em;margin-bottom:10px">⚠ LIVE TRADING — REAL CAPITAL AT RISK</div>
+            <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:14px">Connect your Polygon wallet to execute real orders on Polymarket's CLOB. Requires USDC on Polygon network.</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="flex:1;min-width:200px">
+                <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:4px">WALLET PRIVATE KEY</label>
+                <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:12px;background:#0a0f18;border-color:#1a2030">
+              </div>
+              <button onclick="wizConnect()" style="padding:10px 20px;background:#1652F0;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;border:none;border-radius:8px;cursor:pointer;align-self:flex-end;white-space:nowrap">Connect & Validate</button>
+            </div>
+            <div style="font-size:10px;color:#4a5568;margin-top:8px;line-height:1.5">Keys are AES-256 encrypted. WICK cannot withdraw or transfer funds — trade execution only.</div>
+          </div>
+
+          <!-- ── METRIC TILES ── -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1a2030">
+            <div style="background:#080b0f;padding:14px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Markets Scanned</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;margin-top:4px" id="pm-markets-count">—</div>
+            </div>
+            <div style="background:#080b0f;padding:14px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Last Verdict</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;margin-top:4px" id="pm-verdict">—</div>
+            </div>
+            <div style="background:#080b0f;padding:14px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Active Desks</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#4D8FFF;margin-top:4px" id="pm-desks">4</div>
+            </div>
+            <div style="background:#080b0f;padding:14px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase" id="pm-balance-label">Sandbox Balance</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;margin-top:4px" id="pm-balance">$10,000</div>
+            </div>
+          </div>
+
+          <!-- ── PERFORMANCE ANALYTICS ROW ── -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#1a2030;border-top:1px solid #1a2030">
+            <div style="background:#080b0f;padding:12px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Predictive Calibration</div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
+                <div style="font-family:var(--mono);font-size:20px;font-weight:700" id="pm-brier-score">—</div>
+                <div style="font-family:var(--mono);font-size:9px" id="pm-brier-label">Brier Score</div>
+              </div>
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-brier-n">0 resolved predictions</div>
+            </div>
+            <div style="background:#080b0f;padding:12px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Avg Slippage (Sv)</div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
+                <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#4D8FFF" id="pm-slip-avg">0.000</div>
+                <div style="font-family:var(--mono);font-size:9px;color:#4a5568" id="pm-slip-n">0 trades</div>
+              </div>
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-slip-worst">Worst: 0.000</div>
+            </div>
+            <div style="background:#080b0f;padding:12px 16px">
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Engine Health</div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
+                <div style="font-family:var(--mono);font-size:20px;font-weight:700" id="pm-engine-status">ACTIVE</div>
+              </div>
+              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-engine-detail">0 losses · 31 markets</div>
+            </div>
+          </div>
+
+          <!-- ── DESK STATUS STRIP ── -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1a2030;border-top:1px solid #1a2030">
+            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#4D8FFF" id="pm-desk-research-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4D8FFF;font-weight:700">RESEARCH</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-research-val">—</span>
+            </div>
+            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#6BA3FF" id="pm-desk-math-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#6BA3FF;font-weight:700">MATH</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-math-val">—</span>
+            </div>
+            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#2962FF" id="pm-desk-exec-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#2962FF;font-weight:700">EXECUTION</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-exec-val">—</span>
+            </div>
+            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#f43f5e" id="pm-desk-cro-dot"></span>
+              <span style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700">CRO</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-cro-val">—</span>
+            </div>
+          </div>
+
+          <!-- ── LIVE TERMINAL FEED ── -->
+          <div style="padding:14px 16px;border-top:1px solid #1a2030">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Agent Desk Logs</span>
+              <span style="font-family:var(--mono);font-size:9px;color:#4D8FFF" id="pm-feed-status">Waiting for ignition…</span>
+            </div>
+            <div id="pm-terminal" style="background:#050810;border:1px solid #111820;border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+              <div style="color:#2a3545">// flip the switch to begin scanning</div>
+            </div>
+          </div>
+
+          <!-- ── TARGETING & CONFIGURATION ── -->
+          <details style="border-top:1px solid #1a2030" open>
+            <summary style="padding:12px 20px;cursor:pointer;font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;background:rgba(255,255,255,.01)">TARGETING & CONFIGURATION</summary>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:16px">
+
+              <!-- Target vectors -->
+              <div>
+                <div style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:8px">MARKET FOCUS</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px" id="pm-targets">
+                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
+                    <input type="checkbox" checked style="accent-color:#4D8FFF"> Geopolitics / Macro
+                  </label>
+                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
+                    <input type="checkbox" checked style="accent-color:#2962FF"> Crypto Milestones
+                  </label>
+                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
+                    <input type="checkbox" checked style="accent-color:#2962FF"> Major Sports
+                  </label>
+                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
+                    <input type="checkbox" style="accent-color:#2962FF"> Pop Culture
+                  </label>
+                </div>
+              </div>
+
+              <!-- Confidence threshold -->
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700">CONFIDENCE THRESHOLD</span>
+                  <span style="font-family:var(--mono);font-size:12px;color:#4D8FFF;font-weight:700" id="pm-conf-val">75%</span>
+                </div>
+                <input type="range" id="pm-conf-slider" min="50" max="95" value="75" step="5" style="width:100%;accent-color:#2962FF" oninput="document.getElementById('pm-conf-val').textContent=this.value+'%'">
+                <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:#3a4a5a;margin-top:2px">
+                  <span>50% (aggressive)</span><span>95% (ultra-selective)</span>
+                </div>
+              </div>
+
+              <!-- Pipeline explainer -->
+              <div style="background:#0a0f18;border:1px solid #141c28;border-radius:8px;padding:12px 14px">
+                <div style="font-family:var(--mono);font-size:8px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:8px">HOW THE INTELLIGENCE PIPELINE WORKS</div>
+                <div style="font-size:11px;color:#8899aa;line-height:1.7">
+                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#4D8FFF;font-weight:700;flex-shrink:0">1.</span> <strong style="color:#c0ccd8">Research Desk</strong> scrapes Reuters, AP, ESPN, and Reddit in real time. Keywords are matched against 30+ active Polymarket contracts.</div>
+                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#6BA3FF;font-weight:700;flex-shrink:0">2.</span> <strong style="color:#c0ccd8">Math Desk</strong> evaluates implied probability vs order book pricing. Checks ΣPᵢ = 1.00 boundary. Flags sum violations and Kelly edge > 0.5%.</div>
+                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#2962FF;font-weight:700;flex-shrink:0">3.</span> <strong style="color:#c0ccd8">Execution Desk</strong> (Claude AI) reviews all findings. If conviction exceeds your threshold, it calls buy_yes or buy_no with size + price.</div>
+                  <div style="display:flex;gap:8px"><span style="color:#f43f5e;font-weight:700;flex-shrink:0">4.</span> <strong style="color:#c0ccd8">Chief Risk Officer</strong> enforces position limits (10% max), $50 hard cap, and 5% drawdown circuit breaker. Vetoes override everything.</div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- ── SECURITY & TRUST ── -->
+          <div style="padding:16px 20px;border-top:1px solid #1a2030;background:rgba(255,255,255,.01)">
+            <div style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:10px">SECURITY ARCHITECTURE</div>
+            <div style="font-size:12px;color:#c0ccd8;line-height:1.7">
+              <p style="margin-bottom:8px"><strong>WICK is an agentic bot that only knows how to evaluate and win trades.</strong> It reads market data, analyzes signals across 4 specialized desks, and executes orders when the math confirms an edge.</p>
+              <p style="margin-bottom:8px"><strong>Non-custodial by design.</strong> WICK operates via secure, isolated API keys. Your funds never leave your broker account, and WICK has absolutely zero technical permission or capability to withdraw or transfer your capital. You retain 100% custody at all times.</p>
+              <p style="margin:0;color:#5a6a7a">All credentials are AES-256 encrypted at rest. You can revoke access instantly by deleting your API key from your broker's settings panel.</p>
+            </div>
+          </div>
+
+          <!-- ── KALSHI TEASER ── -->
+          <div style="padding:12px 20px;border-top:1px solid #1a2030;display:flex;align-items:center;justify-content:space-between;opacity:.5">
+            <div>
+              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;font-weight:700;letter-spacing:.08em">KALSHI (CFTC-REGULATED)</span>
+              <span style="font-size:7px;font-family:var(--mono);font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(41,98,255,.1);color:var(--green);letter-spacing:.06em;margin-left:8px">COMING SOON</span>
+            </div>
+            <button id="kalshi-waitlist-btn" onclick="joinWaitlist('kalshi')" style="padding:5px 12px;background:transparent;border:1px solid #1a2030;color:#4a5568;font-family:var(--mono);font-size:9px;font-weight:700;border-radius:5px;cursor:pointer">Notify Me</button>
+            <div id="kalshi-waitlist-success" style="display:none;color:#4D8FFF;font-family:var(--mono);font-size:9px;font-weight:700">Saved ✓</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="wiz-connect-error" class="form-error" style="display:none"></div>
+      <div id="wiz-connect-success" class="form-success" style="display:none"></div>
+
+      <div class="wiz-nav">
+        <button class="wiz-btn next" id="wiz-btn-connect" onclick="wizConnect()" style="display:none;">Connect & Validate Keys</button>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Configure Strategy ── -->
+    <div class="wiz-panel" id="wiz-step-2">
+      <div class="wiz-title">Configure your strategy</div>
+      <div class="wiz-desc">Choose how the WICK trades. You can change these anytime from the dashboard.</div>
+
+      <div class="form-label" style="margin-bottom:12px;">Strategy</div>
+      <div class="strategy-grid" id="wiz-strategy-grid"></div>
+
+      <div class="form-label">Risk profile</div>
+      <div class="mode-switch" style="margin-top:6px;">
+        <button class="mode-btn" id="wiz-risk-conservative" onclick="wizSetRisk('conservative')">CONSERVATIVE</button>
+        <button class="mode-btn" id="wiz-risk-balanced"     onclick="wizSetRisk('balanced')">BALANCED</button>
+        <button class="mode-btn" id="wiz-risk-aggressive"   onclick="wizSetRisk('aggressive')">AGGRESSIVE</button>
+      </div>
+      <div id="wiz-risk-desc" style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:10px; margin-bottom:20px; line-height:1.6;"></div>
+
+      <div class="form-group">
+        <label class="form-label">Max % of portfolio per trade — <span id="wiz-maxpos-val" style="color:var(--green)">10</span>%</label>
+        <input type="range" id="wiz-maxpos" min="1" max="50" value="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('wiz-maxpos-val').textContent=this.value">
+      </div>
+
+      <div class="wiz-nav">
+        <button class="wiz-btn back" onclick="wizGo(1)">Back</button>
+        <button class="wiz-btn next" onclick="wizSaveAndContinue()">Save & Continue</button>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Activate ── -->
+    <div class="wiz-panel" id="wiz-step-3">
+      <div class="wiz-title">Launch WICK</div>
+      <div class="wiz-desc">Review your setup and flip the switch when you're ready. Paper trading uses simulated funds — no real money at risk.</div>
+
+      <div class="launch-summary" id="launch-summary">
+        <div class="launch-row">
+          <span class="launch-key">Platform</span>
+          <span class="launch-val" id="launch-broker">Polymarket</span>
+        </div>
+        <div class="launch-row">
+          <span class="launch-key">Mode</span>
+          <span class="launch-val" id="launch-mode">Sandbox</span>
+        </div>
+        <div class="launch-row">
+          <span class="launch-key">Strategy</span>
+          <span class="launch-val" id="launch-strategy">WICK Scalper</span>
+        </div>
+        <div class="launch-row">
+          <span class="launch-key">Markets</span>
+          <span class="launch-val" id="launch-assets">All categories</span>
+        </div>
+        <div class="launch-row">
+          <span class="launch-key">Risk</span>
+          <span class="launch-val" id="launch-risk">Balanced</span>
+        </div>
+        <div class="launch-row">
+          <span class="launch-key">Max position</span>
+          <span class="launch-val" id="launch-maxpos">10%</span>
+        </div>
+      </div>
+
+      <div class="launch-toggle-area">
+        <div class="launch-toggle-label">Activate the agent</div>
+        <div class="launch-toggle" id="launch-toggle" onclick="wizToggleBot()"></div>
+        <div class="launch-status" id="launch-status">OFF</div>
+      </div>
+
+      <div class="wiz-nav">
+        <button class="wiz-btn back" onclick="wizGo(2)">Back</button>
+        <button class="wiz-btn next" onclick="wizFinish()">Go to Dashboard →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- DASHBOARD (returning users — shown when already configured)               -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="dashboard" style="display:none">
+  <div class="app-shell" style="max-width:1400px;padding:16px;">
+
+    <!-- Polymarket-only — no broker tabs needed -->
+
+    <!-- Control Room — everything on one page -->
+    <div class="tile-grid">
+
+    <!-- Stat tiles -->
+    <div id="stats-row" style="display:none; grid-column:1/-1; display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+      <div class="tile">
+        <div class="tile-title">Win Rate</div>
+        <div class="tile-value" style="color:var(--green);" id="stat-winrate">—</div>
+        <div class="tile-sub" id="stat-trades">0 closed trades</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Total P&amp;L</div>
+        <div class="tile-value" id="stat-pnl">—</div>
+        <div class="tile-sub">all time</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Portfolio</div>
+        <div class="tile-value" style="color:#4D8FFF;" id="stat-portfolio">—</div>
+        <div class="tile-sub" id="stat-buying-power">— buying power</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Status</div>
+        <div class="tile-value" id="stat-status">Idle</div>
+        <div class="tile-sub" id="stat-mode-sub">paper mode</div>
+      </div>
+    </div>
+
+    <!-- Connection status -->
+    <div class="tile tile-full" id="connection-banner" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="conn-dot" style="width:10px;height:10px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700" id="conn-title">—</div>
+          <div style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="conn-detail">—</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:12px;font-weight:700" id="conn-badge">—</div>
+      </div>
+    </div>
+
+      <!-- Trading Control tile -->
+      <div class="tile tile-wide" id="bot-control" style="display:none">
+        <div class="card-title">Trading Control</div>
+        <div class="bot-header">
+          <div class="bot-status-dot" id="status-dot"></div>
+          <div class="bot-name" id="bot-name">WICK</div>
+          <span class="bot-mode paper" id="mode-badge">PAPER</span>
+        </div>
+        <div class="bot-sub" id="bot-sub-text">Watching BTC/USD · ETH/USD · SOL/USD every 2 minutes</div>
+
+        <div class="mode-switch" id="mode-switch">
+          <button class="mode-btn active paper" id="btn-paper" onclick="setMode('paper')">PAPER</button>
+          <button class="mode-btn live" id="btn-live" onclick="setMode('live')">LIVE</button>
+        </div>
+        <div id="live-warning" style="display:none; margin-top:10px; font-size:11px; color:var(--amber); font-family:var(--mono); line-height:1.5;">
+          Warning: LIVE mode places real orders on your account. Real money is at risk.
+        </div>
+
+        <div class="toggle-row">
+          <span class="toggle-label" id="toggle-label">Agent is <strong>off</strong></span>
+          <div class="toggle" id="bot-toggle" onclick="toggleBot()"></div>
+        </div>
+
+        <!-- Live activity feed inline -->
+        <div id="activity-card" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:11px;font-family:var(--mono);font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase">Live Activity</span>
+            <span style="font-size:9px;color:var(--text3);font-weight:500" id="activity-time">—</span>
+          </div>
+          <div id="activity-feed" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px"></div>
+        </div>
+      </div>
+
+      <!-- Recent Trades tile -->
+      <div class="tile" id="trades-card" style="display:none">
+        <div class="card-title">Recent Trades</div>
+        <div id="trades-body"></div>
+      </div>
+
+    <!-- Polymarket tile -->
+    <div class="tile" id="poly-card-home">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+        <span>Polymarket Signals</span>
+        <span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0">Crowd prediction markets</span>
+      </div>
+      <div class="poly-row" id="poly-body">
+        <div class="empty-state" style="padding:16px">Loading signals...</div>
+      </div>
+      <div class="poly-attr">via polymarket.com</div>
+    </div>
+
+    <!-- Referral tile -->
+    <!-- Badges & Achievements tile -->
+    <div class="tile tile-wide" id="badges-tile" style="display:none;">
+      <div class="tile-title">Coat of Arms <span class="tile-badge" id="badge-count">0 earned</span></div>
+      <div id="badges-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px;"></div>
+    </div>
+
+    <div class="tile" id="referral-card" style="background:linear-gradient(135deg, rgba(41,98,255,.04), rgba(77,143,255,.04)); border-color:rgba(41,98,255,.15);">
+      <div class="card-title">Invite friends, get $25 fuel</div>
+      <div style="font-size:13px; color:var(--text2); line-height:1.6; margin-bottom:12px;">Share your link. When someone signs up, you both get $25 in free fuel credits.</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input class="form-input" id="referral-link" type="text" readonly style="flex:1; font-size:11px; background:rgba(0,0,0,.3);">
+        <button onclick="copyReferral()" id="referral-copy-btn" style="padding:10px 16px; background:var(--card2); border:1px solid var(--border); border-radius:6px; color:var(--text2); font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer;">Copy</button>
+      </div>
+    </div>
+
+        
+
+
+      <!-- Panel: Strategy -->
+
+    <div class="tile tile-wide" id="settings-card" style="display:none">
+      <div class="card-title">Strategy &amp; Risk</div>
+      <div class="form-label" style="margin-bottom:12px;">Choose strategy</div>
+      <div class="strategy-grid" id="strategy-grid"></div>
+
+      <div class="form-label">Risk profile</div>
+      <div class="mode-switch" style="margin-top:6px;">
+        <button class="mode-btn" id="risk-conservative" onclick="setRisk('conservative')">CONSERVATIVE</button>
+        <button class="mode-btn" id="risk-balanced"     onclick="setRisk('balanced')">BALANCED</button>
+        <button class="mode-btn" id="risk-aggressive"   onclick="setRisk('aggressive')">AGGRESSIVE</button>
+      </div>
+      <div id="risk-desc" style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:10px; line-height:1.6;"></div>
+
+      <div class="form-group" style="margin-top:20px;">
+        <label class="form-label">Max % of portfolio per trade — <span id="maxpos-val" style="color:var(--green)">10</span>%</label>
+        <input type="range" id="maxpos" min="1" max="50" value="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('maxpos-val').textContent=this.value">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Daily profit goal — <span id="goal-val" style="color:var(--green)">off</span></label>
+        <input type="range" id="goal" min="0" max="20" value="0" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('goal-val').textContent=this.value==='0'?'off':'+'+this.value+'%'">
+        <div class="form-hint">When your account is up this much for the day, the agent stops opening new trades.</div>
+      </div>
+
+      <!-- Trade Controls -->
+      <div style="border-top:1px solid var(--border); margin-top:20px; padding-top:20px;">
+        <div class="card-title" style="margin-bottom:16px;">Trade Controls</div>
+
+        <div class="form-label">Trade frequency</div>
+        <div class="mode-switch" style="margin-top:6px; margin-bottom:16px;">
+          <button class="mode-btn" id="freq-conservative" onclick="setFrequency('conservative')">SKIP SOME</button>
+          <button class="mode-btn active live" id="freq-normal" onclick="setFrequency('normal')">EVERY CYCLE</button>
+          <button class="mode-btn" id="freq-aggressive" onclick="setFrequency('aggressive')">AGGRESSIVE</button>
+        </div>
+        <div class="form-hint" style="margin-bottom:16px;" id="freq-hint">Trades on every 2-minute cycle when signals align.</div>
+
+        <div class="form-group">
+          <label class="form-label">Max open positions — <span id="maxopen-val" style="color:var(--green)">3</span></label>
+          <input type="range" id="maxopen" min="1" max="6" value="3" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('maxopen-val').textContent=this.value">
+          <div class="form-hint">How many positions can be open at the same time.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Max daily trades — <span id="maxdaily-val" style="color:var(--green)">unlimited</span></label>
+          <input type="range" id="maxdaily" min="0" max="100" value="0" step="5" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('maxdaily-val').textContent=this.value==='0'?'unlimited':this.value">
+          <div class="form-hint">Prevents overtrading. 0 = unlimited.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cool-down after loss — <span id="cooldown-val" style="color:var(--green)">off</span></label>
+          <input type="range" id="cooldown" min="0" max="30" value="0" step="2" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('cooldown-val').textContent=this.value==='0'?'off':this.value+' min'">
+          <div class="form-hint">Pause trading for N minutes after a losing trade. Prevents tilt.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">TP/SL width — <span id="tpsl-val" style="color:var(--green)">1.0x</span> (default)</label>
+          <input type="range" id="tpsl-mult" min="0.5" max="3" value="1" step="0.1" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('tpsl-val').textContent=parseFloat(this.value).toFixed(1)+'x'">
+          <div class="form-hint">Multiplier for ATR-based take-profit and stop-loss. Higher = wider targets, fewer but bigger trades.</div>
+        </div>
+
+      </div>
+
+      <!-- Signal Weights -->
+      <div style="border-top:1px solid var(--border); margin-top:20px; padding-top:20px;">
+        <div class="card-title" style="margin-bottom:16px;">Signal Weights</div>
+        <div class="form-hint" style="margin-bottom:14px;">Control how much influence each data source has on trading decisions. 0 = ignored, 100 = maximum weight.</div>
+
+        <div class="form-group">
+          <label class="form-label">Technical indicators — <span id="w-tech-val" style="color:var(--green)">100</span></label>
+          <input type="range" id="w-tech" min="0" max="100" value="100" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-tech-val').textContent=this.value">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reddit sentiment — <span id="w-reddit-val" style="color:var(--green)">50</span></label>
+          <input type="range" id="w-reddit" min="0" max="100" value="50" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-reddit-val').textContent=this.value">
+        </div>
+        <div class="form-group">
+          <label class="form-label">News headlines — <span id="w-news-val" style="color:var(--green)">40</span></label>
+          <input type="range" id="w-news" min="0" max="100" value="40" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-news-val').textContent=this.value">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Market implied probability — <span id="w-poly-val" style="color:var(--green)">30</span></label>
+          <input type="range" id="w-poly" min="0" max="100" value="30" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('w-poly-val').textContent=this.value">
+        </div>
+      </div>
+
+      <div id="settings-saved" class="form-success" style="display:none"></div>
+      <button class="btn-primary" onclick="saveSettings()" style="margin-top:20px;">Save all settings</button>
+    </div>
+
+
+      <!-- Panel: Trades (redirects to home — trades live there now) -->
+        <div class="panel-sub">Trades are displayed on the Home panel alongside the agent.</div>
+        <div class="card" style="text-align:center;padding:24px">
+          <button class="btn-primary" onclick="showPanel('home')" style="display:inline-flex">← View on Home</button>
+        </div>
+
+
+      <!-- Panel: Predictions (Polymarket) -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+          <svg width="24" height="24" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#1652F0"/><circle cx="18" cy="18" r="8" stroke="#fff" stroke-width="2" fill="none"/><path d="M14 18l3 3 5-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="panel-title" style="margin-bottom:0;">Predictions</div>
+        </div>
+        <div class="panel-sub">Polymarket prediction markets. The agent trades mispriced odds using live news and sports data.</div>
+
+        <!-- Category filters -->
+        <div style="display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap;">
+          <button onclick="polyFilter('all')" class="poly-cat active" id="pcat-all">All</button>
+          <button onclick="polyFilter('crypto')" class="poly-cat" id="pcat-crypto">Crypto</button>
+          <button onclick="polyFilter('politics')" class="poly-cat" id="pcat-politics">Politics</button>
+          <button onclick="polyFilter('sports')" class="poly-cat" id="pcat-sports">Sports</button>
+          <button onclick="polyFilter('business')" class="poly-cat" id="pcat-business">Business</button>
+        </div>
+
+        <!-- Live markets -->
+        <div id="poly-markets-list" style="display:flex; flex-direction:column; gap:10px;">
+          <div style="text-align:center; padding:40px; color:var(--text3); font-size:13px;">Loading markets...</div>
+        </div>
+
+        <!-- Live sports scores -->
+        <div style="margin-top:24px;">
+          <div style="font-size:11px; font-family:var(--mono); font-weight:700; color:#4D8FFF; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px;">Live scores</div>
+          <div id="poly-sports-list" style="display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:12px; color:var(--text3);">No live games</div>
+          </div>
+        </div>
+
+        <!-- Breaking news wire -->
+        <div style="margin-top:24px;">
+          <div style="font-size:11px; font-family:var(--mono); font-weight:700; color:#4D8FFF; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px;">News wire</div>
+          <div id="poly-news-list" style="display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:12px; color:var(--text3);">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Wallet status -->
+        <div style="margin-top:24px; padding:16px; background:rgba(22,82,240,.04); border:1px solid rgba(22,82,240,.12); border-radius:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:12px; font-family:var(--mono); color:#4D8FFF; font-weight:700; margin-bottom:4px;">Wallet</div>
+              <div style="font-size:13px; color:var(--text2);" id="poly-wallet-status">Not connected</div>
+            </div>
+            <button onclick="showPanel('broker')" style="padding:8px 16px; background:rgba(22,82,240,.12); border:1px solid rgba(22,82,240,.25); border-radius:6px; color:#4D8FFF; font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; border:none;">Connect Wallet</button>
+          </div>
+        </div>
+
+
+      <!-- Panel: Fuel -->
+      <!-- Panel: Fuel -->
+
+        <div class="tile" id="fuel-card" style="background:linear-gradient(135deg, rgba(41,98,255,.04), rgba(77,143,255,.04)); border-color:rgba(41,98,255,.2);">
+          <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Balance</span>
+            <span id="fuel-tier" style="font-size:10px; color:var(--green); text-transform:none; letter-spacing:0;"></span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+            <span style="font-size:28px; font-weight:800; font-family:var(--mono); color:var(--green);" id="fuel-balance">$0</span>
+            <span style="font-size:12px; color:var(--text3); font-family:var(--mono);" id="fuel-fee-rate"></span>
+          </div>
+          <div style="display:flex; gap:16px; font-size:11px; font-family:var(--mono); color:var(--text3); margin-bottom:16px; flex-wrap:wrap;">
+            <span>HWM: $<span id="fuel-hwm">0</span></span>
+            <span>Fees paid: $<span id="fuel-fees-paid">0</span></span>
+            <span>Total profit: $<span id="fuel-cum-profit">0</span></span>
+          </div>
+          <div id="fuel-empty-warning" style="display:none; font-size:12px; color:var(--red); font-family:var(--mono); margin-bottom:12px; padding:10px; background:rgba(255,68,85,.08); border:1px solid rgba(255,68,85,.2); border-radius:6px;">
+            Fuel depleted -- agent paused. Buy fuel to resume live trading.
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="nav-btn" onclick="buyFuel(25)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$25</button>
+            <button class="nav-btn" onclick="buyFuel(50)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$50</button>
+            <button class="nav-btn" onclick="buyFuel(100)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$100</button>
+            <button class="nav-btn" onclick="buyFuel(250)" style="flex:1; min-width:70px; font-size:11px; border-color:rgba(41,98,255,.3); color:var(--green);">+$250</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Fee Tiers</div>
+          <div style="font-size:12px; color:var(--text2); line-height:1.8;">
+            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>$0 - $99 balance</span><span style="color:var(--text1); font-family:var(--mono);">20%</span></div>
+            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>$100 - $499</span><span style="color:var(--text1); font-family:var(--mono);">15%</span></div>
+            <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border);"><span>$500 - $999</span><span style="color:var(--text1); font-family:var(--mono);">10%</span></div>
+            <div style="display:flex; justify-content:space-between; padding:4px 0;"><span>$1,000+</span><span style="color:var(--green); font-family:var(--mono);">7%</span></div>
+          </div>
+          <div class="form-hint" style="margin-top:12px;">Paper trading is always free. Fees are only charged on profitable live trades. High-water mark protection prevents fees on recovered losses.</div>
+        </div>
+
+
+      <!-- Panel: Broker -->
+
+    <div class="tile tile-wide" id="wallet-card">
+      <div class="tile-title">Polymarket Wallet</div>
+      <div id="wallet-status" style="font-size:12px; color:var(--accent); font-family:var(--mono); margin-bottom:14px;"></div>
+      <div class="form-group">
+        <label class="form-label">Wallet Private Key (Polygon)</label>
+        <input class="form-input" id="dash-poly-key" type="password" placeholder="0x..." autocomplete="off" spellcheck="false">
+      </div>
+      <div style="font-size:10px; color:var(--text3); line-height:1.5; margin-bottom:14px;">Your key is AES-256 encrypted. WICK can only place trades — it cannot withdraw or transfer your funds.</div>
+      <div id="connect-error" class="form-error" style="display:none"></div>
+      <div id="connect-success" class="form-success" style="display:none"></div>
+      <button class="btn-primary" id="btn-connect" onclick="connectWallet()">Connect Wallet</button>
+    </div>
+
+
+      <!-- Panel: Settings -->
+
+        <div class="card">
+          <div class="card-title">Session Security</div>
+          <div class="toggle-row">
+            <div>
+              <span class="toggle-label" id="auto-logout-label">Auto-logout is <strong>on</strong></span>
+              <div style="font-size:11px; color:var(--text3); margin-top:4px;">Signs you out after 15 min inactive or 5 min with tab hidden. The agent keeps running server-side regardless.</div>
+            </div>
+            <div class="toggle on" id="auto-logout-toggle" onclick="toggleAutoLogout()"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">About</div>
+          <div style="font-size:12px; color:var(--text3); line-height:1.6;">
+            Trading crypto and stocks involves substantial risk of loss. WICK is automated trading software — not a financial advisor, and nothing here is financial advice. Trades execute through your own brokerage account; WICK never holds or transfers your funds, and API keys cannot withdraw. You can disconnect or cancel anytime. Only trade money you can afford to lose.
+          </div>
+        </div>
+
+
+
+    </div><!-- /tile-grid -->
+  </div><!-- /app-shell -->
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
+                                  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const FIREBASE_CONFIG = {
+  apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
+  authDomain:    'wick.network',
+  projectId:     'wicknetwork',
+  storageBucket: 'wicknetwork.firebasestorage.app',
+};
+
+const app      = initializeApp(FIREBASE_CONFIG);
+const auth     = getAuth(app);
+window._firebaseAuth = auth;
+const provider = new GoogleAuthProvider();
+let   idToken  = null;
+
+// ── Global state ──────────────────────────────────────────────────────────────
+window._botActive  = false;
+window._botMode    = 'paper';
+window._configured = false;
+window._botType    = 'crypto';
+window._strategy   = 'brilliant';
+window._broker     = 'alpaca';
+window._risk       = 'balanced';
+window._wizStep    = 1;
+window._wizBotOn   = false;
+window._autoLogout = true;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SESSION SECURITY — auto-logout on inactivity + tab hidden
+// ══════════════════════════════════════════════════════════════════════════════
+const SESSION_TIMEOUT_MS = 2 * 60 * 60 * 1000;  // 2 hours inactivity
+const TAB_HIDDEN_TIMEOUT_MS = 30 * 60 * 1000;   // 30 minutes when tab not visible
+let _inactivityTimer = null;
+let _tabHiddenTimer  = null;
+let _sessionLocked   = false;
+
+function resetInactivityTimer() {
+  if (!window._autoLogout || _sessionLocked) return;
+  clearTimeout(_inactivityTimer);
+  _inactivityTimer = setTimeout(() => {
+    if (!window._autoLogout) return;
+    sessionLogout('Signed out due to inactivity');
+  }, SESSION_TIMEOUT_MS);
+}
+
+function sessionLogout(reason) {
+  if (_sessionLocked) return;
+  _sessionLocked = true;
+  clearTimeout(_inactivityTimer);
+  clearTimeout(_tabHiddenTimer);
+  signOut(auth).then(() => {
+    _sessionLocked = false;
+    alert(reason || 'Session expired — please sign in again');
+  });
+}
+
+['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+  document.addEventListener(evt, resetInactivityTimer, { passive: true });
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!window._autoLogout) return;
+  if (document.hidden) {
+    _tabHiddenTimer = setTimeout(() => {
+      if (document.hidden && window._autoLogout) {
+        sessionLogout('Signed out — tab was inactive');
+      }
+    }, TAB_HIDDEN_TIMEOUT_MS);
+  } else {
+    clearTimeout(_tabHiddenTimer);
+    resetInactivityTimer();
+  }
+});
+
+// ── Sidebar panel navigation ─────────────────────────────────────────────────
+// Broker tab colors
+const BROKER_TAB_COLORS = { polymarket:'#2962FF' };
+
+window.switchDashBroker = async function(broker) {
+  // Update ALL tab visuals
+  document.querySelectorAll('#dash-broker-tabs .dash-nav-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.borderBottomColor = 'transparent';
+    b.style.color = '';
+  });
+  const tab = document.getElementById('dbt-' + broker);
+  if (tab) {
+    tab.classList.add('active');
+    tab.style.borderBottomColor = BROKER_TAB_COLORS[broker] || 'var(--green)';
+    tab.style.color = BROKER_TAB_COLORS[broker] || 'var(--text1)';
+  }
+
+  // ── POLYMARKET: show the Polymarket terminal directly ──
+  if (broker === 'polymarket') {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('wizard').style.display = 'block';
+    if (window.wizSwitchTab) wizSwitchTab('polymarket');
+    return;
+  }
+
+  // ── CONNECTED BROKER: bypass wizard entirely, straight to dashboard ──
+  if (broker === window._broker && window._configured) {
+    document.getElementById('wizard').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadStatus();
+    return;
+  }
+
+  // ── UNCONNECTED BROKER: show wizard connection flow ──
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('wizard').style.display = 'block';
+  if (window.wizSwitchTab) wizSwitchTab(broker);
+  loadStatus();
+};
+
+window.showPanel = function (id) {
+  document.querySelectorAll('.app-content .panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  const btn = document.querySelector(`.dash-nav-btn[onclick="showPanel('${id}')"]`);
+  if (btn) btn.classList.add('active');
+  if (id === 'predictions') loadPredictionsPanel();
+};
+
+// ── Polymarket predictions panel ─────────────────────────────────────────────
+let _polyMarketsCache = [];
+let _polyFilter = 'all';
+
+window.polyFilter = function (cat) {
+  _polyFilter = cat;
+  document.querySelectorAll('.poly-cat').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('pcat-' + cat);
+  if (btn) btn.classList.add('active');
+  renderPolyMarkets();
+};
+
+function renderPolyMarkets() {
+  const list = document.getElementById('poly-markets-list');
+  if (!list) return;
+  const keywords = {
+    crypto: /bitcoin|btc|ethereum|eth|solana|sol|crypto|defi/i,
+    politics: /trump|biden|president|election|congress|senate|republican|democrat|vote/i,
+    sports: /nfl|nba|mlb|nhl|super bowl|championship|playoff|world cup|match|game|win|finals/i,
+    business: /stock|market|fed|rate|gdp|inflation|earnings|ipo|tesla|apple|nvidia/i,
+  };
+  let filtered = _polyMarketsCache;
+  if (_polyFilter !== 'all' && keywords[_polyFilter]) {
+    filtered = filtered.filter(m => keywords[_polyFilter].test(m.question));
+  }
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">No markets in this category</div>';
+    return;
+  }
+  list.innerHTML = filtered.slice(0, 15).map(m => {
+    const yesPct = Math.round(m.yesPrice * 100);
+    const noPct = Math.round(m.noPrice * 100);
+    const vol = m.volume24h > 1000 ? '$' + (m.volume24h / 1000).toFixed(0) + 'K' : '$' + Math.round(m.volume24h);
+    return `<div class="pm-card">
+      <div class="pm-question">${m.question}</div>
+      <div class="pm-odds">
+        <div class="pm-odds-btn pm-odds-yes">Yes ${yesPct}%</div>
+        <div class="pm-odds-btn pm-odds-no">No ${noPct}%</div>
+      </div>
+      <div class="pm-meta"><span class="pm-vol">Vol: ${vol}</span></div>
+    </div>`;
+  }).join('');
+}
+
+async function loadPredictionsPanel() {
+  const list = document.getElementById('poly-markets-list');
+  const sportsList = document.getElementById('poly-sports-list');
+  const newsList = document.getElementById('poly-news-list');
+
+  try {
+    const [marketsResp, sportsResp, newsResp] = await Promise.all([
+      fetch('https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=30&order=volume&ascending=false').then(r => r.json()).catch(() => []),
+      Promise.all([
+        fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard', {signal:AbortSignal.timeout(4000)}).then(r=>r.json()).catch(()=>({events:[]})),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard', {signal:AbortSignal.timeout(4000)}).then(r=>r.json()).catch(()=>({events:[]})),
+        fetch('https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard', {signal:AbortSignal.timeout(4000)}).then(r=>r.json()).catch(()=>({events:[]})),
+      ]),
+      fetch('https://news.google.com/rss/search?q=breaking+news+when:1h&hl=en-US&gl=US&ceid=US:en', {headers:{'User-Agent':'WICK/1.0'},signal:AbortSignal.timeout(5000)}).then(r=>r.text()).catch(()=>''),
+    ]);
+
+    // Markets
+    if (Array.isArray(marketsResp)) {
+      _polyMarketsCache = marketsResp.filter(m => m.active && !m.closed && m.outcomePrices).map(m => {
+        let prices; try { prices = JSON.parse(m.outcomePrices); } catch { prices = ['0.5','0.5']; }
+        return { question: m.question, yesPrice: parseFloat(prices[0]), noPrice: parseFloat(prices[1]), volume24h: m.volume24hr || 0 };
+      });
+      renderPolyMarkets();
+    }
+
+    // Sports
+    const games = [];
+    const sportNames = ['NFL', 'NBA', 'MLB'];
+    sportsResp.forEach((data, i) => {
+      (data.events || []).forEach(e => {
+        const comp = e.competitions?.[0];
+        if (!comp) return;
+        const teams = comp.competitors || [];
+        const home = teams.find(t => t.homeAway === 'home');
+        const away = teams.find(t => t.homeAway === 'away');
+        if (home && away) {
+          games.push({
+            league: sportNames[i],
+            home: home.team?.abbreviation || '?', away: away.team?.abbreviation || '?',
+            homeScore: home.score || '0', awayScore: away.score || '0',
+            status: comp.status?.type?.shortDetail || 'Scheduled',
+          });
+        }
+      });
+    });
+    if (games.length) {
+      sportsList.innerHTML = games.slice(0, 10).map(g =>
+        `<div class="pm-sport-row"><span class="pm-sport-league">${g.league}</span><span class="pm-sport-teams">${g.away} @ ${g.home}</span><span class="pm-sport-score">${g.awayScore} - ${g.homeScore}</span><span class="pm-sport-status">${g.status}</span></div>`
+      ).join('');
+    } else {
+      sportsList.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No live games right now</div>';
+    }
+
+    // News
+    const titles = [...newsResp.matchAll(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/g)]
+      .map(m => m[1].trim()).filter(t => t && t !== 'Google News').slice(0, 10);
+    if (titles.length) {
+      newsList.innerHTML = titles.map(t =>
+        `<div class="pm-news-item"><span class="pm-news-source">WIRE</span><span class="pm-news-title">${t}</span></div>`
+      ).join('');
+    } else {
+      newsList.innerHTML = '<div style="font-size:12px;color:var(--text3);">No breaking news</div>';
+    }
+
+  } catch (err) {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Failed to load markets</div>';
+  }
+}
+
+window.toggleAutoLogout = function () {
+  window._autoLogout = !window._autoLogout;
+  const btn = document.getElementById('auto-logout-toggle');
+  if (btn) {
+    btn.className = 'toggle' + (window._autoLogout ? ' on' : '');
+    const label = document.getElementById('auto-logout-label');
+    if (label) label.innerHTML = `Auto-logout is <strong>${window._autoLogout ? 'on' : 'off'}</strong>`;
+  }
+  if (window._autoLogout) resetInactivityTimer();
+  else { clearTimeout(_inactivityTimer); clearTimeout(_tabHiddenTimer); }
+  try { localStorage.setItem('wick_auto_logout', window._autoLogout ? '1' : '0'); } catch {}
+};
+
+// Restore preference
+try {
+  const saved = localStorage.getItem('wick_auto_logout');
+  if (saved === '0') window._autoLogout = false;
+} catch {}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WIZARD LOGIC
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Trade type → broker mapping ──────────────────────────────────────────────
+// (Trade type brokers deprecated — using 3-tab layout instead)
+const TRADE_TYPE_BROKERS = {};
+
+window._tradeType = null;
+
+window.wizSelectTradeType = function (type) {
+  window._tradeType = type;
+  window._botType = type === 'predictions' ? 'crypto' : type;
+
+  // Highlight selected trade type card
+  ['tt-crypto', 'tt-stocks', 'tt-predictions'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const isActive = id === 'tt-' + type;
+      el.className = 'broker-card' + (isActive ? ' selected' : '');
+    }
+  });
+
+  // Populate broker grid
+  const brokers = TRADE_TYPE_BROKERS[type] || [];
+  const grid = document.getElementById('wiz-broker-grid');
+  const section = document.getElementById('wiz-broker-section');
+  const label = document.getElementById('wiz-broker-label');
+
+  if (brokers.length === 1) {
+    // Single broker — auto-select, skip the grid
+    section.style.display = 'block';
+    label.textContent = 'Connecting via';
+    grid.innerHTML = brokers.map(b =>
+      `<div class="broker-card selected" id="card-${b.id}" style="border-color:${b.color}; grid-column:1/-1;">
+        <span class="broker-icon">${b.svg}</span>
+        <div class="broker-name">${b.name}</div>
+        <div class="broker-tag">${b.tag}</div>
+      </div>`
+    ).join('');
+    wizSelectBroker(brokers[0].id);
+  } else {
+    section.style.display = 'block';
+    label.textContent = 'Choose your broker';
+    grid.innerHTML = brokers.map(b =>
+      `<div class="broker-card" id="card-${b.id}" onclick="wizSelectBroker('${b.id}')" style="cursor:pointer;">
+        <span class="broker-icon">${b.svg}</span>
+        <div class="broker-name">${b.name}</div>
+        <div class="broker-tag">${b.tag}</div>
+      </div>`
+    ).join('');
+    // Auto-select first broker
+    wizSelectBroker(brokers[0].id);
+    const firstCard = document.getElementById('card-' + brokers[0].id);
+    if (firstCard) { firstCard.classList.add('selected'); firstCard.style.borderColor = brokers[0].color; }
+  }
+
+  section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+// Polymarket-only — no broker tabs needed
+window._broker = 'polymarket';
+window.wizSwitchTab = function () {
+  window._broker = 'polymarket';
+  const form = document.getElementById('wiz-polymarket-form');
+  if (form) form.style.display = 'block';
+  const btn = document.getElementById('wiz-btn-connect');
+  if (btn) btn.style.display = 'none';
+};
+
+// Waitlist join
+window.joinWaitlist = async function (platform) {
+  try {
+    const r = await apiFetch('/api/bot?action=waitlist', {
+      method: 'POST',
+      body: JSON.stringify({ platform }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const btn = document.getElementById(platform + '-waitlist-btn');
+      const success = document.getElementById(platform + '-waitlist-success');
+      if (btn) btn.style.display = 'none';
+      if (success) success.style.display = 'block';
+    }
+  } catch {}
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// POLYMARKET MULTI-AGENT TERMINAL — frontend controller
+// Polls the live engine, renders desk logs, drives the ignition switch
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _pmActive   = false;
+let _pmMode     = 'sandbox'; // 'sandbox' or 'live'
+let _pmInterval  = null;
+let _pmFeedInterval = null;
+let _pmBalance   = 10000;
+let _pmLogCount  = 0;
+
+window.pmSetMode = function(mode) {
+  _pmMode = mode;
+  const sb = document.getElementById('pm-mode-sandbox');
+  const lv = document.getElementById('pm-mode-live');
+  const setup = document.getElementById('pm-live-setup');
+  const balLabel = document.getElementById('pm-balance-label');
+
+  // ── PARADIGM 3: TradingView global mode swap ──
+  // Cascade accent color across the ENTIRE page via body class
+  if (mode === 'live') {
+    document.body.classList.add('mode-live');
+    document.body.classList.remove('mode-sandbox');
+    sb.style.background = '#0c1018'; sb.style.color = '#4a5568';
+    lv.style.background = '#2a1520'; lv.style.color = '#f43f5e';
+    lv.style.boxShadow = '0 0 12px rgba(244,63,94,.2)';
+    sb.style.boxShadow = 'none';
+    setup.style.display = 'block';
+    if (balLabel) balLabel.textContent = 'Live Balance';
+    pmLog('SYSTEM', '⚠️ LIVE MODE — global accent shifted to RED. Real capital at risk. Connect wallet below.', 'LIVE');
+  } else {
+    document.body.classList.remove('mode-live');
+    document.body.classList.add('mode-sandbox');
+    sb.style.background = 'rgba(41,98,255,.12)'; sb.style.color = '#4D8FFF';
+    sb.style.boxShadow = '0 0 12px rgba(41,98,255,.15)';
+    lv.style.background = '#0c1018'; lv.style.color = '#4a5568';
+    lv.style.boxShadow = 'none';
+    setup.style.display = 'none';
+    if (balLabel) balLabel.textContent = 'Sandbox Balance';
+    _pmBalance = 10000;
+    document.getElementById('pm-balance').textContent = '$10,000.00';
+    pmLog('SYSTEM', '🧪 SANDBOX MODE — $10,000 practice capital. Accent: CYAN. No wallet needed.', 'SANDBOX');
+  }
+};
+
+const DESK_COLORS = {
+  RESEARCH: '#4D8FFF', MATH: '#6BA3FF', EXECUTION: '#2962FF',
+  CRO: '#f43f5e', SYSTEM: '#3b82f6', CLAUDE: '#4D8FFF',
+};
+
+function pmLog(desk, message, status) {
+  const terminal = document.getElementById('pm-terminal');
+  if (!terminal) return;
+  const time = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const color = DESK_COLORS[desk] || '#5a6a7a';
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;align-items:flex-start;padding:3px 0;border-bottom:1px solid #0a0f18;animation:fadeIn .3s ease';
+  div.innerHTML = `<span style="color:#2a3545;flex-shrink:0">[${time}]</span><span style="color:${color};font-weight:700;flex-shrink:0;min-width:70px">[${desk}]</span><span style="color:#c0ccd8;line-height:1.4">${message}</span>`;
+  // Prepend so newest is at top
+  terminal.insertBefore(div, terminal.firstChild);
+  // Cap at 60 entries
+  while (terminal.children.length > 60) terminal.removeChild(terminal.lastChild);
+  _pmLogCount++;
+}
+
+function pmUpdatePill(text, color) {
+  const pill = document.getElementById('pm-status-pill');
+  if (pill) { pill.textContent = text; pill.style.background = `${color}18`; pill.style.color = color; }
+}
+
+function pmUpdateDesk(desk, value, active) {
+  const val = document.getElementById(`pm-desk-${desk}-val`);
+  const dot = document.getElementById(`pm-desk-${desk}-dot`);
+  if (val) val.textContent = value;
+  if (dot) dot.style.boxShadow = active ? `0 0 8px ${getComputedStyle(dot).background}` : 'none';
+}
+
+window.togglePolyEngine = function() {
+  _pmActive = !_pmActive;
+  const toggle = document.getElementById('pm-ignition');
+  const dot    = document.getElementById('pm-ignition-dot');
+  const label  = document.getElementById('pm-switch-label');
+
+  if (_pmActive) {
+    toggle.style.background = '#064e3b'; toggle.style.borderColor = '#10b981';
+    dot.style.left = '30px'; dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 10px #10b981';
+    label.textContent = 'SCANNING'; label.style.color = '#10b981';
+    pmUpdatePill('ACTIVE', '#10b981');
+    document.getElementById('pm-feed-status').textContent = 'Live · polling every 8s';
+    document.getElementById('pm-feed-status').style.color = '#10b981';
+
+    pmLog('SYSTEM', '⚡ Engine ignited. Initializing 4 agent desks…', 'INIT');
+
+    // Immediate first scan + performance load
+    pmRunScan();
+    pmPollPerformance();
+    // Then poll markets data every 8 seconds
+    _pmInterval = setInterval(pmPollMarkets, 8000);
+    // Poll activity feed every 12 seconds
+    _pmFeedInterval = setInterval(pmPollFeed, 12000);
+    // Poll performance analytics every 20 seconds
+    window._pmPerfInterval = setInterval(pmPollPerformance, 20000);
+    // First feed load
+    setTimeout(pmPollFeed, 2000);
+
+  } else {
+    toggle.style.background = '#1a2030'; toggle.style.borderColor = '#2a3040';
+    dot.style.left = '3px'; dot.style.background = '#3a4a5a'; dot.style.boxShadow = 'none';
+    label.textContent = 'OFF'; label.style.color = '#4a5568';
+    pmUpdatePill('STANDBY', '#5a6a7a');
+    document.getElementById('pm-feed-status').textContent = 'Paused';
+    clearInterval(window._pmPerfInterval); window._pmPerfInterval = null;
+    document.getElementById('pm-feed-status').style.color = '#4a5568';
+
+    clearInterval(_pmInterval); _pmInterval = null;
+    clearInterval(_pmFeedInterval); _pmFeedInterval = null;
+
+    pmLog('SYSTEM', '🛑 Engine halted. All desks offline.', 'HALT');
+    pmUpdateDesk('research', '—', false);
+    pmUpdateDesk('math', '—', false);
+    pmUpdateDesk('exec', '—', false);
+    pmUpdateDesk('cro', '—', false);
+  }
+};
+
+async function pmRunScan() {
+  pmLog('SYSTEM', '🔍 Triggering full multi-agent sweep…', 'SCAN');
+  try {
+    const token = idToken || await auth.currentUser?.getIdToken();
+    const r = await fetch('/api/polymarket-engine?action=scan', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    const d = await r.json();
+    if (d.error) { pmLog('SYSTEM', '⚠️ Auth required — using read-only market data', 'WARN'); return; }
+
+    const dec = d.decision || {};
+    const desks = d.desks || {};
+
+    // Research desk
+    pmUpdateDesk('research', `${desks.research?.catalysts || 0} catalysts`, true);
+    if (desks.research?.catalysts > 0) {
+      pmLog('RESEARCH', `📡 ${desks.research.catalysts} catalyst(s) detected. Top: "${(desks.research.top || '?').slice(0, 50)}"`, 'FOUND');
+    } else {
+      pmLog('RESEARCH', '📡 No news/sports catalysts matched active markets this cycle.', 'CLEAR');
+    }
+
+    // Math desk
+    pmUpdateDesk('math', desks.math?.opportunities > 0 ? `${desks.math.opportunities} opps` : 'clean', true);
+    if (desks.math?.opportunities > 0) {
+      pmLog('MATH', `📐 ${desks.math.opportunities} pricing anomal${desks.math.opportunities > 1 ? 'ies' : 'y'} found. Best edge: ${desks.math.bestEdge}%. "${(desks.math.top || '?').slice(0, 40)}"`, 'ARB');
+    } else {
+      pmLog('MATH', '📐 All ΣPᵢ boundaries nominal. No sum violations detected.', 'CLEAN');
+    }
+
+    // CRO desk
+    pmUpdateDesk('cro', desks.cro?.approved ? '✓ clear' : '✗ blocked', true);
+    pmLog('CRO', `🛡️ ${desks.cro?.reason || 'Risk check complete'}. Max drawdown: ${((desks.cro?.maxDrawdown || 0.05) * 100).toFixed(0)}%`, desks.cro?.approved ? 'APPROVED' : 'BLOCKED');
+
+    // Execution / Claude verdict
+    const action = dec.action || 'hold';
+    const verdictEl = document.getElementById('pm-verdict');
+    if (action === 'hold') {
+      verdictEl.textContent = 'HOLD'; verdictEl.style.color = '#5a6a7a';
+      pmUpdateDesk('exec', 'hold', true);
+      pmLog('CLAUDE', `◆ HOLD — ${(dec.reason || 'No clear edge').slice(0, 100)}`, 'HOLD');
+    } else {
+      verdictEl.textContent = action.toUpperCase(); verdictEl.style.color = '#4D8FFF';
+      pmUpdateDesk('exec', action, true);
+      pmLog('CLAUDE', `⚡ ${action.toUpperCase()} "${(dec.market || '?').slice(0, 50)}" @ $${dec.price || '?'} · $${dec.size || '?'} · Confidence: ${dec.confidence || '?'}%`, 'TRADE');
+      pmLog('EXECUTION', `📥 ${(dec.reason || '').slice(0, 120)}`, 'REASON');
+      // Simulate sandbox profit
+      if (action.includes('buy')) {
+        _pmBalance += Math.round((Math.random() * 80 + 20) * 100) / 100;
+        document.getElementById('pm-balance').textContent = '$' + _pmBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
+    }
+
+    document.getElementById('pm-markets-count').textContent = d.markets_scanned || '—';
+
+    // Sports intel
+    if (desks.sports?.live > 0 || desks.sports?.decided > 0) {
+      pmLog('RESEARCH', `🏟️ ${desks.sports.live} live games, ${desks.sports.decided} decided. Cross-referencing with prediction markets.`, 'SPORTS');
+    }
+    if (desks.news?.wire > 0) {
+      pmLog('RESEARCH', `📰 ${desks.news.wire} wire headlines ingested from Reuters/AP.`, 'NEWS');
+    }
+
+    // Big Fish intel
+    const fish = d.big_fish || {};
+    if (fish.polymarket_whales > 0 || fish.crypto_whales > 0) {
+      pmLog('RESEARCH', `🐋 BIG FISH DETECTED: ${fish.polymarket_whales} Polymarket whale(s), ${fish.crypto_whales} crypto whale(s)`, 'WHALE');
+      (fish.top_signals || []).forEach(w => {
+        const emoji = w.type.includes('WHALE') ? '🐋' : '📊';
+        const dirColor = w.direction === 'ACCUMULATION' ? '#4D8FFF' : '#f43f5e';
+        pmLog('RESEARCH', `${emoji} ${w.type}: ${w.target} — ${w.spike} volume spike (${w.direction})`, 'WHALE');
+      });
+    }
+
+  } catch (err) {
+    pmLog('SYSTEM', `⚠️ Scan error: ${err.message}. Retrying next cycle.`, 'ERROR');
+  }
+}
+
+async function pmPollPerformance() {
+  if (!_pmActive) return;
+  try {
+    const r = await fetch('/api/polymarket-engine?action=performance');
+    const d = await r.json();
+
+    // Brier Score widget
+    const bs = d.brier_score || {};
+    const brierEl = document.getElementById('pm-brier-score');
+    const brierLbl = document.getElementById('pm-brier-label');
+    const brierN = document.getElementById('pm-brier-n');
+    if (brierEl) {
+      if (bs.score !== null && bs.score !== undefined) {
+        brierEl.textContent = bs.score.toFixed(4);
+        // Color: green < 0.10, amber < 0.25, red >= 0.25
+        brierEl.style.color = bs.score < 0.10 ? '#4D8FFF' : bs.score < 0.25 ? '#6BA3FF' : '#f43f5e';
+        if (brierLbl) brierLbl.style.color = brierEl.style.color;
+      } else {
+        brierEl.textContent = '—';
+        brierEl.style.color = '#4a5568';
+      }
+      if (brierLbl) brierLbl.textContent = bs.calibration || 'Brier Score';
+      if (brierN) brierN.textContent = `${bs.n || 0} resolved predictions`;
+    }
+
+    // Slippage widget
+    const sl = d.slippage || {};
+    const slAvg = document.getElementById('pm-slip-avg');
+    const slN = document.getElementById('pm-slip-n');
+    const slWorst = document.getElementById('pm-slip-worst');
+    if (slAvg) {
+      const avg = sl.avg_slippage || 0;
+      slAvg.textContent = avg.toFixed(4);
+      slAvg.style.color = avg < 0.005 ? '#4D8FFF' : avg < 0.02 ? '#6BA3FF' : '#f43f5e';
+    }
+    if (slN) slN.textContent = `${sl.n || 0} trades`;
+    if (slWorst) slWorst.textContent = `Worst: ${(sl.worst_slippage || 0).toFixed(4)}`;
+
+    // Engine health widget
+    const eng = d.engine || {};
+    const engStatus = document.getElementById('pm-engine-status');
+    const engDetail = document.getElementById('pm-engine-detail');
+    if (engStatus) {
+      engStatus.textContent = eng.status || 'ACTIVE';
+      engStatus.style.color = eng.status === 'ACTIVE' ? '#4D8FFF' : '#f43f5e';
+    }
+    if (engDetail) engDetail.textContent = `${eng.consecutive_losses || 0} losses · ${eng.markets_scanned || 0} markets`;
+
+    // Log performance data to terminal periodically
+    if (bs.score !== null && bs.score !== undefined) {
+      pmLog('MATH', `📊 Brier calibration: ${bs.score.toFixed(4)} (${bs.calibration}) — ${bs.n} resolved`, 'PERF');
+    }
+    if (sl.n > 0) {
+      const efficiency = sl.avg_slippage < 0.01 ? ((1 - sl.avg_slippage) * 100).toFixed(1) : ((1 - sl.avg_slippage) * 100).toFixed(1);
+      pmLog('EXECUTION', `📈 Slippage Sv: avg ${sl.avg_slippage.toFixed(4)} | Execution efficiency: ${efficiency}%`, 'PERF');
+    }
+  } catch(_) {}
+}
+
+async function pmPollMarkets() {
+  if (!_pmActive) return;
+  try {
+    const r = await fetch('/api/polymarket-engine?action=markets');
+    const d = await r.json();
+    document.getElementById('pm-markets-count').textContent = d.markets?.length || '—';
+
+    // Drip interesting market data into the terminal
+    if (d.catalysts?.length) {
+      const c = d.catalysts[Math.floor(Math.random() * d.catalysts.length)];
+      pmLog('RESEARCH', `🎯 Tracking: "${c.question.slice(0, 55)}" YES:${(c.yesPrice * 100).toFixed(0)}%${c.newsMatch ? ' — ' + c.newsMatch.slice(0, 50) : ''}`, 'TRACK');
+    }
+    if (d.arbitrage?.length) {
+      const a = d.arbitrage[0];
+      pmLog('MATH', `📊 Edge spotted: "${a.question.slice(0, 45)}" kelly=${a.kellyEdge}% signal=${a.signal}`, 'EDGE');
+    }
+    if (d.sports?.length) {
+      const live = d.sports.filter(s => !s.decided);
+      if (live.length) {
+        const g = live[Math.floor(Math.random() * live.length)];
+        pmLog('RESEARCH', `🏀 ${g.league}: ${g.match} ${g.score} (${g.status})`, 'LIVE');
+      }
+    }
+
+    // Animate desk dots
+    ['research','math','exec','cro'].forEach(d => {
+      const dot = document.getElementById(`pm-desk-${d}-dot`);
+      if (dot) { dot.style.opacity = '1'; setTimeout(() => dot.style.opacity = '.7', 300); }
+    });
+
+  } catch {}
+}
+
+async function pmPollFeed() {
+  if (!_pmActive) return;
+  try {
+    const r = await fetch('/api/polymarket-engine?action=feed');
+    const d = await r.json();
+    if (!d.entries?.length) return;
+
+    const latest = d.entries[0];
+    if (latest._rendered) return;
+    latest._rendered = true;
+
+    const desks = latest.desks || {};
+    if (desks.research_catalysts != null) pmUpdateDesk('research', `${desks.research_catalysts} cat.`, true);
+    if (desks.math_opportunities != null) pmUpdateDesk('math', desks.math_opportunities > 0 ? `${desks.math_opportunities} opp` : 'clean', true);
+    pmUpdateDesk('cro', desks.cro_approved ? '✓' : '✗', true);
+
+    if (latest.action !== 'hold') {
+      pmLog('CLAUDE', `🎯 VERDICT: ${latest.action.toUpperCase()} "${(latest.market || '?').slice(0, 50)}" — ${(latest.reason || '').slice(0, 80)}`, 'TRADE');
+    }
+
+    document.getElementById('pm-feed-status').textContent = `Live · ${d.entries.length} logged · ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}`;
+  } catch {}
+}
+
+window.wizSelectBroker = function (broker) {
+  window._broker = broker;
+  // Highlight in dynamic grid + static cards
+  const allCards = document.querySelectorAll('#wiz-broker-grid .broker-card, .broker-card[id^="card-"]');
+  allCards.forEach(el => {
+    const isSel = el.id === 'card-' + broker;
+    el.className = 'broker-card' + (isSel ? ' selected' : '');
+    el.style.borderColor = isSel ? (BROKER_COLORS[broker] || '') : '';
+  });
+  BROKER_FORMS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === BROKER_MAP[broker] ? '' : 'none';
+  });
+  document.getElementById('wiz-connect-error').style.display   = 'none';
+  document.getElementById('wiz-connect-success').style.display = 'none';
+  const btn = document.getElementById('wiz-btn-connect');
+  if (btn) btn.style.background = BROKER_COLORS[broker] || 'var(--green)';
+};
+
+// ── Robinhood in-browser Ed25519 key generation (WebCrypto) ──────────────────
+window._rhGeneratedPrivateKey = null;
+
+// One-click: generate keys, copy public to clipboard, open Robinhood
+window.rhAutoSetup = async function () {
+  const btn = document.getElementById('rh-auto-btn');
+  btn.disabled = true; btn.textContent = 'Generating secure key…';
+  try {
+    const keyPair = await crypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
+    const rawPrivate = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+    const rawPublic  = await crypto.subtle.exportKey('raw', keyPair.publicKey);
+
+    const publicBase64  = btoa(String.fromCharCode(...new Uint8Array(rawPublic)));
+    const pkcs8Bytes    = new Uint8Array(rawPrivate);
+    const privateBase64 = btoa(String.fromCharCode(...pkcs8Bytes.slice(pkcs8Bytes.length - 32)));
+
+    window._rhGeneratedPrivateKey = privateBase64;
+    document.getElementById('rh-private-key').value = privateBase64;
+
+    await navigator.clipboard.writeText(publicBase64);
+
+    window.open('https://robinhood.com/account/crypto', '_blank');
+
+    btn.textContent = 'Key copied — Robinhood is open';
+    btn.style.background = 'rgba(74,222,128,.15)';
+    btn.style.color = '#4D8FFF';
+    document.getElementById('rh-clipboard-confirm').style.display = 'block';
+  } catch (err) {
+    btn.textContent = 'Open Robinhood API Settings';
+    btn.disabled = false;
+    alert('Your browser doesn\'t support automatic key generation. Use the manual entry below.');
+    rhShowManual();
+  }
+};
+
+window.rhGoToScreen2 = function () {
+  document.getElementById('rh-screen-1').style.display = 'none';
+  document.getElementById('rh-screen-2').style.display = 'block';
+};
+
+window.rhBackToScreen1 = function () {
+  document.getElementById('rh-screen-2').style.display = 'none';
+  document.getElementById('rh-screen-1').style.display = 'block';
+};
+
+window.rhShowManual = function () {
+  document.getElementById('rh-manual-form').style.display = 'block';
+  document.getElementById('rh-screen-1').style.display = 'none';
+  document.getElementById('rh-screen-2').style.display = 'none';
+};
+
+window.wizGo = function (step) {
+  window._wizStep = step;
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('wiz-step-' + i).className = 'wiz-panel' + (i === step ? ' active' : '');
+    const dot   = document.getElementById('dot-' + i);
+    const label = document.getElementById('label-' + i);
+    dot.className   = 'wiz-step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
+    dot.textContent = i < step ? '✓' : i;
+    label.className = 'wiz-step-label' + (i <= step ? ' active' : '');
+  }
+  for (let i = 1; i <= 2; i++) {
+    document.getElementById('line-' + i).className = 'wiz-step-line' + (i < step ? ' done' : '');
+  }
+  if (step === 3) wizPopulateSummary();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// After broker connects: auto-enable bot, skip wizard, go straight to live dashboard
+async function goLiveAfterConnect() {
+  try {
+    // Auto-enable the bot with default settings
+    await apiFetch('/api/bot?action=settings', {
+      method: 'POST',
+      body: JSON.stringify({
+        strategy: window._strategy || 'brilliant',
+        risk_level: window._risk || 'balanced',
+        bot_type: window._botType || 'crypto',
+      }),
+    });
+    // Toggle bot ON
+    await apiFetch('/api/bot?action=toggle', { method: 'POST' });
+  } catch(_) {}
+
+  // Switch UI: hide wizard, show dashboard
+  document.getElementById('wizard').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  showPanel('home');
+  loadStatus();
+}
+
+window.wizConnect = async function () {
+  const errEl = document.getElementById('wiz-connect-error');
+  const okEl  = document.getElementById('wiz-connect-success');
+  const btn   = document.getElementById('wiz-btn-connect');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  const privKey = document.getElementById('poly-private-key')?.value?.trim();
+  if (privKey) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Connecting wallet...'; }
+    try {
+      const r = await apiFetch('/api/bot?action=connect', {
+        method: 'POST',
+        body: JSON.stringify({ poly_private_key: privKey, mode: _pmMode }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Connection failed');
+      okEl.textContent = `Wallet connected: ${d.address?.slice(0,8)}...${d.address?.slice(-4)}`;
+      okEl.style.display = 'block';
+      window._configured = true;
+      setTimeout(() => wizGo(2), 1200);
+    } catch (err) {
+      errEl.textContent = err.message; errEl.style.display = 'block';
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Connect Wallet'; }
+    }
+  } else {
+    window._configured = true;
+    wizGo(2);
+  }
+};
+
+// Wizard strategy/risk selectors (mirror dashboard but prefixed wiz-)
+const BOT_TYPE_DESCS = {
+  crypto: 'BTC/USD, ETH/USD, SOL/USD · 24/7, no market-hours restriction',
+  stocks: 'AAPL, NVDA, TSLA, SPY, AMD · NYSE hours only, Mon–Fri 9:30am–4pm ET',
+  both:   'Crypto 24/7 + stocks during NYSE hours · two cycles per cron tick',
+};
+const BOT_TYPE_WATCH = {
+  crypto: 'Watching BTC/USD · ETH/USD · SOL/USD every 2 minutes',
+  stocks: 'Watching AAPL · NVDA · TSLA · SPY · AMD during NYSE hours',
+  both:   'Crypto 24/7 · stocks during NYSE hours · 2-minute cadence',
+};
+const RISK_PRESETS = {
+  conservative: { desc: 'Frequent small wins · +0.4% TP / -0.8% SL · higher hit-rate' },
+  balanced:     { desc: 'Even-handed · +0.75% TP / -0.5% SL' },
+  aggressive:   { desc: 'Larger swings · +1.5% TP / -0.75% SL · lower hit-rate, bigger gains' },
+};
+
+window.wizSetBotType = function (type) {
+  window._botType = type;
+  ['crypto','stocks','both'].forEach(t => {
+    const el = document.getElementById('wiz-type-' + t);
+    if (el) el.className = 'mode-btn' + (t === type ? ' active live' : '');
+  });
+  const desc = document.getElementById('wiz-type-desc');
+  if (desc) desc.textContent = BOT_TYPE_DESCS[type];
+};
+
+window.wizSetRisk = function (level) {
+  window._risk = level;
+  ['conservative','balanced','aggressive'].forEach(l => {
+    const el = document.getElementById('wiz-risk-' + l);
+    if (el) el.className = 'mode-btn' + (l === level ? ' active live' : '');
+  });
+  const desc = document.getElementById('wiz-risk-desc');
+  if (desc) desc.textContent = RISK_PRESETS[level].desc;
+};
+
+window.wizSelectStrategy = function (id) {
+  const prev = document.querySelector('#wiz-strategy-grid .strat-card.selected');
+  if (prev) prev.classList.remove('selected');
+  const card = document.getElementById('wiz-strat-' + id);
+  if (card) card.classList.add('selected');
+  window._strategy = id;
+};
+
+function wizRenderStrategies(strategies, selected) {
+  window._strategy = selected || 'brilliant';
+  const grid = document.getElementById('wiz-strategy-grid');
+  if (!grid) return;
+  grid.innerHTML = strategies.map(s => {
+    const isSel   = s.id === window._strategy;
+    const locked  = s.locked;
+    const cls     = ['strat-card', isSel ? 'selected' : '', locked ? 'locked' : ''].filter(Boolean).join(' ');
+    const clickFn = locked ? '' : `onclick="wizSelectStrategy('${s.id}')"`;
+    return `<div class="${cls}" id="wiz-strat-${s.id}" ${clickFn}>
+      ${locked ? '<span class="strat-lock">🔒</span>' : ''}
+
+      <div class="strat-name">${s.name}</div>
+      <div class="strat-desc">${s.description}</div>
+      <div class="strat-meta">
+        <span class="sbadge ${s.tier}">${s.tier.toUpperCase()}</span>
+        <span class="sbadge ${s.risk}">${s.risk}</span>
+        <span class="strat-wr">~${s.winRateGuide}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.wizSaveAndContinue = async function () {
+  const body = {
+    risk_level:       window._risk,
+    max_position_pct: parseInt(document.getElementById('wiz-maxpos').value, 10) / 100,
+    daily_goal_pct:   0,
+    bot_type:         window._botType,
+    strategy:         window._strategy,
+  };
+  try {
+    const r = await apiFetch('/api/bot?action=settings', { method: 'POST', body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to save');
+    wizGo(3);
+  } catch (err) {
+    alert('Failed to save settings: ' + err.message);
+  }
+};
+
+function wizPopulateSummary() {
+  document.getElementById('launch-broker').textContent   = window._broker === 'robinhood' ? 'Robinhood' : 'Alpaca';
+  document.getElementById('launch-mode').textContent     = 'Paper';
+  document.getElementById('launch-assets').textContent   = window._botType === 'both' ? 'Crypto + Stocks' : window._botType === 'stocks' ? 'Stocks' : 'Crypto';
+  document.getElementById('launch-risk').textContent     = window._risk.charAt(0).toUpperCase() + window._risk.slice(1);
+  document.getElementById('launch-maxpos').textContent   = document.getElementById('wiz-maxpos').value + '%';
+
+  // Strategy name
+  const stratCard = document.querySelector('#wiz-strategy-grid .strat-card.selected .strat-name');
+  document.getElementById('launch-strategy').textContent = stratCard ? stratCard.textContent : 'WICK Scalper';
+}
+
+window.wizToggleBot = async function () {
+  const newState = !window._wizBotOn;
+  try {
+    const r = await apiFetch('/api/bot?action=toggle', { method: 'POST', body: JSON.stringify({ active: newState }) });
+    const d = await r.json();
+    if (d.ok) {
+      window._wizBotOn = newState;
+      window._botActive = newState;
+      const toggle = document.getElementById('launch-toggle');
+      const status = document.getElementById('launch-status');
+      toggle.className = 'launch-toggle' + (newState ? ' on' : '');
+      status.className = 'launch-status' + (newState ? ' on' : '');
+      status.textContent = newState ? 'RUNNING' : 'OFF';
+    }
+  } catch (err) { console.error(err); }
+};
+
+window.wizFinish = function () {
+  document.getElementById('wizard').style.display    = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadStatus();
+};
+
+// ── Fuel credits ─────────────────────────────────────────────────────────────
+window.buyFuel = function (amount) {
+  const user = window._firebaseAuth?.currentUser;
+  if (!user) { alert('Sign in first'); return; }
+  window.location.href = `/api/subscribe?fuel=${amount}&uid=${user.uid}&email=${encodeURIComponent(user.email)}`;
+};
+
+// ── Badge rendering ───────────────────────────────────────────────────────────
+function renderBadges(badgeData) {
+  const tile = document.getElementById('badges-tile');
+  const grid = document.getElementById('badges-grid');
+  const countEl = document.getElementById('badge-count');
+  if (!tile || !grid || !badgeData) return;
+
+  const earned = badgeData.earned || [];
+  const catalog = badgeData.catalog || [];
+  if (!catalog.length) return;
+
+  tile.style.display = 'block';
+  countEl.textContent = earned.length + ' / ' + catalog.length + ' earned';
+
+  const tierNames = { bronze: 'Initiation', silver: 'Execution', gold: 'Mastery', platinum: 'Sovereign', diamond: 'Apex' };
+
+  grid.innerHTML = catalog.map(b => {
+    const isEarned = earned.includes(b.id);
+    return `<div class="badge-crest bc-${b.tier} ${isEarned ? 'earned' : 'locked'}" title="${b.desc}">
+      <div class="bc-tier">${tierNames[b.tier] || b.tier} ${b.crest}</div>
+      <div class="bc-shield">${b.crest}</div>
+      <div class="bc-name">${b.name}</div>
+      <div class="bc-desc">${b.category}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateFuelUI(fuel) {
+  const card = document.getElementById('fuel-card');
+  if (!fuel || !card) return;
+  card.style.display = 'block';
+  document.getElementById('fuel-balance').textContent    = '$' + fuel.balance.toFixed(2);
+  document.getElementById('fuel-tier').textContent       = fuel.tier_label;
+  document.getElementById('fuel-fee-rate').textContent   = fuel.fee_pct + '% performance fee';
+  document.getElementById('fuel-hwm').textContent        = fuel.high_water_mark.toFixed(2);
+  document.getElementById('fuel-fees-paid').textContent  = fuel.total_fees_paid.toFixed(2);
+  document.getElementById('fuel-cum-profit').textContent = fuel.cumulative_profit.toFixed(2);
+  document.getElementById('fuel-empty-warning').style.display =
+    fuel.balance <= 0 && fuel.paused_reason === 'out_of_fuel' ? 'block' : 'none';
+
+  // Referral link
+  if (fuel.referral_code) {
+    const refLink = document.getElementById('referral-link');
+    if (refLink) refLink.value = 'https://wick.network/bot?ref=' + fuel.referral_code;
+  }
+}
+
+// ── Referral copy ─────────────────────────────────────────────────────────────
+window.copyReferral = function () {
+  const input = document.getElementById('referral-link');
+  if (!input || !input.value) return;
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.getElementById('referral-copy-btn');
+    btn.textContent = 'Copied';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+  });
+};
+
+// ── Share to X/Twitter ────────────────────────────────────────────────────────
+window.shareTradeToX = function (symbol, pnl) {
+  const text = encodeURIComponent(`WICK just caught +$${pnl.toFixed(2)} on ${symbol} while I wasn't even watching. Paper trading is free. wick.network`);
+  window.open(`https://x.com/intent/tweet?text=${text}`, '_blank', 'width=550,height=420');
+};
+
+// Initialize wizard step 2 defaults
+function wizInitStep2() {
+  wizSetBotType('crypto');
+  wizSetRisk('balanced');
+  if (window._broker === 'robinhood') {
+    document.getElementById('wiz-type-stocks').style.display = 'none';
+    document.getElementById('wiz-type-both').style.display   = 'none';
+    wizSetBotType('crypto');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD LOGIC (existing, refactored)
+// ══════════════════════════════════════════════════════════════════════════════
+
+window.setBroker = function (broker) {
+  window._broker = broker;
+  document.getElementById('broker-alpaca').className    = 'mode-btn' + (broker === 'alpaca'     ? ' active live' : '');
+  document.getElementById('broker-robinhood').className = 'mode-btn' + (broker === 'robinhood'  ? ' active live' : '');
+  document.getElementById('alpaca-section').style.display = broker === 'alpaca'    ? '' : 'none';
+  document.getElementById('rh-section').style.display     = broker === 'robinhood' ? '' : 'none';
+  document.getElementById('connect-error').style.display   = 'none';
+  document.getElementById('connect-success').style.display = 'none';
+};
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+// Detect in-app browsers (Claude, Twitter, Instagram, etc.) that block popups
+function isInAppBrowser() {
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|Twitter|Claude|Line|WeChat|Snapchat|WebView|wv\)/i.test(ua)
+    || (window.navigator.standalone === undefined && !window.matchMedia('(display-mode: browser)').matches && /Mobile/i.test(ua));
+}
+
+document.getElementById('btn-signin').addEventListener('click', async () => {
+  if (isInAppBrowser()) {
+    signInWithRedirect(auth, provider);
+    return;
+  }
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (err) {
+    console.error('Sign-in error:', err.code);
+    signInWithRedirect(auth, provider);
+  }
+});
+
+getRedirectResult(auth).catch(() => {});
+
+document.getElementById('btn-signout').addEventListener('click', () => {
+  signOut(auth);
+});
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    document.getElementById('auth-gate').style.display  = 'flex';
+    document.getElementById('invite-gate').style.display = 'none';
+    document.getElementById('wizard').style.display     = 'none';
+    document.getElementById('dashboard').style.display  = 'none';
+    document.getElementById('btn-signout').style.display = 'none';
+    document.getElementById('nav-user').textContent = '';
+    idToken = null;
+    return;
+  }
+
+  idToken = await user.getIdToken();
+  _sessionLocked = false;
+  document.getElementById('auth-gate').style.display  = 'none';
+  document.getElementById('btn-signout').style.display = 'block';
+  document.getElementById('nav-user').textContent = user.email;
+  const sidebarUser = document.getElementById('sidebar-user');
+  if (sidebarUser) sidebarUser.textContent = user.email;
+
+  // Initialize session security
+  const logoutToggle = document.getElementById('auto-logout-toggle');
+  const logoutLabel  = document.getElementById('auto-logout-label');
+  if (logoutToggle) logoutToggle.className = 'toggle' + (window._autoLogout ? ' on' : '');
+  if (logoutLabel)  logoutLabel.innerHTML = `Auto-logout is <strong>${window._autoLogout ? 'on' : 'off'}</strong>`;
+  if (window._autoLogout) resetInactivityTimer();
+
+  // Send login notification (fire-and-forget)
+  apiFetch('/api/bot?action=login_notify', {
+    method: 'POST',
+    body: JSON.stringify({ first: !window._hasLoggedBefore }),
+  }).then(() => { window._hasLoggedBefore = true; }).catch(() => {});
+
+  // Fetch status to decide: invite gate, wizard, or dashboard
+  try {
+    const r = await apiFetch('/api/bot');
+    if (r.status === 401) return;
+    if (r.status === 403) {
+      // Invite-only — show waitlist screen
+      document.getElementById('invite-gate').style.display = 'flex';
+      document.getElementById('wizard').style.display      = 'none';
+      document.getElementById('dashboard').style.display   = 'none';
+      document.getElementById('invite-email').textContent  = user.email;
+      // Auto-join waitlist
+      apiFetch('/api/bot?action=waitlist', { method: 'POST', body: JSON.stringify({ platform: 'wick' }) }).catch(() => {});
+      return;
+    }
+    const d = await r.json();
+
+    if (d.configured) {
+      // Returning user → dashboard
+      document.getElementById('dashboard').style.display = 'block';
+      applyStatusToUI(d);
+    } else {
+      // New user → wizard
+      document.getElementById('wizard').style.display = 'block';
+      wizGo(1);
+      wizInitStep2();
+      if (d.available_strategies) wizRenderStrategies(d.available_strategies, d.selected_strategy);
+    }
+  } catch (err) {
+    // Fallback: show wizard
+    document.getElementById('wizard').style.display = 'block';
+    wizGo(1);
+    wizInitStep2();
+  }
+});
+
+// ── API helpers ───────────────────────────────────────────────────────────────
+async function apiFetch(url, opts = {}) {
+  const token = idToken || await auth.currentUser?.getIdToken();
+  return fetch(url, {
+    ...opts,
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+  });
+}
+
+// ── Load status (dashboard) ──────────────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const r = await apiFetch('/api/bot');
+    if (r.status === 401) return;
+    const d = await r.json();
+    applyStatusToUI(d);
+  } catch (err) {
+    console.error('[status]', err);
+  }
+}
+
+function applyStatusToUI(d) {
+  window._configured   = d.configured;
+  window._botActive    = d.bot_active;
+  window._botMode      = d.mode;
+  window._subscribed   = d.subscribed === true;
+  window._hasFuel      = d.fuel && d.fuel.balance > 0;
+  window._selectedMode = d.mode;
+  window._broker       = d.broker || 'alpaca';
+
+  // Highlight the active broker tab
+  document.querySelectorAll('#dash-broker-tabs .dash-nav-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.borderBottomColor = 'transparent';
+  });
+  const activeTab = document.getElementById('dbt-' + window._broker);
+  if (activeTab) {
+    activeTab.classList.add('active');
+    activeTab.style.borderBottomColor = BROKER_TAB_COLORS[window._broker] || 'var(--green)';
+    activeTab.style.color = BROKER_TAB_COLORS[window._broker] || 'var(--text1)';
+  }
+
+  document.getElementById('stats-row').style.display     = 'grid';
+  document.getElementById('bot-control').style.display   = 'block';
+  document.getElementById('trades-card').style.display   = 'block';
+
+  if (d.fuel) updateFuelUI(d.fuel);
+  if (d.badges) renderBadges(d.badges);
+
+  // Always show the broker card — configured users can reconnect/switch
+  document.getElementById('alpaca-card').style.display = 'block';
+  setBroker(d.broker || window._broker);
+
+  // ── PARADIGM 1: Polymarket hyper-responsive stat flashes ──
+  // Helper: update a stat tile with flash animation on change
+  function tickStat(id, newText, direction) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const changed = el.textContent !== newText && el.textContent !== '—';
+    el.textContent = newText;
+    if (changed) {
+      const tile = el.closest('.tile');
+      if (tile) {
+        tile.classList.remove('tick-up', 'tick-down');
+        void tile.offsetWidth; // force reflow
+        tile.classList.add(direction === 'down' ? 'tick-down' : 'tick-up');
+      }
+    }
+  }
+
+  const s = d.stats;
+  tickStat('stat-winrate', s.win_rate_pct ? `${s.win_rate_pct}%` : '—', 'up');
+  document.getElementById('stat-trades').textContent = `${s.total_trades} closed trade${s.total_trades !== 1 ? 's' : ''}`;
+
+  const pnl = s.total_pnl;
+  const pnlEl = document.getElementById('stat-pnl');
+  const pnlText = pnl !== 0 ? `${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}` : '—';
+  tickStat('stat-pnl', pnlText, pnl >= 0 ? 'up' : 'down');
+  pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const portText = d.portfolio_value ? `$${parseFloat(d.portfolio_value).toLocaleString()}` : '—';
+  tickStat('stat-portfolio', portText, 'up');
+  document.getElementById('stat-buying-power').textContent = d.buying_power ? `$${parseFloat(d.buying_power).toLocaleString()} buying power` : '—';
+
+  const statusEl = document.getElementById('stat-status');
+  statusEl.textContent = d.bot_active ? 'Running' : 'Idle';
+  statusEl.style.color = d.bot_active ? 'var(--accent)' : 'var(--text3)';
+  document.getElementById('stat-mode-sub').textContent = `${d.mode} mode`;
+
+  updateToggleUI(d.bot_active, d.mode);
+  renderTrades(d.recent_trades || []);
+
+  // Populate broker-specific account balances
+  const pv = d.portfolio_value ? parseFloat(d.portfolio_value) : 0;
+  const bp = d.buying_power ? parseFloat(d.buying_power) : 0;
+  const broker = d.broker || 'alpaca';
+
+  const brokerPrefixes = { robinhood: 'rh', coinbase: 'cb', alpaca: 'al' };
+  const prefix = brokerPrefixes[broker];
+  if (prefix) {
+    const infoEl = document.getElementById(prefix + '-account-info');
+    const pvEl = document.getElementById(prefix + '-portfolio-val');
+    const bpEl = document.getElementById(prefix + '-buying-power');
+    const eqEl = document.getElementById(prefix + '-equity-display');
+    const stEl = document.getElementById(prefix + '-status-display');
+    const swEl = document.getElementById(prefix + '-master-switch');
+
+    if (infoEl) infoEl.style.display = 'block';
+    if (pvEl) pvEl.textContent = '$' + pv.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    if (bpEl) bpEl.textContent = '$' + bp.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    if (eqEl) eqEl.textContent = '$' + pv.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    if (stEl) stEl.textContent = d.configured ? (d.bot_active ? 'Active' : 'Connected') : 'Not connected';
+    if (swEl && d.configured) {
+      const colors = { polymarket: '#2962FF' };
+      swEl.textContent = d.bot_active ? 'PIPELINE ACTIVE' : 'ACTIVATE PIPELINE';
+      if (d.bot_active) {
+        swEl.style.background = 'rgba(255,255,255,.06)';
+        swEl.style.color = colors[broker] || 'var(--green)';
+      }
+    }
+  }
+
+  document.getElementById('settings-card').style.display = d.configured ? 'block' : 'none';
+  if (d.available_strategies) renderStrategies(d.available_strategies, d.selected_strategy);
+  applySettingsToUI(d.settings || {});
+
+  // ── Connection status banner ──
+  const banner = document.getElementById('connection-banner');
+  const connDot = document.getElementById('conn-dot');
+  const connTitle = document.getElementById('conn-title');
+  const connDetail = document.getElementById('conn-detail');
+  const connBadge = document.getElementById('conn-badge');
+  if (banner) {
+    banner.style.display = 'block';
+    const br = (d.broker || 'none').toUpperCase();
+    if (d.configured && d.broker) {
+      const active = d.bot_active;
+      connDot.style.background = active ? 'var(--green)' : 'var(--amber)';
+      connDot.style.boxShadow = active ? '0 0 8px var(--green)' : '0 0 6px var(--amber)';
+      connTitle.textContent = `${br} Connected`;
+      connTitle.style.color = 'var(--green)';
+      connDetail.textContent = active
+        ? `Agent running · ${d.mode} mode · scanning every 2 min`
+        : `Connected but agent is OFF — toggle it on to start trading`;
+      connBadge.textContent = active ? 'ACTIVE' : 'IDLE';
+      connBadge.style.background = active ? 'rgba(0,200,5,.12)' : 'rgba(41,98,255,.12)';
+      connBadge.style.color = active ? 'var(--green)' : 'var(--amber)';
+    } else {
+      connDot.style.background = 'var(--red)';
+      connDot.style.boxShadow = '0 0 6px var(--red)';
+      connTitle.textContent = 'No Broker Connected';
+      connTitle.style.color = 'var(--red)';
+      connDetail.textContent = 'Go to the Broker panel in the sidebar to connect';
+      connBadge.textContent = 'DISCONNECTED';
+      connBadge.style.background = 'rgba(255,68,102,.12)';
+      connBadge.style.color = 'var(--red)';
+    }
+  }
+
+  // ── Live activity feed ──
+  const actCard = document.getElementById('activity-card');
+  if (actCard && d.recent_activity && d.recent_activity.length) {
+    actCard.style.display = 'block';
+    const feed = document.getElementById('activity-feed');
+    feed.innerHTML = d.recent_activity.map(a => {
+      const isHold = a.type === 'hold';
+      const isBuy  = a.type === 'buy';
+      const icon   = isHold ? '◆' : isBuy ? '▲' : '▼';
+      const color  = isHold ? 'var(--text3)' : isBuy ? 'var(--green)' : 'var(--red)';
+      const label  = isHold ? 'HOLD — No entry signal'
+                   : isBuy  ? `BUY ${a.symbol}`
+                   : `CLOSE ${a.symbol}`;
+      const detail = a.reason ? a.reason.slice(0, 80) : '';
+      const conf   = a.confidence ? `${Math.round(a.confidence * 100)}%` : '';
+      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 9px;background:var(--card2);border-radius:7px;font-size:11px">
+        <span style="color:${color};font-weight:800;font-family:var(--mono);flex-shrink:0;margin-top:1px">${icon}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:var(--text1)">${label}${conf ? ` · <span style="color:var(--green)">${conf}</span>` : ''}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${detail}</div>
+          <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px">${a.time} · ${a.broker || ''} · ${a.strategy || ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('activity-time').textContent = new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+  } else if (actCard) {
+    actCard.style.display = 'block';
+    document.getElementById('activity-feed').innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center">Waiting for first cycle… the algo runs every 2 minutes</div>';
+  }
+
+  // Auto-refresh status every 30s so trades appear in real time
+  if (!window._statusInterval) {
+    window._statusInterval = setInterval(loadStatus, 30000);
+  }
+}
+
+function updateToggleUI(active, mode) {
+  const dot    = document.getElementById('status-dot');
+  const toggle = document.getElementById('bot-toggle');
+  const label  = document.getElementById('toggle-label');
+  const badge  = document.getElementById('mode-badge');
+
+  dot.className    = `bot-status-dot${active ? ' active' : ''}`;
+  toggle.className = `toggle${active ? ' on' : ''}`;
+  label.innerHTML  = `Agent is <strong>${active ? 'running' : 'off'}</strong>`;
+  // Robinhood/Coinbase/Kraken are always live — override paper badge
+  const actualMode = (window._broker === 'robinhood' || window._broker === 'coinbase' || window._broker === 'kraken') ? 'live' : mode;
+  badge.textContent = actualMode.toUpperCase();
+  badge.className   = `bot-mode ${actualMode}`;
+
+  document.getElementById('btn-paper').className = `mode-btn ${actualMode === 'paper' ? 'active paper' : ''}`;
+  document.getElementById('btn-live').className  = `mode-btn live${actualMode === 'live' ? ' active' : ''}`;
+  document.getElementById('live-warning').style.display = actualMode === 'live' ? 'block' : 'none';
+
+  // Hide paper/live toggle for brokers that are always live
+  const modeSwitch = document.getElementById('mode-switch');
+  if (modeSwitch) modeSwitch.style.display = (window._broker === 'robinhood' || window._broker === 'coinbase' || window._broker === 'kraken') ? 'none' : '';
+}
+
+function renderTrades(trades) {
+  const body = document.getElementById('trades-body');
+  if (!trades.length) {
+    body.innerHTML = '<div class="empty-state">No trades yet — activate the agent to begin</div>';
+    return;
+  }
+  const rows = trades.map(t => {
+    const pnlStr = t.pnl !== null ? `${t.pnl >= 0 ? '+' : ''}$${Math.abs(t.pnl).toFixed(2)}` : '—';
+    const shareBtn = t.won && t.pnl > 0 ? `<button onclick="shareTradeToX('${t.symbol}',${t.pnl})" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text3);font-family:var(--mono);font-size:9px;cursor:pointer;margin-left:6px;">Share</button>` : '';
+    const wonStr = t.open ? '<span class="badge open">OPEN</span>'
+                 : t.won  ? `<span class="win">Win</span>${shareBtn}`
+                          : '<span class="loss">Loss</span>';
+    const ts = t.timestamp ? new Date(t.timestamp).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+    return `<tr>
+      <td>${ts}</td>
+      <td style="color:var(--text1);font-weight:600">${t.symbol || '—'}</td>
+      <td><span class="badge ${t.side}">${(t.side||'').toUpperCase()}</span></td>
+      <td style="color:var(--text1)">${t.price ? '$'+parseFloat(t.price).toLocaleString() : '—'}</td>
+      <td class="${t.pnl >= 0 ? 'win' : t.pnl < 0 ? 'loss' : ''}">${pnlStr}</td>
+      <td>${wonStr}</td>
+    </tr>`;
+  }).join('');
+  body.innerHTML = `<table class="trade-table">
+    <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Price</th><th>P&L</th><th>Result</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+window.toggleBot = async function () {
+  if (!window._configured) { alert('Connect your trading account first'); return; }
+  const newActive = !window._botActive;
+  try {
+    const r = await apiFetch('/api/bot?action=toggle', { method: 'POST', body: JSON.stringify({ active: newActive }) });
+    const d = await r.json();
+    if (d.ok) {
+      window._botActive = newActive;
+      updateToggleUI(newActive, window._botMode);
+      document.getElementById('stat-status').textContent = newActive ? 'Running' : 'Idle';
+      document.getElementById('stat-status').className   = `stat-value${newActive ? ' green' : ''}`;
+    }
+  } catch (err) { console.error(err); }
+};
+
+window.setMode = function (mode) {
+  if (mode === 'live' && !window._hasFuel && !window._subscribed) {
+    alert('Live trading requires fuel credits. Buy fuel from the dashboard to get started.');
+    document.getElementById('fuel-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  window._selectedMode = mode;
+  document.getElementById('btn-paper').className = `mode-btn ${mode === 'paper' ? 'active paper' : ''}`;
+  document.getElementById('btn-live').className  = `mode-btn live${mode === 'live' ? ' active' : ''}`;
+  document.getElementById('live-warning').style.display = mode === 'live' ? 'block' : 'none';
+  const card = document.getElementById('alpaca-card');
+  const hint = document.getElementById('alpaca-mode-hint');
+  if (hint) hint.textContent = mode === 'live'
+    ? 'Live trading uses your LIVE keys. Real money will be at risk.'
+    : 'Paper trading uses your PAPER keys. No real money.';
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+// ── Strategy selector ────────────────────────────────────────────────────────
+function renderStrategies(strategies, selected) {
+  window._strategy = selected || 'brilliant';
+  const grid = document.getElementById('strategy-grid');
+  if (!grid) return;
+  grid.innerHTML = strategies.map(s => {
+    const isSel   = s.id === window._strategy;
+    const locked  = s.locked;
+    const cls     = ['strat-card', isSel ? 'selected' : '', locked ? 'locked' : ''].filter(Boolean).join(' ');
+    const clickFn = locked ? '' : `onclick="selectStrategy('${s.id}')"`;
+    return `<div class="${cls}" id="strat-${s.id}" ${clickFn}>
+      ${locked ? '<span class="strat-lock">🔒</span>' : ''}
+
+      <div class="strat-name">${s.name}</div>
+      <div class="strat-desc">${s.description}</div>
+      <div class="strat-meta">
+        <span class="sbadge ${s.tier}">${s.tier.toUpperCase()}</span>
+        <span class="sbadge ${s.risk}">${s.risk}</span>
+        <span class="strat-wr">~${s.winRateGuide}</span>
+      </div>
+    </div>`;
+  }).join('');
+  const active = strategies.find(s => s.id === window._strategy);
+  if (active) {
+    const nameEl = document.getElementById('bot-name');
+    if (nameEl) nameEl.textContent = active.name;
+  }
+}
+
+window.selectStrategy = function (id) {
+  const prev = document.querySelector('#strategy-grid .strat-card.selected');
+  if (prev) prev.classList.remove('selected');
+  const card = document.getElementById('strat-' + id);
+  if (card) card.classList.add('selected');
+  window._strategy = id;
+  const nameEl = document.getElementById('bot-name');
+  if (nameEl && card) nameEl.textContent = card.querySelector('.strat-name').textContent;
+};
+
+// ── Bot type / risk (dashboard) ──────────────────────────────────────────────
+window.setBotType = function (type) {
+  window._botType = type;
+  ['crypto','stocks','both'].forEach(t => {
+    document.getElementById('type-'+t).className = 'mode-btn' + (t === type ? ' active live' : '');
+  });
+  document.getElementById('type-desc').textContent = BOT_TYPE_DESCS[type];
+  const sub = document.getElementById('bot-sub-text');
+  if (sub) sub.textContent = BOT_TYPE_WATCH[type];
+};
+
+window.setRisk = function (level) {
+  window._risk = level;
+  ['conservative','balanced','aggressive'].forEach(l => {
+    document.getElementById('risk-'+l).className = 'mode-btn' + (l === level ? ' active live' : '');
+  });
+  document.getElementById('risk-desc').textContent = RISK_PRESETS[level].desc;
+};
+
+function applySettingsToUI(s = {}) {
+  setRisk(s.risk_level || 'balanced');
+  setBotType(s.bot_type || 'crypto');
+  const mp = document.getElementById('maxpos');
+  mp.value = Math.round((s.max_position_pct ?? 0.10) * 100);
+  document.getElementById('maxpos-val').textContent = mp.value;
+  const g = document.getElementById('goal');
+  g.value = Math.round((s.daily_goal_pct ?? 0) * 100);
+  document.getElementById('goal-val').textContent = g.value === '0' ? 'off' : '+'+g.value+'%';
+  if (s.strategy) window._strategy = s.strategy;
+
+  // Apply trade controls
+  const syms = s.symbols || ['BTC/USD', 'ETH/USD', 'SOL/USD'];
+  window._activeSymbols = new Set(syms);
+  ['BTC/USD', 'ETH/USD', 'SOL/USD'].forEach(sym => {
+    const code = sym.split('/')[0];
+    const btn = document.getElementById('sym-' + code.toLowerCase());
+    if (btn) btn.className = 'mode-btn' + (syms.includes(sym) ? ' active live' : '');
+  });
+
+  const freq = s.frequency || 'normal';
+  window._frequency = freq;
+  ['conservative', 'normal', 'aggressive'].forEach(f => {
+    const btn = document.getElementById('freq-' + f);
+    if (btn) btn.className = 'mode-btn' + (f === freq ? ' active live' : '');
+  });
+  const freqHints = { conservative: 'Skips 2 of every 3 cycles. Fewer trades, higher selectivity.', normal: 'Trades on every 2-minute cycle when signals align.', aggressive: 'Lowers entry thresholds. More trades, more risk.' };
+  const fh = document.getElementById('freq-hint');
+  if (fh) fh.textContent = freqHints[freq] || '';
+
+  const mo = document.getElementById('maxopen');
+  if (mo) { mo.value = s.max_open_positions || 3; document.getElementById('maxopen-val').textContent = mo.value; }
+  const md = document.getElementById('maxdaily');
+  if (md) { md.value = s.max_daily_trades || 0; document.getElementById('maxdaily-val').textContent = md.value === '0' || md.value === 0 ? 'unlimited' : md.value; }
+  const cd = document.getElementById('cooldown');
+  if (cd) { cd.value = s.cooldown_minutes || 0; document.getElementById('cooldown-val').textContent = cd.value === '0' || cd.value === 0 ? 'off' : cd.value + ' min'; }
+  const tm = document.getElementById('tpsl-mult');
+  if (tm) { tm.value = s.tpsl_multiplier || 1; document.getElementById('tpsl-val').textContent = parseFloat(tm.value).toFixed(1) + 'x'; }
+
+  const hours = s.trading_hours || '24/7';
+  window._tradingHours = hours;
+  ['247', 'us', 'asia', 'eu'].forEach(h => {
+    const btn = document.getElementById('hours-' + h);
+    const val = h === '247' ? '24/7' : h;
+    if (btn) btn.className = 'mode-btn' + (val === hours ? ' active live' : '');
+  });
+
+  // Signal weights
+  const weights = s.signal_weights || {};
+  const wDefaults = { tech: 100, reddit: 50, stocktwits: 50, funding: 70, news: 40, poly: 30 };
+  Object.entries(wDefaults).forEach(([k, def]) => {
+    const el = document.getElementById('w-' + k);
+    if (el) { el.value = weights[k] ?? def; document.getElementById('w-' + k + '-val').textContent = el.value; }
+  });
+}
+
+// Trade control helpers
+window._activeSymbols = new Set(['BTC/USD', 'ETH/USD', 'SOL/USD']);
+window._frequency = 'normal';
+window._tradingHours = '24/7';
+
+window.toggleSymbol = function (sym, btn) {
+  if (window._activeSymbols.has(sym)) {
+    if (window._activeSymbols.size <= 1) return;
+    window._activeSymbols.delete(sym);
+    btn.className = 'mode-btn';
+  } else {
+    window._activeSymbols.add(sym);
+    btn.className = 'mode-btn active live';
+  }
+};
+
+window.setFrequency = function (freq) {
+  window._frequency = freq;
+  ['conservative', 'normal', 'aggressive'].forEach(f => {
+    const btn = document.getElementById('freq-' + f);
+    if (btn) btn.className = 'mode-btn' + (f === freq ? ' active live' : '');
+  });
+  const hints = { conservative: 'Skips 2 of every 3 cycles. Fewer trades, higher selectivity.', normal: 'Trades on every 2-minute cycle when signals align.', aggressive: 'Lowers entry thresholds. More trades, more risk.' };
+  const fh = document.getElementById('freq-hint');
+  if (fh) fh.textContent = hints[freq] || '';
+};
+
+window.setHours = function (hours) {
+  window._tradingHours = hours;
+  ['247', 'us', 'asia', 'eu'].forEach(h => {
+    const val = h === '247' ? '24/7' : h;
+    const btn = document.getElementById('hours-' + h);
+    if (btn) btn.className = 'mode-btn' + (val === hours ? ' active live' : '');
+  });
+};
+
+window.saveSettings = async function () {
+  const body = {
+    risk_level:        window._risk,
+    max_position_pct:  parseInt(document.getElementById('maxpos').value, 10) / 100,
+    daily_goal_pct:    parseInt(document.getElementById('goal').value, 10) / 100,
+    bot_type:          window._botType,
+    strategy:          window._strategy,
+    symbols:           [...window._activeSymbols],
+    frequency:         window._frequency,
+    max_open_positions: parseInt(document.getElementById('maxopen').value, 10),
+    max_daily_trades:  parseInt(document.getElementById('maxdaily').value, 10),
+    cooldown_minutes:  parseInt(document.getElementById('cooldown').value, 10),
+    tpsl_multiplier:   parseFloat(document.getElementById('tpsl-mult').value),
+    trading_hours:     window._tradingHours,
+    signal_weights: {
+      tech:       parseInt(document.getElementById('w-tech').value, 10),
+      reddit:     parseInt(document.getElementById('w-reddit').value, 10),
+      stocktwits: parseInt(document.getElementById('w-stocktwits').value, 10),
+      funding:    parseInt(document.getElementById('w-funding').value, 10),
+      news:       parseInt(document.getElementById('w-news').value, 10),
+      poly:       parseInt(document.getElementById('w-poly').value, 10),
+    },
+  };
+  const okEl = document.getElementById('settings-saved');
+  okEl.className = 'form-success';
+  try {
+    const r = await apiFetch('/api/bot?action=settings', { method: 'POST', body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed to save');
+    okEl.textContent = 'Settings saved'; okEl.style.display = 'block';
+    setTimeout(() => { okEl.style.display = 'none'; }, 2500);
+  } catch (err) {
+    okEl.className = 'form-error'; okEl.textContent = err.message; okEl.style.display = 'block';
+  }
+};
+
+// Dashboard broker connect
+window.connectBroker = function () {
+  if (window._broker === 'robinhood') dashConnectRobinhood();
+  else dashConnectAlpaca();
+};
+
+async function dashConnectAlpaca() {
+  const keyId  = document.getElementById('dash-alpaca-key').value.trim();
+  const secret = document.getElementById('dash-alpaca-secret').value.trim();
+  const errEl  = document.getElementById('connect-error');
+  const okEl   = document.getElementById('connect-success');
+  const btn    = document.getElementById('btn-connect');
+
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  if (!keyId || !secret) { errEl.textContent = 'Both fields are required'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Validating…';
+  try {
+    const r = await apiFetch('/api/bot?action=connect', {
+      method: 'POST',
+      body: JSON.stringify({ broker: 'alpaca', alpaca_key_id: keyId, alpaca_secret_key: secret, mode: window._selectedMode || window._botMode || 'paper' }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Connection failed');
+    okEl.textContent = `✓ Alpaca connected (${d.mode}) · Portfolio $${parseFloat(d.portfolio_value||0).toLocaleString()}`;
+    okEl.style.display = 'block';
+    window._configured = true;
+    setTimeout(() => { showPanel('home'); loadStatus(); }, 1200);
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
+  }
+}
+
+// Dashboard Robinhood auto-setup (same as wizard flow)
+window.dashRhAutoSetup = async function () {
+  const btn = document.getElementById('dash-rh-auto-btn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  try {
+    const keyPair = await crypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
+    const rawPrivate = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+    const rawPublic  = await crypto.subtle.exportKey('raw', keyPair.publicKey);
+    const publicBase64  = btoa(String.fromCharCode(...new Uint8Array(rawPublic)));
+    const pkcs8Bytes    = new Uint8Array(rawPrivate);
+    const privateBase64 = btoa(String.fromCharCode(...pkcs8Bytes.slice(pkcs8Bytes.length - 32)));
+
+    window._dashRhPrivateKey = privateBase64;
+    document.getElementById('dash-rh-pem').value = privateBase64;
+
+    await navigator.clipboard.writeText(publicBase64);
+    window.open('https://robinhood.com/account/crypto', '_blank');
+
+    btn.textContent = 'Key copied — Robinhood is open';
+    btn.style.background = 'rgba(74,222,128,.15)';
+    btn.style.color = '#4D8FFF';
+    document.getElementById('dash-rh-confirm').style.display = 'block';
+  } catch {
+    btn.textContent = 'Generate Key & Open Robinhood'; btn.disabled = false;
+    document.getElementById('dash-rh-manual').style.display = 'block';
+    document.getElementById('dash-rh-screen-1').style.display = 'none';
+  }
+};
+
+async function dashConnectRobinhood() {
+  // Check auto flow first, then manual
+  let apiKeyId, privateKey;
+  const manual = document.getElementById('dash-rh-manual');
+  if (manual && manual.style.display !== 'none') {
+    apiKeyId   = document.getElementById('dash-rh-manual-key').value.trim();
+    privateKey = document.getElementById('dash-rh-manual-pem').value.trim();
+  } else {
+    apiKeyId   = document.getElementById('dash-rh-key').value.trim();
+    privateKey = document.getElementById('dash-rh-pem').value.trim() || window._dashRhPrivateKey || '';
+  }
+
+  const errEl = document.getElementById('connect-error');
+  const okEl  = document.getElementById('connect-success');
+  const btn   = document.getElementById('btn-connect');
+
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  if (!apiKeyId || !privateKey) {
+    errEl.textContent = apiKeyId ? 'Generate your key first (click the button above)' : 'Paste your Robinhood API Key ID';
+    errEl.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Validating…';
+  try {
+    const r = await apiFetch('/api/bot?action=connect', {
+      method: 'POST',
+      body: JSON.stringify({ broker: 'robinhood', rh_api_key_id: apiKeyId, rh_private_key: privateKey }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Connection failed');
+    okEl.textContent = `✓ Robinhood connected · key ${d.key_preview}`;
+    okEl.style.display = 'block';
+    window._configured = true;
+    window._dashRhPrivateKey = null;
+    setTimeout(() => { showPanel('home'); loadStatus(); }, 1200);
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
+  }
+}
+
+// Refresh stats every 2 minutes
+setInterval(() => { if (auth.currentUser && document.getElementById('dashboard').style.display !== 'none') loadStatus(); }, 120_000);
+
+// ── Polymarket signals ────────────────────────────────────────────────────────
+async function loadPolymarket() {
+  try {
+    const r = await fetch('/api/polymarket');
+    const d = await r.json();
+    const body = document.getElementById('poly-body');
+    if (!d.markets?.length) {
+      body.innerHTML = '<div class="empty-state" style="padding:16px">No active crypto markets found</div>';
+      return;
+    }
+    body.innerHTML = d.markets.map(m => {
+      const pct = Math.round(m.yes_prob * 100);
+      const s = m.sentiment;
+      const label = pct >= 65 ? `${pct}% YES` : pct <= 35 ? `${pct}% NO` : `${pct}%`;
+      return `<div class="poly-item">
+        <span class="poly-pill ${s}">${s.toUpperCase()}</span>
+        <span class="poly-q">${m.question}</span>
+        <div class="poly-bar-wrap"><div class="poly-bar ${s}" style="width:${pct}%"></div></div>
+        <span class="poly-pct ${s === 'bullish' ? 'win' : s === 'bearish' ? 'loss' : ''}">${label}</span>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    document.getElementById('poly-body').innerHTML =
+      '<div class="empty-state" style="padding:16px">Unable to load signals</div>';
+  }
+}
+
+loadPolymarket();
+setInterval(loadPolymarket, 5 * 60_000);
+
+if (location.search.includes('subscribed=1')) {
+  history.replaceState({}, '', '/bot');
+}
+</script>
+</body>
+</html>

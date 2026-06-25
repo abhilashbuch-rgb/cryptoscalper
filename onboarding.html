@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WICK — Welcome</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #0b0712;
+  --card:   #0d1117;
+  --card2:  #111820;
+  --border: #1e2530;
+  --green:  #ffb454;
+  --red:    #ff4455;
+  --amber:  #ffaa00;
+  --blue:   #a06bff;
+  --text1:  #f0f4f8;
+  --text2:  #8899aa;
+  --text3:  #4a5568;
+  --mono:   'JetBrains Mono','Fira Code','Courier New',monospace;
+}
+
+body {
+  background: var(--bg); color: var(--text1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,180,84,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,180,84,.025) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none;
+}
+
+.shell { width: 100%; max-width: 520px; position: relative; }
+
+.ob-header { text-align: center; margin-bottom: 24px; }
+.ob-logo   { font-family: var(--mono); font-size: 20px; font-weight: 800; letter-spacing: .18em; color: var(--green); margin-bottom: 6px; }
+.ob-title  { font-size: 20px; font-weight: 800; color: var(--text1); }
+.ob-sub    { font-size: 13px; color: var(--text2); margin-top: 6px; }
+
+.progress { display: flex; gap: 5px; margin-bottom: 24px; }
+.prog-step { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background .3s; }
+.prog-step.done, .prog-step.active { background: var(--green); }
+
+.step { display: none; animation: fadeIn .3s ease; }
+.step.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.step-q { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+.opt {
+  padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; margin-bottom: 8px; transition: all .15s;
+}
+.opt:hover { border-color: rgba(255,180,84,.3); }
+.opt.selected { border-color: var(--green); background: rgba(255,180,84,.05); }
+.opt-label { font-size: 14px; font-weight: 600; }
+.opt-desc  { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+.chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.chip {
+  padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px;
+  font-size: 13px; color: var(--text2); cursor: pointer; transition: all .15s;
+  font-family: var(--mono); font-weight: 600;
+}
+.chip:hover { border-color: rgba(255,180,84,.3); color: var(--text1); }
+.chip.selected { border-color: var(--green); background: rgba(255,180,84,.08); color: var(--green); }
+
+.legal-compact {
+  margin: 16px 0; padding: 14px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 12px; color: var(--text3); line-height: 1.6;
+}
+.legal-compact a { color: var(--text2); text-decoration: underline; }
+
+.agree-row {
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  padding: 12px 0;
+}
+.agree-row input { margin-top: 2px; accent-color: var(--green); }
+.agree-row label { font-size: 13px; color: var(--text2); line-height: 1.5; cursor: pointer; }
+
+.ob-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.btn-back {
+  background: none; border: none; color: var(--text3); font-size: 13px;
+  font-family: var(--mono); cursor: pointer;
+}
+.btn-back:hover { color: var(--text2); }
+.btn-next {
+  padding: 12px 28px; background: var(--green); color: #000; border: none;
+  border-radius: 8px; font-size: 14px; font-weight: 800; font-family: var(--mono);
+  cursor: pointer; letter-spacing: .04em; transition: opacity .15s;
+}
+.btn-next:hover { opacity: .9; }
+.btn-next:disabled { opacity: .35; cursor: not-allowed; }
+.step-counter { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+
+.welcome-hero { text-align: center; padding: 16px 0; }
+.welcome-headline { font-size: 24px; font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+.welcome-headline em { color: var(--green); font-style: normal; }
+.welcome-body { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 20px; }
+.welcome-badge { font-family: var(--mono); font-size: 10px; font-weight: 700; background: rgba(255,180,84,.12); color: var(--green); border: 1px solid rgba(255,180,84,.25); padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 14px; letter-spacing: .06em; }
+
+.ready-card {
+  text-align: center; padding: 32px 20px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+}
+.ready-emoji { font-size: 48px; margin-bottom: 12px; }
+.ready-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.ready-desc  { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+@media (max-width: 640px) {
+  body { padding: 16px; }
+  .shell { max-width: 100%; }
+  .ob-title { font-size: 18px; }
+  .welcome-headline { font-size: 20px; }
+  .step-q { font-size: 15px; }
+  .btn-next { padding: 12px 20px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="ob-header">
+    <div class="ob-logo">WICK</div>
+    <div class="ob-title" id="ob-title">Welcome to WICK</div>
+    <div class="ob-sub" id="ob-sub">30 seconds to set up. Then the agent takes over.</div>
+  </div>
+
+  <div class="progress">
+    <div class="prog-step active" id="p1"></div>
+    <div class="prog-step" id="p2"></div>
+    <div class="prog-step" id="p3"></div>
+  </div>
+
+  <!-- ── Step 1: Welcome + Legal ── -->
+  <div class="step active" id="step-1">
+    <div class="welcome-hero">
+      <div class="welcome-badge">16 strategies · 8 data sources · 2-min cadence</div>
+      <div class="welcome-headline">Crypto trades itself.<br>You just <em>collect.</em></div>
+      <div class="welcome-body">
+        The WICK watches BTC, ETH, and SOL every 2 minutes — buying momentum, locking profits with trailing stops, and cutting losses. Connect your Alpaca or Robinhood account. Paper trading is free.
+      </div>
+    </div>
+
+    <div class="legal-compact">
+      By continuing, you agree to the <a href="/terms" target="_blank">Terms of Service</a>, <a href="/privacy" target="_blank">Privacy Policy</a>, and Risk Disclosure. Trading involves substantial risk of loss. WICK is not a financial advisor. Only trade money you can afford to lose. Paper trading uses simulated funds — no real money at risk.
+    </div>
+
+    <div class="agree-row" onclick="document.getElementById('chk-agree').checked=!document.getElementById('chk-agree').checked; checkAgree()">
+      <input type="checkbox" id="chk-agree" onchange="checkAgree()">
+      <label for="chk-agree">I understand the risks and agree to the Terms, Privacy Policy, and Risk Disclosure. I am 18 or older.</label>
+    </div>
+  </div>
+
+  <!-- ── Step 2: Quick Profile ── -->
+  <div class="step" id="step-2">
+    <div class="step-q">Tell us about yourself</div>
+
+    <div style="font-size:11px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px;">I am a...</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;">
+      <div class="opt" data-val="trader" onclick="pickRole(this)">
+        <div class="opt-label">Active Trader</div>
+        <div class="opt-desc">Day/swing trading</div>
+      </div>
+      <div class="opt" data-val="investor" onclick="pickRole(this)">
+        <div class="opt-label">Investor</div>
+        <div class="opt-desc">Buy and hold</div>
+      </div>
+      <div class="opt" data-val="student" onclick="pickRole(this)">
+        <div class="opt-label">Learning</div>
+        <div class="opt-desc">New to markets</div>
+      </div>
+      <div class="opt" data-val="analyst" onclick="pickRole(this)">
+        <div class="opt-label">Analyst</div>
+        <div class="opt-desc">Research / quant</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px;">Markets I follow</div>
+    <div class="chip-grid">
+      <div class="chip selected" data-val="crypto" onclick="toggleMarket(this)">Crypto</div>
+      <div class="chip" data-val="stocks" onclick="toggleMarket(this)">Stocks</div>
+      <div class="chip" data-val="forex" onclick="toggleMarket(this)">Forex</div>
+      <div class="chip" data-val="macro" onclick="toggleMarket(this)">Macro</div>
+    </div>
+
+    <div style="font-size:11px; font-family:var(--mono); color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px;">Experience</div>
+    <div style="display:flex; gap:6px;">
+      <div class="chip" data-val="beginner" onclick="pickExp(this)">Beginner</div>
+      <div class="chip" data-val="some" onclick="pickExp(this)">Some</div>
+      <div class="chip selected" data-val="experienced" onclick="pickExp(this)">Experienced</div>
+      <div class="chip" data-val="pro" onclick="pickExp(this)">Pro</div>
+    </div>
+  </div>
+
+  <!-- ── Step 3: Ready ── -->
+  <div class="step" id="step-3">
+    <div class="ready-card">
+      <div style="font-size:28px;font-weight:800;color:var(--green);margin-bottom:12px">WICK</div>
+      <div class="ready-title">You're all set</div>
+      <div class="ready-desc">
+        Your profile is saved. Next up: connect your brokerage (Alpaca or Robinhood), pick a strategy, and activate the agent. Paper trading is free — no deposit needed.
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="ob-nav">
+    <button class="btn-back" id="btn-back" onclick="prevStep()" style="visibility:hidden">← Back</button>
+    <span class="step-counter" id="step-counter">1 / 3</span>
+    <button class="btn-next" id="btn-next" onclick="nextStep()" disabled>Get Started →</button>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp }                         from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged }           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc }     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
+  authDomain:    'wick.network',
+  projectId:     'wicknetwork',
+  storageBucket: 'wicknetwork.firebasestorage.app',
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.replace('/login'); return; }
+  currentUser = user;
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists() && snap.data().onboardingComplete) {
+      window.location.replace('/bot');
+    }
+  } catch { /* proceed */ }
+});
+
+let step = 1;
+const TOTAL = 3;
+const answers = { role: null, markets: ['crypto'], experience: 'experienced' };
+
+window.checkAgree = function () {
+  document.getElementById('btn-next').disabled = !document.getElementById('chk-agree').checked;
+};
+
+window.pickRole = function (el) {
+  document.querySelectorAll('#step-2 .opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers.role = el.dataset.val;
+};
+
+window.toggleMarket = function (el) {
+  el.classList.toggle('selected');
+  answers.markets = [...document.querySelectorAll('.chip-grid .chip.selected')].map(c => c.dataset.val);
+};
+
+window.pickExp = function (el) {
+  document.querySelectorAll('#step-2 > div:last-of-type .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  answers.experience = el.dataset.val;
+};
+
+window.nextStep = async function () {
+  if (step < TOTAL) goToStep(step + 1);
+  else await finish();
+};
+
+window.prevStep = function () {
+  if (step > 1) goToStep(step - 1);
+};
+
+const HEADERS = {
+  1: ['Welcome to WICK', '30 seconds to set up. Then the agent takes over.'],
+  2: ['Quick profile', 'Helps us personalize your experience.'],
+  3: ['Ready to trade', 'Your dashboard is waiting.'],
+};
+
+function goToStep(n) {
+  document.getElementById('step-' + step).classList.remove('active');
+  document.getElementById('p' + step).classList.remove('active');
+  document.getElementById('p' + step).classList.add('done');
+
+  step = n;
+  document.getElementById('step-' + step).classList.add('active');
+  document.getElementById('p' + step).classList.add('active');
+  document.getElementById('step-counter').textContent = step + ' / ' + TOTAL;
+  document.getElementById('btn-back').style.visibility = step > 1 ? 'visible' : 'hidden';
+
+  const [title, sub] = HEADERS[step];
+  document.getElementById('ob-title').textContent = title;
+  document.getElementById('ob-sub').textContent = sub;
+
+  const btn = document.getElementById('btn-next');
+  if (step === 1) { btn.textContent = 'Get Started →'; btn.disabled = !document.getElementById('chk-agree').checked; }
+  if (step === 2) { btn.textContent = 'Continue →'; btn.disabled = false; }
+  if (step === 3) { btn.textContent = 'Open Dashboard →'; btn.disabled = false; }
+}
+
+async function finish() {
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true; btn.textContent = 'Loading…';
+
+  const tilePrefs = { stream:true, crypto:true, fear:true, promo:true, forex:true, gov:true, sectors:true, cal:true, vitals:true };
+  const m = new Set(answers.markets);
+  if (!m.has('forex'))  tilePrefs.forex = false;
+  if (!m.has('macro'))  { tilePrefs.gov = false; tilePrefs.sectors = false; }
+  if (!m.has('stocks')) { tilePrefs.sectors = false; tilePrefs.cal = false; }
+
+  try {
+    await setDoc(doc(db, 'users', currentUser.uid), {
+      role:               answers.role || 'trader',
+      markets:            answers.markets,
+      experience:         answers.experience || 'experienced',
+      theme:              'night',
+      tilePrefs,
+      onboardingComplete: true,
+      agreedToTerms:      true,
+      agreedToRisk:       true,
+      agreedToPrivacy:    true,
+      agreementsSignedAt: new Date().toISOString(),
+      joinedAt:           new Date().toISOString(),
+    }, { merge: true });
+  } catch { /* proceed */ }
+
+  window.location.replace('/bot');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "buildCommand": "",
+  "devCommand": "",
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/",           "destination": "/home.html"       },
+    { "source": "/login",      "destination": "/login.html"      },
+    { "source": "/bot",        "destination": "/bot.html"        },
+    { "source": "/onboarding", "destination": "/onboarding.html" },
+    { "source": "/overlay",    "destination": "/overlay.html"    },
+    { "source": "/terms",      "destination": "/terms.html"      },
+    { "source": "/privacy",    "destination": "/privacy.html"    },
+    { "source": "/__/auth/:path*", "destination": "https://wicknetwork.firebaseapp.com/__/auth/:path*" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/nightly-calibration",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

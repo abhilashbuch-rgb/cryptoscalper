@@ -3,199 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK — Agentic Trading</title>
-<meta name="description" content="WICK agentic trading. Autonomous crypto and prediction market trading across Robinhood, Coinbase, Alpaca, and Polymarket. Free to start. Pay only when you profit.">
-<meta property="og:title" content="WICK — Agentic Trading">
-<meta property="og:description" content="Autonomous trading agent for crypto and prediction markets. 12-signal scoring. 2-minute cadence. Set it and forget it.">
+<title>WICK</title>
+<meta name="description" content="WICK — invite-only agentic trading.">
+<meta property="og:title" content="WICK">
+<meta property="og:description" content="Invite-only agentic trading.">
 <meta property="og:url" content="https://wick.network">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090A'/><text x='50' y='68' font-family='monospace' font-size='52' font-weight='900' text-anchor='middle' fill='white'>W</text></svg>">
 <style>
-:root {
-  --bg: #030712;
-  --panel: #0b0f19;
-  --border: rgba(255,255,255,.03);
-  --text-muted: #9ca3af;
-  --rh: #00c805;
-  --cb: #0052ff;
-  --al: #ffd700;
-  --pm: #22d3ee;
-  --mono: 'JetBrains Mono','Fira Code','Courier New',monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-body{background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;position:relative}
-body::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.01) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.01) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:1}
-.container{max-width:1200px;width:100%;padding:80px 20px 40px;text-align:center;z-index:2}
-h1{font-size:clamp(3rem,8vw,5rem);font-weight:900;letter-spacing:.3em;text-transform:uppercase;background:linear-gradient(180deg,#fff 40%,#6b7280 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
-.subtitle{font-size:1.1rem;color:var(--text-muted);max-width:560px;margin:0 auto 48px;line-height:1.7;letter-spacing:.01em}
-.auth-box{display:inline-block;margin-bottom:64px}
-.google-btn{display:inline-flex;align-items:center;background:#fff;color:#1f2937;font-weight:600;font-size:1rem;padding:16px 32px;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;text-decoration:none;transition:all .3s cubic-bezier(.16,1,.3,1);box-shadow:0 4px 12px rgba(0,0,0,.1)}
-.google-btn:hover{transform:translateY(-2px);background:#f9fafb;box-shadow:0 12px 30px rgba(255,255,255,.08),0 0 20px rgba(34,211,238,.3)}
-.google-btn svg{width:20px;height:20px;margin-right:14px}
-.section-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.3em;color:var(--text-muted);margin-bottom:32px}
-.broker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;width:100%;margin-bottom:64px}
-@media(max-width:968px){.broker-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:540px){.broker-grid{grid-template-columns:1fr}h1{letter-spacing:.15em}}
-.bcard{background:linear-gradient(135deg,rgba(15,23,42,.4),rgba(3,7,18,.8));border:1px solid var(--border);border-radius:16px;padding:36px 24px;display:flex;flex-direction:column;align-items:center;position:relative;transition:all .5s cubic-bezier(.16,1,.3,1);overflow:hidden;text-align:left}
-.bcard::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);transform:translateX(-100%);transition:transform .7s ease}
-.bcard:hover::before{transform:translateX(100%)}
-.bcard:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.6)}
-.bcard.rh:hover{border-color:rgba(0,200,5,.3);box-shadow:0 20px 40px rgba(0,0,0,.6),0 0 25px rgba(0,200,5,.15)}
-.bcard.cb:hover{border-color:rgba(0,82,255,.3);box-shadow:0 20px 40px rgba(0,0,0,.6),0 0 25px rgba(0,82,255,.15)}
-.bcard.al:hover{border-color:rgba(255,215,0,.3);box-shadow:0 20px 40px rgba(0,0,0,.6),0 0 25px rgba(255,215,0,.15)}
-.bcard.pm:hover{border-color:rgba(34,211,238,.4);box-shadow:0 20px 40px rgba(0,0,0,.6),0 0 30px rgba(34,211,238,.25)}
-.blogo{width:52px;height:52px;margin-bottom:20px;filter:drop-shadow(0 0 10px rgba(255,255,255,.05));transition:transform .4s cubic-bezier(.16,1,.3,1),filter .4s ease}
-.bcard:hover .blogo{transform:scale(1.1)}
-.bcard.rh:hover .blogo{filter:drop-shadow(0 0 16px var(--rh))}
-.bcard.cb:hover .blogo{filter:drop-shadow(0 0 16px var(--cb))}
-.bcard.al:hover .blogo{filter:drop-shadow(0 0 16px var(--al))}
-.bcard.pm:hover .blogo{filter:drop-shadow(0 0 20px var(--pm))}
-.bname{font-size:1.1rem;font-weight:700;margin-bottom:4px;letter-spacing:.01em}
-.btag{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
-.rh .btag{color:var(--rh)}.cb .btag{color:var(--cb)}.al .btag{color:var(--al)}.pm .btag{color:var(--pm)}
-.bpitch{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:16px;flex-grow:1}
-.cross{font-size:.72rem;line-height:1.4;color:rgba(255,255,255,.5);font-style:italic}
-.cross strong{color:#fff;font-style:normal}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#030712;--card:rgba(255,255,255,.03);--border:rgba(255,255,255,.06);--text1:#f0f4f8;--text2:#9ca3af;--text3:#4a5568;--accent:#ffb454;--mono:'JetBrains Mono','Fira Code','Courier New',monospace}
+body{background:var(--bg);color:var(--text1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+body::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.01) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.01) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
 
-/* Live feed */
-.feed-section{max-width:600px;width:100%;margin:0 auto 48px;z-index:2}
-.feed-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.3em;color:var(--text-muted);text-align:center;margin-bottom:12px}
-.feed-title{font-size:1rem;font-weight:700;text-align:center;margin-bottom:16px}
-#live-feed{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:hidden}
-.feed-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:6px;font-family:var(--mono);font-size:12px}
-.feed-sym{color:#fff;font-weight:700;min-width:65px}
-.feed-pnl{font-weight:700;min-width:70px}
-.feed-ago{color:var(--text-muted);flex:1;text-align:right;font-size:10px}
-.feed-cta{text-align:center;margin-top:14px}
-.feed-cta a{font-family:var(--mono);font-size:12px;color:var(--al);text-decoration:none;font-weight:700}
+.shell{text-align:center;z-index:2;max-width:400px;width:100%}
+.logo{font-family:var(--mono);font-size:clamp(3rem,10vw,5rem);font-weight:900;letter-spacing:.3em;background:linear-gradient(180deg,#fff 40%,#6b7280 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.tagline{font-size:13px;font-family:var(--mono);color:var(--text3);letter-spacing:.2em;text-transform:uppercase;margin-bottom:48px}
 
-/* Newsletter */
-.nl-section{max-width:480px;width:100%;margin:0 auto 48px;text-align:center;z-index:2}
-.nl-title{font-size:.9rem;font-weight:700;margin-bottom:6px}
-.nl-desc{font-size:.75rem;color:var(--text-muted);margin-bottom:14px;line-height:1.5}
-.nl-form{display:flex;gap:8px}
-.nl-form input{flex:1;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:6px;color:#fff;font-family:var(--mono);font-size:12px;outline:none}
-.nl-form input:focus{border-color:rgba(255,215,0,.3)}
-.nl-form button{padding:10px 18px;background:var(--al);color:#000;font-family:var(--mono);font-size:12px;font-weight:800;border:none;border-radius:6px;cursor:pointer}
-@media(max-width:540px){.nl-form{flex-direction:column}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;margin-bottom:24px}
+.lock{font-size:32px;margin-bottom:16px}
+.card-title{font-size:17px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:24px}
 
-/* Footer */
-footer{width:100%;max-width:1200px;padding:24px 20px;display:flex;justify-content:space-between;align-items:center;z-index:2;border-top:1px solid rgba(255,255,255,.04)}
-footer a{color:var(--text-muted);text-decoration:none;font-size:12px;font-family:var(--mono)}
-footer a:hover{color:#fff}
-.foot-logo{font-family:var(--mono);font-size:14px;font-weight:900;letter-spacing:.2em;color:var(--al)}
-.foot-links{display:flex;gap:16px}
-.foot-disc{font-size:10px;color:rgba(255,255,255,.2);max-width:1200px;padding:0 20px 40px;text-align:center;line-height:1.6;z-index:2}
+.btn-google{display:inline-flex;align-items:center;background:#fff;color:#1f2937;font-weight:600;font-size:15px;padding:14px 28px;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer;transition:all .3s;width:100%;justify-content:center;gap:12px}
+.btn-google:hover{background:#f9fafb;box-shadow:0 8px 24px rgba(255,255,255,.06)}
+.btn-google svg{width:18px;height:18px;flex-shrink:0}
+
+#status{display:none;margin-top:16px;font-family:var(--mono);font-size:12px;padding:12px 16px;border-radius:8px;line-height:1.6}
+#status.waitlist{display:block;color:var(--accent);background:rgba(255,180,84,.08);border:1px solid rgba(255,180,84,.12)}
+#status.approved{display:block;color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.12)}
+#status.error{display:block;color:#f87171;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.12)}
+
+.signout{margin-top:16px;background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:11px;padding:7px 18px;border-radius:6px;cursor:pointer;display:none}
+.signout:hover{color:var(--text2);border-color:rgba(255,255,255,.12)}
+
+.footer{position:fixed;bottom:20px;display:flex;gap:16px;z-index:2}
+.footer a{color:var(--text3);text-decoration:none;font-size:11px;font-family:var(--mono)}
+.footer a:hover{color:var(--text2)}
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>W I C K</h1>
-  <p class="subtitle">An automated trading assistant that watches the markets so you don't have to. Pick your broker, connect your keys, and let it run.</p>
+<div class="shell">
+  <div class="logo">WICK</div>
+  <div class="tagline">Invite Only</div>
 
-  <!-- Plain-English explainer -->
-  <div style="max-width:640px;margin:0 auto 48px;text-align:left;font-size:.9rem;color:var(--text-muted);line-height:1.8;padding:24px 28px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:12px">
-    <strong style="color:#fff">How it works in plain English:</strong> Instead of buying crypto and hoping it goes up, WICK uses specialized software desks to check prices every two minutes, confirm there's enough liquidity to protect you, and calculate mathematical edges to capture small, steady wins. If conditions turn unstable, it freezes itself. Your money stays in your own broker account — we never touch it, hold it, or have access to withdraw it. We don't collect personal information or sell data. Your Google sign-in is only used to save your settings.
+  <div class="card">
+    <div class="lock">🔒</div>
+    <div class="card-title">Private Beta</div>
+    <div class="card-desc">WICK is an agentic trading system currently in private beta. Sign in to check your access or join the waitlist.</div>
+    <button class="btn-google" id="btn-signin">
+      <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      Continue with Google
+    </button>
+    <div id="status"></div>
   </div>
 
-  <!-- Broker cards — each one is a clickable auth gate -->
-  <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.3em;color:var(--text-muted);margin-bottom:24px">Choose your broker to get started</div>
-
-  <div class="broker-grid">
-    <a href="/login?broker=robinhood" class="bcard rh" style="text-decoration:none;cursor:pointer">
-      <svg class="blogo" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#00C805"/><path d="M18 6c-1 0-2.5 1.5-4 4-2 3.3-3 7-3 11 0 3 1 6 3 9h2c-1.5-3-2-5.5-2-8.5 0-4 1.5-8 4-11.5 2.5 3.5 4 7.5 4 11.5 0 3-.5 5.5-2 8.5h2c2-3 3-6 3-9 0-4-1-7.7-3-11-1.5-2.5-3-4-4-4z" fill="#fff"/></svg>
-      <div class="bname">Robinhood</div>
-      <div class="btag">Crypto · BTC ETH SOL</div>
-      <div class="bpitch">The agent buys and sells BTC, ETH, and SOL on your Robinhood account every 2 minutes. You keep your money in Robinhood — WICK just places the trades.</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--rh);font-weight:700;margin-top:auto">Connect Robinhood →</div>
-    </a>
-    <a href="/login?broker=coinbase" class="bcard cb" style="text-decoration:none;cursor:pointer">
-      <svg class="blogo" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#0052FF"/><circle cx="18" cy="18" r="10" fill="#fff"/><rect x="13" y="13" width="10" height="10" rx="2" fill="#0052FF"/></svg>
-      <div class="bname">Coinbase</div>
-      <div class="btag">Crypto · Advanced Trade</div>
-      <div class="bpitch">Connects to Coinbase's Advanced Trade API. Same 2-minute cycle, same momentum signals. Your funds stay on Coinbase — WICK can only trade, never withdraw.</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--cb);font-weight:700;margin-top:auto">Connect Coinbase →</div>
-    </a>
-    <a href="/login?broker=alpaca" class="bcard al" style="text-decoration:none;cursor:pointer">
-      <svg class="blogo" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="#FBBF24"/><path d="M10 26V14l8-6 8 6v12h-6v-7h-4v7h-6z" fill="#000" opacity=".85"/></svg>
-      <div class="bname">Alpaca</div>
-      <div class="btag">Stocks & Crypto · Paper Trading Free</div>
-      <div class="bpitch">Start with $100K of fake money to test the agent risk-free. When you're ready, switch to live trading. Alpaca is a FINRA-registered US broker.</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--al);font-weight:700;margin-top:auto">Connect Alpaca →</div>
-    </a>
-    <a href="/login?broker=polymarket" class="bcard pm" style="text-decoration:none;cursor:pointer">
-      <svg class="blogo" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="8" fill="none" stroke="#22d3ee" stroke-width="2"/><path d="M12 18l5 5 7-8" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <div class="bname">Polymarket</div>
-      <div class="btag">Prediction Markets · Sports · Politics</div>
-      <div class="bpitch">Scans breaking news and live sports scores every 2 minutes. When the odds are wrong and the news is right, it trades the gap. Try it in sandbox first — no wallet needed.</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--pm);font-weight:700;margin-top:auto">Open Polymarket Desk →</div>
-    </a>
-  </div>
-
-  <!-- Privacy statement -->
-  <div style="max-width:640px;margin:0 auto 48px;text-align:center;font-size:.75rem;color:rgba(255,255,255,.35);line-height:1.7">
-    <strong style="color:rgba(255,255,255,.55)">Your privacy:</strong> WICK does not collect, store, or sell personal information. We don't track browsing behavior, share data with third parties, or run analytics cookies. Your Google sign-in is used solely to save your broker settings. API keys are AES-256 encrypted and can only place trades — never withdraw funds.
-  </div>
+  <button class="signout" id="btn-signout" onclick="signOut(auth)">Sign out</button>
 </div>
 
-<!-- Live trade feed -->
-<div class="feed-section">
-  <div class="feed-label">Live trades</div>
-  <div class="feed-title">The agent is trading right now.</div>
-  <div id="live-feed"><div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">Loading...</div></div>
-  <div class="feed-cta"><a href="/bot">Start free →</a></div>
+<div class="footer">
+  <a href="/terms">Terms</a>
+  <a href="/privacy">Privacy</a>
 </div>
 
-<!-- Newsletter -->
-<div class="nl-section">
-  <div class="nl-title">The WICK Weekly</div>
-  <div class="nl-desc">Performance recaps, signal divergences, and strategy spotlights. Free.</div>
-  <form class="nl-form" onsubmit="return nlSub(event)">
-    <input type="email" id="nl-email" placeholder="your@email.com" required>
-    <button type="submit">Subscribe</button>
-  </form>
-  <div id="nl-msg" style="font-size:11px;font-family:var(--mono);margin-top:8px;display:none;color:var(--al);"></div>
-</div>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-<!-- Footer -->
-<footer>
-  <span class="foot-logo">WICK</span>
-  <div class="foot-links">
-    <a href="/bot">Dashboard</a>
-    <a href="/terms">Terms</a>
-    <a href="/privacy">Privacy</a>
-  </div>
-</footer>
-<p class="foot-disc">
-  Trading crypto, stocks, options, and prediction markets involves substantial risk of loss. WICK is automated trading software — not a financial advisor, broker, or investment adviser. Past performance does not guarantee future results. Trades execute through your own brokerage accounts. WICK never holds or transfers your funds. Only trade money you can afford to lose.
-</p>
+const app = initializeApp({
+  apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
+  authDomain:    'wick.network',
+  projectId:     'wicknetwork',
+  storageBucket: 'wicknetwork.firebasestorage.app',
+});
+const auth = getAuth(app);
+window.auth = auth;
+const provider = new GoogleAuthProvider();
 
-<script>
-// Live feed
-(async function(){
+const statusEl = document.getElementById('status');
+const signinBtn = document.getElementById('btn-signin');
+const signoutBtn = document.getElementById('btn-signout');
+
+signinBtn.addEventListener('click', async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch { signInWithRedirect(auth, provider); }
+});
+
+getRedirectResult(auth).catch(() => {});
+
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    signinBtn.style.display = '';
+    signoutBtn.style.display = 'none';
+    statusEl.style.display = 'none';
+    statusEl.className = '';
+    return;
+  }
+
+  signinBtn.style.display = 'none';
+  signoutBtn.style.display = '';
+
+  statusEl.className = '';
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Checking access…';
+
   try {
-    const r = await fetch('/api/bot?action=live_feed');
-    const d = await r.json();
-    const feed = document.getElementById('live-feed');
-    if (!d.trades?.length) { feed.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px;">No trades yet</div>'; return; }
-    feed.innerHTML = d.trades.map(t => {
-      const ago = t.ago < 60 ? t.ago+'s' : t.ago < 3600 ? Math.floor(t.ago/60)+'m' : Math.floor(t.ago/3600)+'h';
-      return `<div class="feed-row"><span class="feed-sym">${t.symbol}</span><span class="feed-pnl" style="color:${(t.pnl||0)>=0?'#ffd700':'#ff4466'}">+$${(t.pnl||0).toFixed(2)}</span><span class="feed-ago">${ago} ago</span></div>`;
-    }).join('');
-  } catch {}
-  setInterval(async()=>{try{const r=await fetch('/api/bot?action=live_feed');const d=await r.json();const f=document.getElementById('live-feed');if(d.trades?.length){f.innerHTML=d.trades.map(t=>{const a=t.ago<60?t.ago+'s':t.ago<3600?Math.floor(t.ago/60)+'m':Math.floor(t.ago/3600)+'h';return`<div class="feed-row"><span class="feed-sym">${t.symbol}</span><span class="feed-pnl" style="color:${(t.pnl||0)>=0?'#ffd700':'#ff4466'}">+$${(t.pnl||0).toFixed(2)}</span><span class="feed-ago">${a} ago</span></div>`;}).join('');}}catch{}},30000);
-})();
+    const token = await user.getIdToken();
+    const r = await fetch('/api/bot', {
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    });
 
-// Newsletter
-function nlSub(e){
-  e.preventDefault();
-  const email=document.getElementById('nl-email').value.trim();
-  const msg=document.getElementById('nl-msg');
-  fetch('/api/newsletter?action=subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})})
-  .then(r=>r.json()).then(d=>{msg.style.display='block';msg.textContent=d.ok?"You're in. First issue drops Sunday.":(d.error||'Error');if(d.ok)document.getElementById('nl-email').value='';})
-  .catch(()=>{msg.style.display='block';msg.textContent='Failed';});
-  return false;
-}
+    if (r.status === 403) {
+      // Not on allowlist — join waitlist
+      fetch('/api/bot?action=waitlist', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform: 'wick' }),
+      }).catch(() => {});
+
+      statusEl.className = 'waitlist';
+      statusEl.innerHTML = 'You\'re on the waitlist.<br>' + user.email + '<br><span style="color:var(--text3);font-size:10px;margin-top:4px;display:inline-block">We\'ll email you when your spot opens up.</span>';
+      return;
+    }
+
+    if (r.ok) {
+      statusEl.className = 'approved';
+      statusEl.textContent = 'Access granted. Redirecting…';
+      window.location.replace('/bot');
+      return;
+    }
+
+    statusEl.className = 'error';
+    statusEl.textContent = 'Something went wrong. Try again.';
+  } catch {
+    statusEl.className = 'error';
+    statusEl.textContent = 'Connection error. Try again.';
+  }
+});
 </script>
 </body>
 </html>

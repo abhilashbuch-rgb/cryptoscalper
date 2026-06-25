@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 const { db } = require('../lib/firebase-config');
 const { PolymarketAlphaEngine } = require('../lib/polymarket-alpha');
+const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -244,6 +245,28 @@ module.exports = async (req, res) => {
 
     const results = await engine.executeBracketArbitrage(target, legSize);
     return res.json({ ok: true, legs: results, mode });
+  }
+
+  // ── Claude-backed NegRisk evaluation ──
+  if (action === 'negrisk_evaluate' && req.method === 'POST') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { bracketId } = req.body || {};
+    if (!bracketId) return res.status(400).json({ error: 'bracketId required' });
+
+    const engine = new PolymarketAlphaEngine(decoded.uid);
+    const brackets = await engine.fetchActiveNegRiskBrackets();
+    const target = brackets.find(b => b.id === bracketId);
+    if (!target) return res.status(404).json({ error: 'Bracket not found' });
+
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const walletBalance = userDoc.exists ? (userDoc.data().walletBalance || 0) : 0;
+
+    const payload = buildMarketPayload(target, walletBalance);
+    const verdict = await evaluateArbitrage(payload);
+
+    return res.json({ ok: true, bracket: target.title, verdict });
   }
 
   // ── Performance History ──

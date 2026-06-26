@@ -4,7 +4,7 @@ const { PolymarketAlphaEngine, PLATFORM_FEE_PCT } = require('../lib/polymarket-a
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 
-const FLASH_PLAY_TTL_MS = 60 * 1000;
+const FLASH_PLAY_TTL_MS = 15 * 1000;
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -420,8 +420,9 @@ module.exports = async (req, res) => {
       verdict: 'PLAY_FOUND',
       playId,
       expiresAt,
-      ttlSeconds: 60,
+      ttlSeconds: 15,
       autoExecute: true,
+      scanned: brackets.length,
       bracket: best.bracket.title,
       edgePct: (best.edge * 100).toFixed(2),
       confidence,

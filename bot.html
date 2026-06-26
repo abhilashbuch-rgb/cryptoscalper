@@ -38,6 +38,54 @@
 .tick-up   { animation: flashUp   300ms ease-out; }
 .tick-down { animation: flashDown 300ms ease-out; }
 
+/* ── Anomaly stream card animations ── */
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(20px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes cardFadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(.9) translateY(-10px); }
+}
+@keyframes cardGrabbed {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+  50%  { transform: scale(1.03); box-shadow: 0 0 20px 4px rgba(16,185,129,.3); }
+  100% { opacity: 0; transform: scale(.9); }
+}
+@keyframes timerBarShrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .4; }
+}
+.anom-card {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  animation: cardSlideIn .35s ease-out both;
+}
+.anom-card:hover {
+  border-color: rgba(16,185,129,.4);
+  box-shadow: 0 0 16px rgba(16,185,129,.08);
+}
+.anom-card.fading { animation: cardFadeOut .4s ease-in forwards; pointer-events: none; }
+.anom-card.grabbed { animation: cardGrabbed .5s ease-out forwards; pointer-events: none; }
+.anom-card .timer-bar {
+  position: absolute; bottom: 0; left: 0; height: 3px;
+  border-radius: 0 0 12px 12px;
+  background: #10b981;
+  transition: width 1s linear, background .3s;
+}
+.anom-card .timer-bar.warn { background: #f59e0b; }
+.anom-card .timer-bar.crit { background: #f43f5e; }
+
 /* ── PARADIGM 3: TradingView dual-mode — body-level class swap ── */
 body.mode-live {
   --accent: #ef4444;
@@ -1222,156 +1270,41 @@ body::before {
       </div>
     </div>
 
-    <!-- ═══ FLASH PLAY — on-demand NegRisk scan ═══ -->
+    <!-- ═══ ANOMALY STREAM — live cards with individual timers ═══ -->
     <div class="tile tile-full" id="flash-play-tile" style="display:none">
       <div class="tile-title">
-        Flash Play
-        <span class="tile-badge" id="flash-status-badge">READY</span>
+        Anomaly Stream
+        <span class="tile-badge" id="stream-status-badge" style="background:rgba(16,185,129,.12);color:#10b981">SCANNING</span>
       </div>
 
-      <!-- Ready state -->
-      <div id="flash-ready">
-        <div style="display:flex;align-items:center;gap:20px;padding:8px 0">
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Scan for NegRisk arbitrage</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.5">Checks live CLOB prices, filters by math, evaluates with Claude. You get 60 seconds to execute.</div>
-          </div>
-          <button class="btn-primary" onclick="flashScan()" id="flash-scan-btn" style="width:auto;padding:12px 28px;flex-shrink:0">Scan now</button>
-        </div>
-      </div>
-
-      <!-- Scanning state -->
-      <div id="flash-scanning" style="display:none">
-        <div style="text-align:center;padding:20px 0">
-          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.06em">SCANNING CLOB PRICES...</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:6px">Math filter → Claude evaluation → best play</div>
-        </div>
-      </div>
-
-      <!-- Play found state -->
-      <div id="flash-play" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-              <div style="font-size:15px;font-weight:800;line-height:1.3" id="flash-bracket">—</div>
-              <span id="flash-whale-badge" style="display:none;font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:#c084fc;padding:1px 6px;border-radius:4px">&#129395; WHALE</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <div style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="flash-mode-label">sandbox</div>
-              <span id="flash-platform-badge" style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 6px;border-radius:4px">POLYMARKET</span>
-            </div>
-          </div>
-          <div style="text-align:right;flex-shrink:0;margin-left:16px">
-            <div style="font-family:var(--mono);font-size:32px;font-weight:800" id="flash-timer">60</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">SECONDS</div>
-          </div>
-        </div>
-
-        <!-- AI Confidence bar -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
-          <span style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.08em;white-space:nowrap">AI CONFIDENCE</span>
-          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-            <div id="flash-confidence-bar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);border-radius:3px;width:0%;transition:width .5s ease"></div>
-          </div>
-          <span id="flash-confidence-pct" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#10b981;min-width:36px;text-align:right">—</span>
-        </div>
-
-        <!-- Whale intel line -->
-        <div id="flash-whale-detail" style="display:none;align-items:center;gap:6px;margin-bottom:10px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);border-radius:8px;padding:6px 12px">
-          <span style="font-size:12px">&#129395;</span>
-          <span id="flash-whale-text" style="font-family:var(--mono);font-size:10px;color:#c084fc"></span>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
-          <div style="background:var(--card);padding:10px 12px">
-            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">EDGE</div>
-            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);margin-top:3px" id="flash-edge">—</div>
-          </div>
-          <div style="background:var(--card);padding:10px 12px">
-            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">LEG SIZE</div>
-            <div style="font-family:var(--mono);font-size:16px;font-weight:700;margin-top:3px" id="flash-leg">—</div>
-          </div>
-          <div style="background:var(--card);padding:10px 12px">
-            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">YOUR PROFIT</div>
-            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);margin-top:3px" id="flash-profit-est">—</div>
-          </div>
-          <div style="background:var(--card);padding:10px 12px">
-            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">PLATFORM FEE</div>
-            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text3);margin-top:3px" id="flash-fee-est">—</div>
-          </div>
-        </div>
-
-        <!-- Legs table -->
-        <div style="margin-bottom:14px" id="flash-legs-table"></div>
-
-        <!-- Timer bar -->
-        <div style="width:100%;height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden">
-          <div id="flash-timer-bar" style="height:100%;background:var(--green);border-radius:2px;width:100%;transition:width 1s linear"></div>
-        </div>
-
-        <!-- Fee escalation notice -->
-        <div id="flash-fee-escalation" style="font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;margin-bottom:10px">
-          <span id="flash-fee-label">Grab it now: <span style="color:#10b981">20% fee</span></span>
+      <!-- Stream header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">
+          <span id="stream-scan-count">0</span> markets scanned
           <span style="color:var(--border);margin:0 6px">|</span>
-          <span>Auto-execute at 0s: <span style="color:#f59e0b">50% fee</span></span>
+          <span id="stream-grab-count">0</span> grabbed
+          <span style="color:var(--border);margin:0 6px">|</span>
+          Act fast = <span style="color:#10b981">20% fee</span> · Timer out = <span style="color:#f59e0b">50% auto-execute</span>
         </div>
-
-        <button class="btn-primary" onclick="flashExecute()" id="flash-exec-btn">Grab It — 20% Fee</button>
-      </div>
-
-      <!-- No edge state -->
-      <div id="flash-no-edge" style="display:none">
-        <div style="text-align:center;padding:16px 0">
-          <div style="font-size:13px;font-weight:700;color:var(--text3);margin-bottom:6px">No edge found</div>
-          <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="flash-no-edge-detail">Markets are fairly priced. Try again later.</div>
-          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite"></span>
+          <span style="font-family:var(--mono);font-size:9px;color:#10b981;letter-spacing:.08em">LIVE</span>
         </div>
       </div>
 
-      <!-- Executed state -->
-      <div id="flash-executed" style="display:none">
-        <div style="text-align:center;padding:16px 0">
-          <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:14px">Play executed</div>
-          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:16px">
-            <div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">YOUR PROFIT</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--green);margin-top:4px" id="flash-profit-final">—</div>
-            </div>
-            <div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">PLATFORM FEE (20%)</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--text3);margin-top:4px" id="flash-fee-final">—</div>
-            </div>
-          </div>
-          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
+      <!-- Anomaly cards container — up to 3 cards -->
+      <div id="stream-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-height:180px">
+        <!-- Empty state -->
+        <div id="stream-empty" style="grid-column:1/-1;text-align:center;padding:40px 0;display:block">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.06em;margin-bottom:6px">SCANNING FOR ANOMALIES...</div>
+          <div style="font-size:11px;color:var(--text3)">Mispriced markets will appear here as cards. Grab them before the timer runs out.</div>
         </div>
       </div>
 
-      <!-- Expired state -->
-      <div id="flash-expired" style="display:none">
-        <div style="text-align:center;padding:16px 0">
-          <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">Play expired</div>
-          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">The window closed and auto-execute was off. Prices may have shifted.</div>
-          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
-        </div>
-      </div>
-
-      <!-- Auto-executed state -->
-      <div id="flash-auto-executed" style="display:none">
-        <div style="text-align:center;padding:16px 0">
-          <div style="font-size:14px;font-weight:700;color:#f59e0b;margin-bottom:6px">Auto-executed at 50% fee</div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Timer ran out. WICK grabbed it for you at a higher platform cut. Next time, act faster to keep more.</div>
-          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:16px">
-            <div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">YOUR PROFIT</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:#f59e0b;margin-top:4px" id="flash-auto-profit">—</div>
-            </div>
-            <div>
-              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">PLATFORM FEE (50%)</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--text3);margin-top:4px" id="flash-auto-fee">—</div>
-            </div>
-          </div>
-          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
-        </div>
+      <!-- Recent grabs log -->
+      <div id="stream-log" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;display:none">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">RECENT ACTIVITY</div>
+        <div id="stream-log-entries" style="font-family:var(--mono);font-size:10px;color:var(--text2);max-height:80px;overflow-y:auto"></div>
       </div>
     </div>
 
@@ -2392,187 +2325,217 @@ async function pmPollFeed() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// FLASH PLAY — on-demand NegRisk scan + 60s execution window
+// ANOMALY STREAM — live feed of up to 3 anomaly cards with individual timers
 // ══════════════════════════════════════════════════════════════════════════════
-let _flashPlayId = null;
-let _flashTimer = null;
-let _flashSeconds = 0;
-let _flashAutoExecute = true;
+const _streamCards = new Map();
+let _streamPollTimer = null;
+let _streamGrabCount = 0;
+let _streamScanCount = 0;
+const STREAM_TTL = 15;
+const STREAM_MAX_CARDS = 3;
+const STREAM_POLL_MS = 8000;
 
-function flashShowState(state) {
-  ['ready','scanning','play','no-edge','executed','expired','auto-executed'].forEach(s => {
-    const el = document.getElementById('flash-' + s);
-    if (el) el.style.display = s === state ? 'block' : 'none';
-  });
-  const badge = document.getElementById('flash-status-badge');
-  const map = {
-    ready:    { t:'READY',    c:'' },
-    scanning: { t:'SCANNING', c:'#4D8FFF' },
-    play:     { t:'LIVE',     c:'#10b981' },
-    'no-edge':{ t:'NO EDGE',  c:'#5a6a7a' },
-    executed: { t:'FILLED',   c:'#10b981' },
-    expired:  { t:'EXPIRED',  c:'#f43f5e' },
-    'auto-executed': { t:'AUTO-FILLED', c:'#f59e0b' },
-  };
-  const m = map[state] || map.ready;
-  badge.textContent = m.t;
-  if (m.c) { badge.style.background = m.c + '18'; badge.style.color = m.c; }
-  else { badge.style.background = ''; badge.style.color = ''; }
+function streamStart() {
+  if (_streamPollTimer) return;
+  streamPoll();
+  _streamPollTimer = setInterval(streamPoll, STREAM_POLL_MS);
 }
 
-window.flashScan = async function() {
-  flashShowState('scanning');
+function streamStop() {
+  if (_streamPollTimer) { clearInterval(_streamPollTimer); _streamPollTimer = null; }
+  _streamCards.forEach(c => { if (c.timer) clearInterval(c.timer); });
+  _streamCards.clear();
+}
+
+async function streamPoll() {
+  if (_streamCards.size >= STREAM_MAX_CARDS) return;
   try {
     const r = await apiFetch('/api/polymarket-engine?action=flash_scan', { method: 'POST' });
     const d = await r.json();
+    _streamScanCount += d.scanned || 1;
+    document.getElementById('stream-scan-count').textContent = _streamScanCount;
 
-    if (d.error) {
-      document.getElementById('flash-no-edge-detail').textContent = d.error;
-      flashShowState('no-edge');
-      return;
-    }
+    if (d.verdict !== 'PLAY_FOUND') return;
+    if (_streamCards.has(d.playId)) return;
+    if (_streamCards.size >= STREAM_MAX_CARDS) return;
 
-    if (d.verdict !== 'PLAY_FOUND') {
-      const detail = d.verdict === 'RISK_HALT' ? 'Risk desk has halted trading: ' + (d.reason || '')
-        : d.verdict === 'CRITICAL_STANDBY' ? 'Wallet balance below $500 minimum.'
-        : `Scanned ${d.scanned || 0} brackets, ${d.filtered || 0} passed filter. No mispricing above hurdle.`;
-      document.getElementById('flash-no-edge-detail').textContent = detail;
-      flashShowState('no-edge');
-      return;
-    }
+    streamAddCard(d);
+  } catch {}
+}
 
-    _flashPlayId = d.playId;
-    _flashAutoExecute = d.autoExecute !== false;
-    document.getElementById('flash-bracket').textContent = d.bracket || '—';
-    document.getElementById('flash-edge').textContent = d.edgePct ? d.edgePct + '%' : '—';
-    document.getElementById('flash-leg').textContent = d.legs?.[0]?.size ? '$' + d.legs[0].size : '—';
-    document.getElementById('flash-profit-est').textContent = d.userProfit != null ? '+$' + d.userProfit.toFixed(4) : '—';
-    document.getElementById('flash-fee-est').textContent = d.platformFee != null ? '$' + d.platformFee.toFixed(4) : '—';
-    document.getElementById('flash-mode-label').textContent = (d.mode || 'sandbox') + ' · ' + (d.legs?.length || 0) + ' legs · $' + (d.totalDeployed || 0) + ' deployed';
+function streamAddCard(d) {
+  const container = document.getElementById('stream-cards');
+  const emptyEl = document.getElementById('stream-empty');
+  if (emptyEl) emptyEl.style.display = 'none';
 
-    const confPct = d.confidence || 0;
-    document.getElementById('flash-confidence-bar').style.width = confPct + '%';
-    document.getElementById('flash-confidence-pct').textContent = confPct + '%';
-    document.getElementById('flash-confidence-pct').style.color = confPct >= 75 ? '#10b981' : confPct >= 50 ? '#f59e0b' : '#f43f5e';
+  const id = d.playId;
+  const ttl = d.ttlSeconds || STREAM_TTL;
+  const conf = d.confidence || 0;
+  const confColor = conf >= 75 ? '#10b981' : conf >= 50 ? '#f59e0b' : '#f43f5e';
+  const edgePct = d.edgePct || '0';
+  const profit = d.userProfit != null ? '+$' + d.userProfit.toFixed(4) : '—';
+  const bracket = (d.bracket || 'Unknown Market').slice(0, 45);
+  const platform = (d.platform || 'Polymarket').toUpperCase();
+  const whaleHtml = d.whaleSignal
+    ? `<div style="display:flex;align-items:center;gap:4px;margin-top:6px;font-size:9px;color:#c084fc;font-family:var(--mono)">&#129395; ${d.whaleSignal}</div>`
+    : '';
+  const whaleBadge = d.whaleSignal
+    ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:#c084fc;padding:1px 5px;border-radius:3px;margin-left:4px">&#129395;</span>'
+    : '';
 
-    const whaleBadge = document.getElementById('flash-whale-badge');
-    const whaleDetail = document.getElementById('flash-whale-detail');
-    if (d.whaleSignal) {
-      whaleBadge.style.display = 'inline-block';
-      whaleDetail.style.display = 'flex';
-      document.getElementById('flash-whale-text').textContent = d.whaleSignal;
-    } else {
-      whaleBadge.style.display = 'none';
-      whaleDetail.style.display = 'none';
-    }
+  const card = document.createElement('div');
+  card.className = 'anom-card';
+  card.id = 'anom-' + id;
+  card.onclick = () => streamGrab(id);
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+          <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 5px;border-radius:3px">${platform}</span>
+          ${whaleBadge}
+        </div>
+        <div style="font-size:13px;font-weight:800;line-height:1.3;color:var(--text1)">${bracket}</div>
+      </div>
+      <div style="text-align:center;flex-shrink:0;margin-left:8px">
+        <div style="font-family:var(--mono);font-size:24px;font-weight:800;color:#10b981" id="timer-${id}">${ttl}</div>
+        <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">SEC</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <span style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.06em">AI</span>
+      <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div style="height:100%;background:linear-gradient(90deg,#3b82f6,${confColor});border-radius:2px;width:${conf}%"></div>
+      </div>
+      <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${confColor}">${conf}%</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:6px">
+      <div style="background:var(--card);padding:8px 10px">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">EDGE</div>
+        <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:#10b981;margin-top:2px">${edgePct}%</div>
+      </div>
+      <div style="background:var(--card);padding:8px 10px">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">EST. PROFIT</div>
+        <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:#10b981;margin-top:2px">${profit}</div>
+      </div>
+    </div>
+    ${whaleHtml}
+    <div style="text-align:center;margin-top:8px">
+      <div style="font-family:var(--mono);font-size:9px;font-weight:700;color:#10b981;letter-spacing:.06em" id="fee-${id}">TAP TO GRAB — 20% FEE</div>
+    </div>
+    <div class="timer-bar" id="bar-${id}" style="width:100%"></div>
+  `;
+  container.appendChild(card);
 
-    const platformBadge = document.getElementById('flash-platform-badge');
-    platformBadge.textContent = (d.platform || 'POLYMARKET').toUpperCase();
+  let secs = ttl;
+  const cardData = {
+    playId: id,
+    data: d,
+    secs,
+    timer: setInterval(() => {
+      secs--;
+      cardData.secs = secs;
+      const timerEl = document.getElementById('timer-' + id);
+      const barEl = document.getElementById('bar-' + id);
+      const feeEl = document.getElementById('fee-' + id);
+      if (!timerEl) { clearInterval(cardData.timer); return; }
 
-    const legsTable = document.getElementById('flash-legs-table');
-    if (d.legs?.length) {
-      legsTable.innerHTML = `<table class="trade-table"><thead><tr><th>Action</th><th>Token</th><th>Price</th><th>Size</th></tr></thead><tbody>${
-        d.legs.map(l => `<tr><td><span class="badge buy">${l.action}</span></td><td style="color:var(--text1)">${(l.slug||'').slice(0,30)}</td><td style="color:var(--text1)">$${l.price}</td><td>$${l.size}</td></tr>`).join('')
-      }</tbody></table>`;
-    }
+      timerEl.textContent = secs;
+      barEl.style.width = ((secs / ttl) * 100) + '%';
 
-    flashShowState('play');
-    flashStartTimer(d.ttlSeconds || 60);
-  } catch (err) {
-    document.getElementById('flash-no-edge-detail').textContent = 'Scan failed: ' + err.message;
-    flashShowState('no-edge');
-  }
-};
+      if (secs <= Math.floor(ttl * 0.33)) {
+        timerEl.style.color = '#f43f5e';
+        barEl.className = 'timer-bar crit';
+        feeEl.textContent = 'TAP TO GRAB — 50% FEE';
+        feeEl.style.color = '#f43f5e';
+      } else if (secs <= Math.floor(ttl * 0.66)) {
+        timerEl.style.color = '#f59e0b';
+        barEl.className = 'timer-bar warn';
+        feeEl.textContent = 'TAP TO GRAB — 35% FEE';
+        feeEl.style.color = '#f59e0b';
+      }
 
-window.flashExecute = async function(autoTriggered) {
-  if (!_flashPlayId) return;
-  const btn = document.getElementById('flash-exec-btn');
-  btn.disabled = true; btn.textContent = autoTriggered ? 'Auto-executing...' : 'Executing...';
+      if (secs <= 0) {
+        clearInterval(cardData.timer);
+        streamAutoExecute(id);
+      }
+    }, 1000),
+  };
+  _streamCards.set(id, cardData);
+}
+
+async function streamGrab(playId) {
+  const cardData = _streamCards.get(playId);
+  if (!cardData) return;
+  clearInterval(cardData.timer);
+
+  const cardEl = document.getElementById('anom-' + playId);
+  if (cardEl) cardEl.className = 'anom-card grabbed';
+
   try {
     const r = await apiFetch('/api/polymarket-engine?action=flash_execute', {
       method: 'POST',
-      body: JSON.stringify({ playId: _flashPlayId, autoExecuted: !!autoTriggered }),
+      body: JSON.stringify({ playId, autoExecuted: false }),
     });
     const d = await r.json();
-    clearInterval(_flashTimer);
-
-    if (!r.ok) {
-      if (r.status === 410) { flashShowState('expired'); return; }
-      document.getElementById('flash-no-edge-detail').textContent = d.error || 'Execution failed';
-      flashShowState('no-edge');
-      return;
-    }
-
-    if (autoTriggered) {
-      document.getElementById('flash-auto-profit').textContent = '+$' + (d.userProfit || 0).toFixed(4);
-      document.getElementById('flash-auto-fee').textContent = '$' + (d.platformFee || 0).toFixed(4);
-      flashShowState('auto-executed');
-    } else {
-      document.getElementById('flash-profit-final').textContent = '+$' + (d.userProfit || 0).toFixed(4);
-      document.getElementById('flash-fee-final').textContent = '$' + (d.platformFee || 0).toFixed(4);
-      flashShowState('executed');
-    }
-  } catch (err) {
-    btn.disabled = false; btn.textContent = 'Grab It — 20% Fee';
+    _streamGrabCount++;
+    document.getElementById('stream-grab-count').textContent = _streamGrabCount;
+    streamLog('GRABBED', cardData.data.bracket, d.userProfit, '20%', '#10b981');
+  } catch {
+    streamLog('FAILED', cardData.data.bracket, 0, '—', '#f43f5e');
   }
-};
 
-window.flashReset = function() {
-  _flashPlayId = null;
-  _flashAutoExecute = true;
-  clearInterval(_flashTimer);
-  document.getElementById('flash-scan-btn').disabled = false;
-  document.getElementById('flash-exec-btn').disabled = false;
-  document.getElementById('flash-exec-btn').textContent = 'Grab It — 20% Fee';
-  document.getElementById('flash-timer').style.color = '';
-  document.getElementById('flash-timer-bar').style.background = 'var(--green)';
-  document.getElementById('flash-legs-table').innerHTML = '';
-  document.getElementById('flash-confidence-bar').style.width = '0%';
-  document.getElementById('flash-confidence-pct').textContent = '—';
-  document.getElementById('flash-whale-badge').style.display = 'none';
-  document.getElementById('flash-whale-detail').style.display = 'none';
-  flashShowState('ready');
-};
+  setTimeout(() => streamRemoveCard(playId), 500);
+}
 
-function flashStartTimer(seconds) {
-  _flashSeconds = seconds;
-  const timerEl = document.getElementById('flash-timer');
-  const barEl = document.getElementById('flash-timer-bar');
-  const feeLabel = document.getElementById('flash-fee-label');
-  const execBtn = document.getElementById('flash-exec-btn');
-  const total = seconds;
-  const halfwayMark = Math.floor(total / 2);
-  timerEl.textContent = _flashSeconds;
-  timerEl.style.color = 'var(--green)';
-  barEl.style.background = 'var(--green)';
-  barEl.style.width = '100%';
+async function streamAutoExecute(playId) {
+  const cardData = _streamCards.get(playId);
+  if (!cardData) return;
 
-  _flashTimer = setInterval(() => {
-    _flashSeconds--;
-    timerEl.textContent = _flashSeconds;
-    barEl.style.width = ((_flashSeconds / total) * 100) + '%';
+  const cardEl = document.getElementById('anom-' + playId);
+  if (cardEl) cardEl.className = 'anom-card fading';
 
-    if (_flashSeconds <= halfwayMark && _flashSeconds > 10) {
-      timerEl.style.color = '#f59e0b';
-      barEl.style.background = '#f59e0b';
-      feeLabel.innerHTML = 'Grab now: <span style="color:#f59e0b">35% fee</span>';
-      execBtn.textContent = 'Grab It — 35% Fee';
-    }
-    if (_flashSeconds <= 10) {
-      timerEl.style.color = 'var(--red)';
-      barEl.style.background = 'var(--red)';
-      feeLabel.innerHTML = 'Grab now: <span style="color:#f43f5e">50% fee</span>';
-      execBtn.textContent = 'Grab It — 50% Fee';
-    }
-    if (_flashSeconds <= 0) {
-      clearInterval(_flashTimer);
-      if (_flashAutoExecute) {
-        flashExecute(true);
-      } else {
-        flashShowState('expired');
-      }
-    }
-  }, 1000);
+  try {
+    const r = await apiFetch('/api/polymarket-engine?action=flash_execute', {
+      method: 'POST',
+      body: JSON.stringify({ playId, autoExecuted: true }),
+    });
+    const d = await r.json();
+    streamLog('AUTO', cardData.data.bracket, d.userProfit, '50%', '#f59e0b');
+  } catch {
+    streamLog('EXPIRED', cardData.data.bracket, 0, '—', '#5a6a7a');
+  }
+
+  setTimeout(() => streamRemoveCard(playId), 400);
+}
+
+function streamRemoveCard(playId) {
+  const cardEl = document.getElementById('anom-' + playId);
+  if (cardEl) cardEl.remove();
+  _streamCards.delete(playId);
+
+  if (_streamCards.size === 0) {
+    const emptyEl = document.getElementById('stream-empty');
+    if (emptyEl) emptyEl.style.display = 'block';
+  }
+}
+
+function streamLog(type, bracket, profit, fee, color) {
+  const log = document.getElementById('stream-log');
+  const entries = document.getElementById('stream-log-entries');
+  log.style.display = 'block';
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const profitStr = profit != null && profit > 0 ? '+$' + profit.toFixed(4) : '—';
+  const entry = document.createElement('div');
+  entry.style.cssText = 'margin-bottom:4px;display:flex;align-items:center;gap:8px';
+  entry.innerHTML = `
+    <span style="color:var(--text3)">${time}</span>
+    <span style="color:${color};font-weight:700;min-width:48px">${type}</span>
+    <span style="color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(bracket||'').slice(0,40)}</span>
+    <span style="color:${color};font-weight:700">${profitStr}</span>
+    <span style="color:var(--text3)">${fee} fee</span>
+  `;
+  entries.insertBefore(entry, entries.firstChild);
+  if (entries.children.length > 10) entries.lastChild.remove();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -3171,6 +3134,7 @@ function applyStatusToUI(d) {
   document.getElementById('flash-play-tile').style.display = 'block';
   document.getElementById('risk-desk-tile').style.display  = 'block';
   loadRiskStatus();
+  streamStart();
 
   if (d.fuel) updateFuelUI(d.fuel);
   if (d.badges) renderBadges(d.badges);

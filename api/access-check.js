@@ -22,9 +22,12 @@ module.exports = async (req, res) => {
   const userDoc = await db.collection('users').doc(decoded.uid).get();
   const data = userDoc.exists ? userDoc.data() : {};
 
+  const balance = data.walletBalance || 0;
+  const fueled = balance > 0;
+
   return res.json({
-    accessGranted: data.accessGranted === true,
-    subscriptionStatus: data.subscriptionStatus || null,
-    periodEnd: data.subscriptionCurrentPeriodEnd || null,
+    fueled,
+    walletBalance: balance,
+    lastFuelAt: data.lastFuelAt || null,
   });
 };

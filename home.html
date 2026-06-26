@@ -117,136 +117,135 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
 <!-- ═══ 4-QUADRANT GRID ═══ -->
 <main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-5 flex-grow">
 
-  <!-- Q1 — THE MULTIPLEX MACHINE -->
+  <!-- Q1 — WICK NETWORK -->
   <div class="quad animate-float d1">
     <div class="absolute top-0 right-0 w-40 h-40 bg-blue-600/8 rounded-full blur-3xl pointer-events-none"></div>
     <div>
       <div class="flex justify-between items-center mb-5">
-        <span class="text-[9px] bg-blue-600/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font">MULTIPLEX MACHINE</span>
-        <span class="text-[10px] text-slate-500 font-mono tracking-tight">VOL: $2.4M</span>
+        <span class="text-[9px] bg-blue-600/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font">LIVE NETWORK</span>
+        <span class="text-[10px] text-slate-500 font-mono tracking-tight">REAL-TIME</span>
       </div>
 
       <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white game-font mb-2">
         WICK <span class="text-blue-500">NETWORK</span>
       </h1>
-      <p class="text-xs text-slate-400 mb-5 leading-relaxed max-w-sm">
-        AI scans prediction markets for mispriced odds. Anomalies appear with a <span class="text-white font-semibold">15-second timer</span>. Grab it fast, keep more. Wait too long, WICK auto-executes at a higher cut.
+      <p class="text-sm text-slate-400 mb-5 leading-relaxed max-w-sm">
+        WICK watches breaking news, connects to Polymarket, and creates trades before anyone else can react.
       </p>
 
-      <span class="text-[9px] font-bold tracking-wider text-slate-500 block uppercase mb-2 game-font">Active Anomaly Preview</span>
+      <span class="text-[9px] font-bold tracking-wider text-slate-500 block uppercase mb-3 game-font">Connected Live Channels</span>
 
-      <!-- Demo anomaly card -->
-      <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition rounded-xl p-4 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0"><div class="demo-bar"></div></div>
-
-        <div class="flex justify-between items-start mb-3 mt-1">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-[8px] font-bold bg-blue-600/10 border border-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded game-font">POLYMARKET</span>
-              <span class="text-[8px] font-bold bg-purple-600/10 border border-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded game-font">&#129395; WHALE</span>
+      <!-- Live channel feeds -->
+      <div class="space-y-2 mb-4">
+        <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white/5 border border-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[10px] font-black text-white game-font">R</span>
             </div>
-            <div class="text-sm font-bold text-white">US Presidential Election 2028</div>
-          </div>
-          <div class="text-center flex-shrink-0 ml-3">
-            <div class="text-xl font-black text-emerald-400 game-font">12s</div>
-            <div class="text-[7px] text-slate-500 tracking-wider">LEFT</div>
-          </div>
-        </div>
-
-        <!-- Confidence bar -->
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-[8px] text-slate-500 game-font tracking-wider">AI</span>
-          <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full" style="width:87%"></div>
-          </div>
-          <span class="text-[11px] font-bold text-emerald-400 game-font">87%</span>
-        </div>
-
-        <!-- Odds row -->
-        <div class="space-y-1.5 mb-3">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] text-slate-300">Buy NO: Candidate A</span>
-            <div class="flex gap-1.5">
-              <span class="odds-btn odds-yes">92&#162;</span>
-              <span class="odds-btn odds-no">8&#162;</span>
+            <div>
+              <div class="text-xs font-bold text-white">Reuters Wire</div>
+              <div class="text-[10px] text-slate-500">Breaking news &amp; global events</div>
             </div>
           </div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] text-slate-300">Buy NO: Candidate B</span>
-            <div class="flex gap-1.5">
-              <span class="odds-btn odds-yes">88&#162;</span>
-              <span class="odds-btn odds-no">12&#162;</span>
-            </div>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] text-slate-300">Buy NO: Candidate C</span>
-            <div class="flex gap-1.5">
-              <span class="odds-btn odds-yes">95&#162;</span>
-              <span class="odds-btn odds-no">5&#162;</span>
-            </div>
-          </div>
+          <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold game-font"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="animation:pulse-live 1.5s infinite"></span>LIVE</span>
         </div>
 
-        <!-- Edge + Grab -->
-        <div class="flex items-center justify-between bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2">
-          <div>
-            <div class="text-[8px] text-slate-500 game-font uppercase">Edge</div>
-            <div class="text-lg font-black text-emerald-400 game-font">+3.2%</div>
+        <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-red-600/10 border border-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[10px] font-black text-red-400 game-font">CNN</span>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">CNN</div>
+              <div class="text-[10px] text-slate-500">Politics &amp; world news</div>
+            </div>
           </div>
-          <button class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2 rounded-lg transition shadow-lg shadow-blue-600/15 cursor-default game-font uppercase tracking-wider">
-            Grab It
-          </button>
+          <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold game-font"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="animation:pulse-live 1.5s infinite"></span>LIVE</span>
         </div>
+
+        <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-orange-600/10 border border-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[9px] font-black text-orange-400 game-font">ESPN</span>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">ESPN</div>
+              <div class="text-[10px] text-slate-500">Live scores &amp; sports outcomes</div>
+            </div>
+          </div>
+          <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold game-font"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="animation:pulse-live 1.5s infinite"></span>LIVE</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-blue-600/10 border border-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[8px] font-black text-blue-400 game-font">GOV</span>
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-white">Gov Filings</div>
+              <div class="text-[9px] text-slate-500">SEC &amp; regulatory</div>
+            </div>
+          </div>
+          <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-emerald-600/10 border border-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[7px] font-black text-emerald-400 game-font">NDQ</span>
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-white">NASDAQ</div>
+              <div class="text-[9px] text-slate-500">Market data</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-blue-600/8 border border-blue-500/15 rounded-lg px-3 py-2 text-center">
+        <span class="text-[10px] text-blue-400 font-bold game-font uppercase tracking-wider">News breaks &#8594; WICK trades &#8594; Real-time execution</span>
       </div>
     </div>
     <div class="mt-4 pt-3 border-t border-slate-800/60 flex justify-between items-center text-[10px] font-mono text-slate-500">
-      <span>Up to 3 cards appear at once — tap before they vanish</span>
-      <span class="text-emerald-400 font-bold">READY</span>
+      <span>5 live channels connected to Polymarket</span>
+      <span class="text-emerald-400 font-bold">ONLINE</span>
     </div>
   </div>
 
-  <!-- Q2 — MECHANICS -->
+  <!-- Q2 — HOW IT WORKS (simple) -->
   <div class="quad animate-float d2">
     <div>
-      <span class="text-[9px] bg-purple-600/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">MECHANICS</span>
+      <span class="text-[9px] bg-purple-600/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">HOW IT WORKS</span>
 
-      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-100 game-font mb-5 leading-snug">
-        Reads the board. Scores the odds. You call the shot.
+      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-100 game-font mb-2 leading-snug">
+        Breaking news hits.<br>WICK trades it instantly.
       </h3>
+      <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+        WICK is plugged into live news channels. When something happens in the real world, it finds the matching market on Polymarket and places the trade &mdash; before anyone else.
+      </p>
 
       <div class="space-y-3">
         <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
           <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
           <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">Scans the Table</strong>
-            <span class="text-slate-400">AI reads Polymarket, Kalshi & Limitless 24/7. Finds mispriced odds where the math doesn't add up.</span>
+            <strong class="text-white block font-semibold mb-0.5">News breaks</strong>
+            <span class="text-slate-400">Reuters drops a headline, ESPN updates a score, a government filing goes public. WICK sees it the second it happens.</span>
           </div>
         </div>
         <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
           <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
           <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">Scores the Odds</strong>
-            <span class="text-slate-400">Each anomaly gets an <span class="text-blue-400 font-semibold">AI confidence score</span> + whale activity tracking. You see exactly how strong the edge is.</span>
+            <strong class="text-white block font-semibold mb-0.5">WICK finds the trade</strong>
+            <span class="text-slate-400">It matches the news to prediction markets on Polymarket. If the odds haven't caught up yet, that's your edge.</span>
           </div>
         </div>
         <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
-          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+          <span class="bg-emerald-500 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
           <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">You Grab It (15s)</strong>
-            <span class="text-slate-400">Cards drop with a countdown. <span class="text-emerald-400 font-semibold">Act fast = 20% fee</span>. Wait = fee climbs. Timer out = WICK auto-executes at 50%.</span>
-          </div>
-        </div>
-        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
-          <span class="bg-emerald-500 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-          <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">You Profit</strong>
-            <span class="text-slate-400">Trade executes through your wallet. Non-custodial. The edge is real — <span class="text-emerald-400 font-semibold">we only win when you win</span>.</span>
+            <strong class="text-white block font-semibold mb-0.5">Real-time execution</strong>
+            <span class="text-slate-400">The trade goes through your wallet automatically. You keep the profit. WICK only takes a cut of what you make &mdash; never a cut of what you put in.</span>
           </div>
         </div>
       </div>
     </div>
     <div class="mt-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider game-font">
-      Automated player advantages enabled
+      That's it. News in, trades out.
     </div>
   </div>
 

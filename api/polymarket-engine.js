@@ -1,8 +1,10 @@
 const admin = require('firebase-admin');
-const { db } = require('../lib/firebase-config');
-const { PolymarketAlphaEngine } = require('../lib/polymarket-alpha');
+const { db, FieldValue } = require('../lib/firebase-config');
+const { PolymarketAlphaEngine, PLATFORM_FEE_PCT } = require('../lib/polymarket-alpha');
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
+
+const FLASH_PLAY_TTL_MS = 60 * 1000;
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -244,8 +246,8 @@ module.exports = async (req, res) => {
 
     if (!target) return res.status(404).json({ error: 'Bracket not found or no longer active' });
 
-    const results = await engine.executeBracketArbitrage(target, legSize);
-    return res.json({ ok: true, legs: results, mode });
+    const result = await engine.executeBracketArbitrage(target, legSize);
+    return res.json({ ok: true, ...result, mode });
   }
 
   // ── Claude-backed NegRisk evaluation ──
@@ -305,6 +307,176 @@ module.exports = async (req, res) => {
     const engine = new PolymarketAlphaEngine(decoded.uid);
     const metrics = await engine.getPerformanceMetrics();
     return res.json(metrics);
+  }
+
+  // ── Flash Scan: on-demand single best play with 60s timer ──
+  if (action === 'flash_scan') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const walletBalance = userData.walletBalance || 0;
+    const mode = userData.mode || 'sandbox';
+
+    const [riskBounds, engine] = [
+      await getRiskBoundaries(),
+      new PolymarketAlphaEngine(decoded.uid, { mode }),
+    ];
+
+    if (riskBounds.system_level === 'HALT') {
+      return res.json({ verdict: 'RISK_HALT', reason: riskBounds.reasoning_brief });
+    }
+
+    if (walletBalance < 500) {
+      return res.json({ verdict: 'CRITICAL_STANDBY', walletBalance });
+    }
+
+    const brackets = await engine.fetchActiveNegRiskBrackets();
+
+    const blacklist = new Set(riskBounds.blacklist || []);
+    const eligible = brackets.filter(b =>
+      !b.tokens.some(t => blacklist.has(t.slug))
+    );
+
+    const candidates = [];
+    for (const bracket of eligible) {
+      const basketSum = bracket.tokens.reduce((s, t) => s + t.currentYesPrice, 0);
+      const edge = basketSum - 1.00;
+      if (edge >= 0.03) candidates.push({ bracket, basketSum, edge });
+    }
+
+    if (candidates.length === 0) {
+      return res.json({ verdict: 'NO_EDGE', scanned: brackets.length });
+    }
+
+    const effectiveBalance = Math.min(walletBalance, riskBounds.max_allocation_pusd || 2500);
+    const riskMultiplier = riskBounds.risk_multiplier || 1.0;
+    const maxLeg = riskBounds.max_leg_size_pusd || 50;
+    const effectiveLegSize = Math.round(maxLeg * riskMultiplier);
+
+    const verdicts = await Promise.all(
+      candidates.map(async ({ bracket, edge }) => {
+        const payload = buildMarketPayload(bracket, effectiveBalance);
+        const verdict = await evaluateArbitrage(payload);
+        return { bracket, edge, verdict };
+      })
+    );
+
+    const approved = verdicts
+      .filter(v => v.verdict.verdict === 'APPROVED_FOR_EXECUTION')
+      .sort((a, b) => b.edge - a.edge);
+
+    if (approved.length === 0) {
+      return res.json({ verdict: 'NO_EDGE', scanned: brackets.length, filtered: candidates.length });
+    }
+
+    const best = approved[0];
+    const noCost = best.bracket.tokens.reduce((s, t) => s + (1 - t.currentYesPrice), 0);
+    const expectedProfit = best.edge * effectiveLegSize;
+    const platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
+    const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
+
+    const playId = `flash_${decoded.uid}_${Date.now()}`;
+    const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
+
+    await db.collection('flash_plays').doc(playId).set({
+      userId: decoded.uid,
+      bracketId: best.bracket.id,
+      bracketTitle: best.bracket.title,
+      tokens: best.bracket.tokens.map(t => ({
+        slug: t.slug,
+        noTokenId: t.noTokenId,
+        yesPrice: t.currentYesPrice,
+        noPrice: 1 - t.currentYesPrice,
+      })),
+      basketSum: best.basketSum,
+      edge: best.edge,
+      edgePct: (best.edge * 100).toFixed(2),
+      legSize: effectiveLegSize,
+      totalDeployed: best.bracket.tokens.length * effectiveLegSize,
+      expectedProfit,
+      platformFee,
+      platformFeePct: PLATFORM_FEE_PCT,
+      userProfit,
+      expiresAt,
+      status: 'PENDING',
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    return res.json({
+      verdict: 'PLAY_FOUND',
+      playId,
+      expiresAt,
+      ttlSeconds: 60,
+      bracket: best.bracket.title,
+      edgePct: (best.edge * 100).toFixed(2),
+      legs: best.bracket.tokens.map(t => ({
+        action: 'BUY NO',
+        slug: t.slug,
+        price: parseFloat((1 - t.currentYesPrice).toFixed(4)),
+        size: effectiveLegSize,
+      })),
+      totalDeployed: best.bracket.tokens.length * effectiveLegSize,
+      expectedProfit,
+      platformFee,
+      userProfit,
+      mode,
+    });
+  }
+
+  // ── Flash Execute: user confirms play within 60s window ──
+  if (action === 'flash_execute' && req.method === 'POST') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { playId } = req.body || {};
+    if (!playId) return res.status(400).json({ error: 'playId required' });
+
+    const playRef = db.collection('flash_plays').doc(playId);
+    const playDoc = await playRef.get();
+
+    if (!playDoc.exists) return res.status(404).json({ error: 'Play not found' });
+
+    const play = playDoc.data();
+
+    if (play.userId !== decoded.uid) return res.status(403).json({ error: 'Not your play' });
+
+    if (play.status !== 'PENDING') {
+      return res.status(409).json({ error: `Play already ${play.status.toLowerCase()}` });
+    }
+
+    if (Date.now() > play.expiresAt) {
+      await playRef.update({ status: 'EXPIRED' });
+      return res.status(410).json({ error: 'Play expired. Scan again for a fresh opportunity.' });
+    }
+
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const mode = userDoc.exists ? (userDoc.data().mode || 'sandbox') : 'sandbox';
+
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
+    const brackets = await engine.fetchActiveNegRiskBrackets();
+    const target = brackets.find(b => b.id === play.bracketId);
+
+    if (!target) {
+      await playRef.update({ status: 'STALE' });
+      return res.status(404).json({ error: 'Bracket no longer active. Market moved.' });
+    }
+
+    const result = await engine.executeBracketArbitrage(target, play.legSize);
+
+    await playRef.update({
+      status: 'EXECUTED',
+      executedAt: FieldValue.serverTimestamp(),
+      executionResult: result,
+    });
+
+    return res.json({
+      ok: true,
+      playId,
+      ...result,
+      mode,
+    });
   }
 
   // ── Feed ──

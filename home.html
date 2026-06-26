@@ -189,40 +189,35 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
   <div class="quad animate-float d3">
     <div class="absolute top-0 right-0 w-36 h-36 bg-emerald-600/8 rounded-full blur-3xl pointer-events-none"></div>
     <div>
-      <span class="text-[9px] bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">VAULT INTEGRITY</span>
-
-      <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 mb-5 flex gap-3">
-        <span class="text-2xl flex-shrink-0">&#127920;</span>
-        <div>
-          <h4 class="text-slate-100 font-bold text-sm game-font mb-1">Sovereign Asset Rules</h4>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            You retain <span class="text-emerald-400 font-bold">100% full custody of your chips</span>. Your money stays yours — by design. WICK places positions but has <span class="text-red-400 font-bold">zero withdrawal capability</span>.
-          </p>
-        </div>
+      <div class="flex items-center gap-2 mb-5">
+        <span class="text-2xl">&#127920;</span>
+        <span class="text-[9px] bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font">VAULT INTEGRITY</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
-          <span class="block text-emerald-400 font-bold text-[10px] uppercase mb-1 game-font">&#9989; Permitted</span>
-          <span class="text-[11px] text-slate-400">Position placement routing only</span>
+      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-white game-font mb-2">
+        100% CUSTODY
+      </h3>
+      <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+        Your money stays yours.
+      </p>
+
+      <div class="space-y-3">
+        <div class="bg-[#141B25] border border-slate-800 p-3.5 rounded-xl flex items-center gap-3">
+          <span class="text-emerald-400 font-bold text-sm">Permitted:</span>
+          <span class="text-sm text-slate-300">Position routing only.</span>
         </div>
-        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
-          <span class="block text-red-400 font-bold text-[10px] uppercase mb-1 game-font">&#9940; Blocked</span>
-          <span class="text-[11px] text-slate-400">No withdrawal, no transfers</span>
+        <div class="bg-[#141B25] border border-slate-800 p-3.5 rounded-xl flex items-center gap-3">
+          <span class="text-red-400 font-bold text-sm">Blocked:</span>
+          <span class="text-sm text-slate-300">&#128683; Withdrawals &amp; transfers.</span>
         </div>
-        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
-          <span class="block text-blue-400 font-bold text-[10px] uppercase mb-1 game-font">&#128274; Your Keys</span>
-          <span class="text-[11px] text-slate-400">Trades run through your own wallet</span>
-        </div>
-        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
-          <span class="block text-slate-300 font-bold text-[10px] uppercase mb-1 game-font">&#128683; Zero PII</span>
-          <span class="text-[11px] text-slate-400">We don't store personal information</span>
+        <div class="bg-[#141B25] border border-slate-800 p-3.5 rounded-xl flex items-center gap-3">
+          <span class="text-blue-400 font-bold text-sm">Access:</span>
+          <span class="text-sm text-slate-300">Runs natively through your own wallet.</span>
         </div>
       </div>
     </div>
-    <div class="mt-5 flex justify-between items-center text-[10px] font-mono text-slate-500">
-      <span class="game-font uppercase tracking-wider">Audited contract logic</span>
-      <span class="text-emerald-400 font-bold">SECURE</span>
+    <div class="mt-5 pt-3 border-t border-slate-800/60 text-[10px] font-mono text-slate-500 game-font uppercase tracking-wider">
+      Audited Logic. Zero Risk.
     </div>
   </div>
 

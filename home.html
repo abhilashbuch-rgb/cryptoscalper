@@ -3,390 +3,377 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK.Network | Catch Market Anomalies on Polymarket</title>
+<title>WICK NETWORK — Live Prediction Market Terminal</title>
 <meta name="description" content="WICK scans Polymarket, Kalshi & Limitless for pricing anomalies with AI confidence scoring and whale tracking. Grab the edge in 15 seconds. Non-custodial. Invite only.">
-<meta property="og:title" content="WICK.Network | Catch Market Anomalies">
+<meta property="og:title" content="WICK.Network | Live Prediction Market Terminal">
 <meta property="og:description" content="AI-powered anomaly detection across prediction markets. Whale tracking. Confidence scoring. Your wallet, your edge.">
 <meta property="og:url" content="https://wick.network">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230B0E14'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300E676' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%23004BFF' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230026CC' stroke-width='14' stroke-linecap='round'/></g></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-      },
-      colors: {
-        surface: '#111827',
-        card: '#1a2236',
-        cardborder: '#263354',
-      }
-    }
-  }
-}
-</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
-.mono { font-family: 'JetBrains Mono', monospace; }
+body { font-family: 'Inter', sans-serif; background: #0B0E14; }
+.game-font { font-family: 'Space Grotesk', sans-serif; }
+.mono { font-family: 'Space Grotesk', monospace; }
 
-@keyframes pulse-ring {
-  0% { transform: scale(.95); opacity: 1; }
-  70% { transform: scale(1.15); opacity: 0; }
-  100% { transform: scale(.95); opacity: 0; }
-}
+@keyframes pulse-live { 0%,100%{opacity:1} 50%{opacity:.4} }
 @keyframes countdown-bar {
-  0% { width: 100%; background: #22c55e; }
-  50% { background: #eab308; }
-  85% { background: #f97316; }
-  100% { width: 0%; background: #ef4444; }
+  0%   { width:100%; background:#00E676; }
+  60%  { background:#f59e0b; }
+  85%  { background:#ff4455; }
+  100% { width:0%; background:#ff4455; }
 }
 @keyframes float-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
 }
-.animate-float-in { animation: float-in .5s ease-out both; }
-.delay-1 { animation-delay: .1s; }
-.delay-2 { animation-delay: .2s; }
-.delay-3 { animation-delay: .3s; }
-.delay-4 { animation-delay: .4s; }
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-float { animation: float-in .45s ease-out both; }
+.d1 { animation-delay:.08s } .d2 { animation-delay:.16s } .d3 { animation-delay:.24s } .d4 { animation-delay:.32s }
 
-.timer-ring {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.timer-ring::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 2px solid rgba(59,130,246,.3);
-  animation: pulse-ring 2s infinite;
-}
-.demo-bar {
-  height: 4px;
-  border-radius: 2px;
-  animation: countdown-bar 12s linear infinite;
-}
+.demo-bar { height:3px; border-radius:2px; animation: countdown-bar 12s linear infinite; }
+.ticker-track { animation: ticker-scroll 30s linear infinite; }
 
 .form-input {
-  width: 100%;
-  padding: 10px 12px;
-  background: rgba(17,24,39,.8);
-  border: 1px solid rgba(99,118,163,.25);
-  border-radius: 10px;
-  color: #e2e8f0;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 13px;
-  outline: none;
-  transition: border-color .15s;
+  width:100%; padding:10px 12px;
+  background:rgba(20,27,37,.9); border:1px solid rgba(99,118,163,.2);
+  border-radius:10px; color:#e2e8f0; font-family:'Inter',sans-serif;
+  font-size:13px; outline:none; transition:border-color .15s;
 }
-.form-input:focus { border-color: rgba(59,130,246,.6); }
-.form-input::placeholder { color: rgba(148,163,184,.35); }
-.check-group { margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
-.check-group input[type="checkbox"] { width: 14px; height: 14px; margin-top: 1px; accent-color: #3b82f6; flex-shrink: 0; cursor: pointer; }
-#msg { display: none; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 10px 14px; border-radius: 10px; line-height: 1.6; text-align: center; }
-#msg.success, #msg.waitlist { display: block; color: #60a5fa; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); }
-#msg.approved { display: block; color: #4ade80; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); }
-#msg.error { display: block; color: #f87171; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
+.form-input:focus { border-color:rgba(0,75,255,.5); }
+.form-input::placeholder { color:rgba(148,163,184,.3); }
+.check-group { margin-bottom:6px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; }
+.check-group input[type="checkbox"] { width:14px; height:14px; margin-top:1px; accent-color:#004BFF; flex-shrink:0; cursor:pointer; }
+#msg { display:none; margin-top:12px; font-family:'Space Grotesk',monospace; font-size:10px; padding:10px 14px; border-radius:10px; line-height:1.6; text-align:center; }
+#msg.success, #msg.waitlist { display:block; color:#60a5fa; background:rgba(0,75,255,.08); border:1px solid rgba(0,75,255,.2); }
+#msg.approved { display:block; color:#00E676; background:rgba(0,230,118,.08); border:1px solid rgba(0,230,118,.2); }
+#msg.error { display:block; color:#ff4455; background:rgba(255,68,85,.08); border:1px solid rgba(255,68,85,.2); }
+
+.odds-btn {
+  font-weight:700; font-size:12px; padding:6px 14px; border-radius:8px;
+  transition:all .15s; cursor:default; min-width:52px; text-align:center;
+}
+.odds-yes { background:rgba(0,75,255,.12); border:1px solid rgba(0,75,255,.3); color:#4D8FFF; }
+.odds-yes:hover { background:rgba(0,75,255,.25); }
+.odds-no  { background:rgba(255,68,85,.12); border:1px solid rgba(255,68,85,.3); color:#ff6b7a; }
+.odds-no:hover  { background:rgba(255,68,85,.25); }
+
+.quad {
+  background:#0F141C; border:1px solid rgba(148,163,184,.1);
+  border-radius:16px; padding:24px; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:space-between;
+  box-shadow: 0 4px 30px rgba(0,0,0,.3);
+  transition: border-color .2s;
+}
+.quad:hover { border-color: rgba(148,163,184,.2); }
 </style>
 </head>
-<body class="text-slate-200 min-h-screen selection:bg-blue-500/30 selection:text-blue-100">
+<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-600/30">
 
-<!-- Nav -->
-<header class="w-full max-w-6xl mx-auto flex justify-between items-center px-5 py-5">
-  <div class="flex items-center gap-3">
-    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-base tracking-tighter shadow-md shadow-blue-600/25">W</div>
-    <span class="text-base font-bold tracking-tight uppercase mono">Wick<span class="text-blue-400">.Network</span></span>
+<!-- ═══ HEADER ═══ -->
+<header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 px-4 bg-[#0F141C] border border-slate-800/80 p-4 rounded-xl animate-float">
+  <div class="flex items-center gap-2.5">
+    <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-md shadow-blue-600/20">W</div>
+    <span class="text-md font-bold tracking-tight game-font">WICK<span class="text-blue-500">.NETWORK</span></span>
   </div>
-  <div class="flex items-center gap-5 text-xs mono text-slate-500">
-    <a href="/terms" class="hover:text-slate-300 transition hidden sm:inline">Terms</a>
-    <a href="/privacy" class="hover:text-slate-300 transition hidden sm:inline">Privacy</a>
-    <span class="flex items-center gap-1.5 text-emerald-400">
-      <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-      SCANNING
-    </span>
+  <div class="flex items-center gap-4 text-xs font-semibold">
+    <a href="/terms" class="text-slate-500 hover:text-slate-300 transition hidden sm:inline game-font">Terms</a>
+    <a href="/privacy" class="text-slate-500 hover:text-slate-300 transition hidden sm:inline game-font">Privacy</a>
+    <div class="bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1.5" style="animation:pulse-live 2s infinite">
+      <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+      SCANNING LIVE
+    </div>
   </div>
 </header>
 
-<!-- Hero -->
-<section class="w-full max-w-6xl mx-auto px-5 pt-10 pb-16">
-  <div class="grid lg:grid-cols-2 gap-12 items-center">
-    <div class="animate-float-in">
-      <div class="mono text-[10px] tracking-[.2em] uppercase text-blue-400 font-semibold mb-4">Polymarket Anomaly Scanner</div>
-      <h1 class="text-4xl sm:text-5xl font-extrabold leading-[1.1] tracking-tight mb-5">
-        We find the edge.<br>
-        <span class="text-blue-400">You grab it.</span>
-      </h1>
-      <p class="text-base text-slate-400 leading-relaxed mb-8 max-w-lg">
-        WICK scans prediction markets for pricing anomalies in real time, cross-checking whale activity and AI confidence. When we spot one, you get
-        <span class="text-white font-semibold">15 seconds</span> to lock it in. Act fast, keep more. Wait too long, and the bot takes over at a higher cut.
-      </p>
-      <div class="flex flex-wrap gap-6 mono text-sm">
-        <div>
-          <span class="block text-2xl font-bold text-white">15s</span>
-          <span class="text-[10px] text-slate-500 tracking-wider uppercase">To Act</span>
-        </div>
-        <div>
-          <span class="block text-2xl font-bold text-emerald-400">Real Edge</span>
-          <span class="text-[10px] text-slate-500 tracking-wider uppercase">Not Rigged</span>
-        </div>
-        <div>
-          <span class="block text-2xl font-bold text-purple-400">Whale Intel</span>
-          <span class="text-[10px] text-slate-500 tracking-wider uppercase">Big Money Tracked</span>
-        </div>
+<!-- ═══ LIVE TICKER BAR ═══ -->
+<div class="w-full max-w-7xl mx-auto mb-4 bg-[#0F141C] border border-slate-800/60 rounded-xl overflow-hidden">
+  <div class="flex items-center">
+    <div class="bg-blue-600 text-white text-[9px] font-bold px-3 py-2 game-font tracking-wider flex-shrink-0">LIVE ODDS</div>
+    <div class="flex-1 overflow-hidden py-2 px-3">
+      <div class="ticker-track flex gap-8 whitespace-nowrap" style="width:max-content">
+        <span class="text-[11px] text-slate-400 font-mono">BTC &gt;$120K Jul <span class="text-emerald-400 font-bold">72&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Fed Rate Cut Sep <span class="text-blue-400 font-bold">58&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">ETH &gt;$8K Aug <span class="text-emerald-400 font-bold">41&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">NBA Finals G7 <span class="text-red-400 font-bold">23&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Trump Pardon Jun <span class="text-blue-400 font-bold">67&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">SOL &gt;$300 <span class="text-emerald-400 font-bold">34&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">AI Regulation EU <span class="text-blue-400 font-bold">81&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">BTC &gt;$120K Jul <span class="text-emerald-400 font-bold">72&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Fed Rate Cut Sep <span class="text-blue-400 font-bold">58&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">ETH &gt;$8K Aug <span class="text-emerald-400 font-bold">41&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">NBA Finals G7 <span class="text-red-400 font-bold">23&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Trump Pardon Jun <span class="text-blue-400 font-bold">67&#162;</span></span>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Anomaly Demo Card -->
-    <div class="animate-float-in delay-2">
-      <div class="bg-card border border-cardborder rounded-2xl p-6 shadow-xl shadow-black/20 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-1">
-          <div class="demo-bar rounded-full"></div>
-        </div>
+<!-- ═══ 4-QUADRANT GRID ═══ -->
+<main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-5 flex-grow">
+
+  <!-- Q1 — THE MULTIPLEX MACHINE -->
+  <div class="quad animate-float d1">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-blue-600/8 rounded-full blur-3xl pointer-events-none"></div>
+    <div>
+      <div class="flex justify-between items-center mb-5">
+        <span class="text-[9px] bg-blue-600/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font">MULTIPLEX MACHINE</span>
+        <span class="text-[10px] text-slate-500 font-mono tracking-tight">VOL: $2.4M</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white game-font mb-2">
+        WICK <span class="text-blue-500">NETWORK</span>
+      </h1>
+      <p class="text-xs text-slate-400 mb-5 leading-relaxed max-w-sm">
+        AI scans prediction markets for mispriced odds. Anomalies appear with a <span class="text-white font-semibold">15-second timer</span>. Grab it fast, keep more. Wait too long, WICK auto-executes at a higher cut.
+      </p>
+
+      <span class="text-[9px] font-bold tracking-wider text-slate-500 block uppercase mb-2 game-font">Active Anomaly Preview</span>
+
+      <!-- Demo anomaly card -->
+      <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition rounded-xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0"><div class="demo-bar"></div></div>
+
         <div class="flex justify-between items-start mb-3 mt-1">
           <div>
             <div class="flex items-center gap-2 mb-1">
-              <div class="mono text-[9px] tracking-[.15em] uppercase text-amber-400 font-semibold">Anomaly Detected</div>
-              <span class="inline-flex items-center gap-1 bg-purple-500/12 border border-purple-500/25 text-purple-400 text-[9px] mono font-semibold px-1.5 py-0.5 rounded">
-                &#129395; Whale
-              </span>
+              <span class="text-[8px] font-bold bg-blue-600/10 border border-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded game-font">POLYMARKET</span>
+              <span class="text-[8px] font-bold bg-purple-600/10 border border-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded game-font">&#129395; WHALE</span>
             </div>
-            <div class="text-lg font-bold text-white">US Presidential Election 2028</div>
-            <div class="flex items-center gap-2 mt-1">
-              <span class="text-xs text-slate-500">Multi-outcome basket mispricing</span>
-              <span class="inline-flex items-center bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] mono font-semibold px-1.5 py-0.5 rounded">POLYMARKET</span>
-            </div>
+            <div class="text-sm font-bold text-white">US Presidential Election 2028</div>
           </div>
-          <div class="timer-ring">
-            <div class="w-12 h-12 rounded-full bg-blue-600/15 border-2 border-blue-500/40 flex items-center justify-center">
-              <span class="mono text-sm font-bold text-blue-400">12s</span>
-            </div>
+          <div class="text-center flex-shrink-0 ml-3">
+            <div class="text-xl font-black text-emerald-400 game-font">12s</div>
+            <div class="text-[7px] text-slate-500 tracking-wider">LEFT</div>
           </div>
         </div>
 
         <!-- Confidence bar -->
-        <div class="flex items-center gap-2.5 mb-3 bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
-          <span class="text-[9px] mono text-slate-500 uppercase tracking-wider whitespace-nowrap">AI Confidence</span>
-          <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-[8px] text-slate-500 game-font tracking-wider">AI</span>
+          <div class="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
             <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full" style="width:87%"></div>
           </div>
-          <span class="mono text-xs font-bold text-emerald-400">87%</span>
+          <span class="text-[11px] font-bold text-emerald-400 game-font">87%</span>
         </div>
 
-        <div class="space-y-2 mb-3">
-          <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span class="text-xs text-slate-300">Buy NO: Candidate A</span>
+        <!-- Odds row -->
+        <div class="space-y-1.5 mb-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-300">Buy NO: Candidate A</span>
+            <div class="flex gap-1.5">
+              <span class="odds-btn odds-yes">92&#162;</span>
+              <span class="odds-btn odds-no">8&#162;</span>
             </div>
-            <span class="mono text-xs text-emerald-400 font-semibold">$0.92</span>
           </div>
-          <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span class="text-xs text-slate-300">Buy NO: Candidate B</span>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-300">Buy NO: Candidate B</span>
+            <div class="flex gap-1.5">
+              <span class="odds-btn odds-yes">88&#162;</span>
+              <span class="odds-btn odds-no">12&#162;</span>
             </div>
-            <span class="mono text-xs text-emerald-400 font-semibold">$0.88</span>
           </div>
-          <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span class="text-xs text-slate-300">Buy NO: Candidate C</span>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-300">Buy NO: Candidate C</span>
+            <div class="flex gap-1.5">
+              <span class="odds-btn odds-yes">95&#162;</span>
+              <span class="odds-btn odds-no">5&#162;</span>
             </div>
-            <span class="mono text-xs text-emerald-400 font-semibold">$0.95</span>
           </div>
         </div>
 
-        <!-- Whale signal detail -->
-        <div class="flex items-center gap-2 mb-3 px-3 py-1.5 bg-purple-500/6 border border-purple-500/15 rounded-lg">
-          <span class="text-[10px]">&#129395;</span>
-          <span class="text-[10px] text-purple-300 mono">3 whale wallets moved $42K on this bracket in the last 8 min</span>
-        </div>
-
-        <div class="flex items-center justify-between bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2.5">
+        <!-- Edge + Grab -->
+        <div class="flex items-center justify-between bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2">
           <div>
-            <span class="text-[10px] text-slate-400 mono uppercase">Estimated Edge</span>
-            <span class="block text-lg font-bold text-emerald-400 mono">+3.2%</span>
+            <div class="text-[8px] text-slate-500 game-font uppercase">Edge</div>
+            <div class="text-lg font-black text-emerald-400 game-font">+3.2%</div>
           </div>
-          <button class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-md shadow-blue-600/20 cursor-default">
+          <button class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2 rounded-lg transition shadow-lg shadow-blue-600/15 cursor-default game-font uppercase tracking-wider">
             Grab It
           </button>
         </div>
       </div>
-      <div class="text-center text-[10px] text-slate-600 mt-3 mono">Simulated anomaly card. Up to 3 appear at once — tap to grab before they vanish.</div>
+    </div>
+    <div class="mt-4 pt-3 border-t border-slate-800/60 flex justify-between items-center text-[10px] font-mono text-slate-500">
+      <span>Up to 3 cards appear at once — tap before they vanish</span>
+      <span class="text-emerald-400 font-bold">READY</span>
     </div>
   </div>
-</section>
 
-<!-- How It Works -->
-<section class="w-full max-w-6xl mx-auto px-5 py-16 border-t border-slate-800/50">
-  <div class="text-center mb-12 animate-float-in delay-1">
-    <div class="mono text-[10px] tracking-[.2em] uppercase text-blue-400 font-semibold mb-3">How It Works</div>
-    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Three steps. Real money. Real edge.</h2>
-  </div>
+  <!-- Q2 — MECHANICS -->
+  <div class="quad animate-float d2">
+    <div>
+      <span class="text-[9px] bg-purple-600/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">MECHANICS</span>
 
-  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-1">
-      <div class="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center mb-4">
-        <span class="text-lg">&#128269;</span>
+      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-100 game-font mb-5 leading-snug">
+        Reads the board. Scores the odds. You call the shot.
+      </h3>
+
+      <div class="space-y-3">
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+          <div class="text-xs">
+            <strong class="text-white block font-semibold mb-0.5">Scans the Table</strong>
+            <span class="text-slate-400">AI reads Polymarket, Kalshi & Limitless 24/7. Finds mispriced odds where the math doesn't add up.</span>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+          <div class="text-xs">
+            <strong class="text-white block font-semibold mb-0.5">Scores the Odds</strong>
+            <span class="text-slate-400">Each anomaly gets an <span class="text-blue-400 font-semibold">AI confidence score</span> + whale activity tracking. You see exactly how strong the edge is.</span>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+          <div class="text-xs">
+            <strong class="text-white block font-semibold mb-0.5">You Grab It (15s)</strong>
+            <span class="text-slate-400">Cards drop with a countdown. <span class="text-emerald-400 font-semibold">Act fast = 20% fee</span>. Wait = fee climbs. Timer out = WICK auto-executes at 50%.</span>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-emerald-500 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+          <div class="text-xs">
+            <strong class="text-white block font-semibold mb-0.5">You Profit</strong>
+            <span class="text-slate-400">Trade executes through your wallet. Non-custodial. The edge is real — <span class="text-emerald-400 font-semibold">we only win when you win</span>.</span>
+          </div>
+        </div>
       </div>
-      <h3 class="font-bold text-white mb-2">WICK Scans</h3>
-      <p class="text-sm text-slate-400 leading-relaxed">
-        AI scans Polymarket, Kalshi &amp; Limitless 24/7 for mispriced odds. Each anomaly gets an <span class="text-blue-400 font-semibold">AI confidence score</span> so you know how strong the edge is.
-      </p>
     </div>
-
-    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-2">
-      <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center mb-4">
-        <span class="text-lg">&#129395;</span>
-      </div>
-      <h3 class="font-bold text-white mb-2">Whale Intel</h3>
-      <p class="text-sm text-slate-400 leading-relaxed">
-        We track large wallets in real time. When whales are moving on the same anomaly, you'll see it &mdash; social proof from the <span class="text-purple-400 font-semibold">smart money</span>.
-      </p>
-    </div>
-
-    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-4">
-        <span class="text-lg">&#9201;</span>
-      </div>
-      <h3 class="font-bold text-white mb-2">You Pick (15s)</h3>
-      <p class="text-sm text-slate-400 leading-relaxed">
-        An anomaly card drops with a countdown timer. <span class="text-white font-semibold">Grab it fast = you keep 80%</span>. If the timer runs out, WICK auto-executes at a higher platform cut.
-      </p>
-    </div>
-
-    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-4">
-      <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-4">
-        <span class="text-lg">&#128176;</span>
-      </div>
-      <h3 class="font-bold text-white mb-2">You Profit</h3>
-      <p class="text-sm text-slate-400 leading-relaxed">
-        The trade executes through your own wallet. Non-custodial. The edge is real &mdash; <span class="text-emerald-400 font-semibold">act fast, earn more</span>. We only win when you win.
-      </p>
+    <div class="mt-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider game-font">
+      Automated player advantages enabled
     </div>
   </div>
-</section>
 
-<!-- Trust + Access -->
-<section class="w-full max-w-6xl mx-auto px-5 py-16 border-t border-slate-800/50">
-  <div class="grid lg:grid-cols-2 gap-10">
+  <!-- Q3 — VAULT / CUSTODY -->
+  <div class="quad animate-float d3">
+    <div class="absolute top-0 right-0 w-36 h-36 bg-emerald-600/8 rounded-full blur-3xl pointer-events-none"></div>
+    <div>
+      <span class="text-[9px] bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">VAULT INTEGRITY</span>
 
-    <!-- Trust -->
-    <div class="animate-float-in delay-2">
-      <div class="mono text-[10px] tracking-[.2em] uppercase text-emerald-400 font-semibold mb-4">Your Money Stays Yours</div>
-      <h2 class="text-2xl font-bold tracking-tight mb-5">Non-custodial by design.</h2>
-      <p class="text-sm text-slate-400 leading-relaxed mb-6">
-        We never touch your funds. WICK can place trades through your wallet but cannot withdraw, transfer, or access your capital. You're always in control.
-      </p>
+      <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 mb-5 flex gap-3">
+        <span class="text-2xl flex-shrink-0">&#127920;</span>
+        <div>
+          <h4 class="text-slate-100 font-bold text-sm game-font mb-1">Sovereign Asset Rules</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            You retain <span class="text-emerald-400 font-bold">100% full custody of your chips</span>. Your money stays yours — by design. WICK places positions but has <span class="text-red-400 font-bold">zero withdrawal capability</span>.
+          </p>
+        </div>
+      </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <div class="bg-card border border-cardborder rounded-xl p-4">
-          <div class="text-lg mb-1">&#9889;</div>
-          <div class="text-xs font-semibold text-white mb-0.5">Trade Only</div>
-          <div class="text-[11px] text-slate-500">Scoped to placing orders. Nothing else.</div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-emerald-400 font-bold text-[10px] uppercase mb-1 game-font">&#9989; Permitted</span>
+          <span class="text-[11px] text-slate-400">Position placement routing only</span>
         </div>
-        <div class="bg-card border border-cardborder rounded-xl p-4">
-          <div class="text-lg mb-1">&#9940;</div>
-          <div class="text-xs font-semibold text-red-400 mb-0.5">Zero Withdrawal</div>
-          <div class="text-[11px] text-slate-500">No pathway to move your capital.</div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-red-400 font-bold text-[10px] uppercase mb-1 game-font">&#9940; Blocked</span>
+          <span class="text-[11px] text-slate-400">No withdrawal, no transfers</span>
         </div>
-        <div class="bg-card border border-cardborder rounded-xl p-4">
-          <div class="text-lg mb-1">&#128274;</div>
-          <div class="text-xs font-semibold text-white mb-0.5">Your Keys</div>
-          <div class="text-[11px] text-slate-500">Trades run through your own wallet.</div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-blue-400 font-bold text-[10px] uppercase mb-1 game-font">&#128274; Your Keys</span>
+          <span class="text-[11px] text-slate-400">Trades run through your own wallet</span>
         </div>
-        <div class="bg-card border border-cardborder rounded-xl p-4">
-          <div class="text-lg mb-1">&#128683;</div>
-          <div class="text-xs font-semibold text-white mb-0.5">No Data Collection</div>
-          <div class="text-[11px] text-slate-500">We don't store personal information.</div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-slate-300 font-bold text-[10px] uppercase mb-1 game-font">&#128683; Zero PII</span>
+          <span class="text-[11px] text-slate-400">We don't store personal information</span>
         </div>
       </div>
     </div>
-
-    <!-- Access Gate -->
-    <div class="animate-float-in delay-3">
-      <div class="bg-card border border-cardborder rounded-2xl p-6 shadow-lg shadow-black/15">
-        <div class="mono text-[10px] tracking-[.2em] uppercase text-blue-400 font-semibold mb-1">Get Access</div>
-        <h3 class="text-lg font-bold text-white mb-1">Private beta. Invite only.</h3>
-        <p class="text-xs text-slate-500 mb-5">Join the waitlist or enter your invite code to start catching anomalies.</p>
-
-        <!-- Waitlist form -->
-        <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
-          <div>
-            <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Email</label>
-            <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
-          </div>
-          <label class="check-group">
-            <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
-            <span class="text-[10px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
-          </label>
-          <label class="check-group">
-            <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
-            <span class="text-[10px] text-slate-500 leading-relaxed">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
-          </label>
-          <label class="check-group">
-            <input type="checkbox" id="chk-newsletter" checked>
-            <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
-          </label>
-          <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm shadow-md shadow-blue-600/15" type="submit" id="btn-submit" disabled>
-            Request Access
-          </button>
-        </form>
-
-        <!-- Invite code divider -->
-        <div class="flex items-center gap-2.5 my-4 mono text-[9px] text-slate-600 uppercase tracking-[.15em]">
-          <div class="flex-1 h-px bg-cardborder"></div>
-          <span>Have an invite code?</span>
-          <div class="flex-1 h-px bg-cardborder"></div>
-        </div>
-
-        <div id="invite-section" class="space-y-3">
-          <div>
-            <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Invite Code</label>
-            <input class="form-input text-center uppercase tracking-[.15em] mono" type="text" id="invite-code" placeholder="XXXX-XXXX">
-          </div>
-          <div id="code-error" style="display:none" class="mono text-[10px] text-red-400 text-center"></div>
-          <button class="w-full bg-surface hover:bg-slate-800 border border-cardborder text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm" id="btn-verify" onclick="verifyCode()">
-            Verify Code
-          </button>
-        </div>
-
-        <div id="signin-section" style="display:none" class="space-y-3">
-          <div id="code-accepted" class="mono text-[10px] text-blue-400 text-center"></div>
-          <button class="w-full bg-surface hover:bg-slate-800 border border-cardborder text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
-            <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-            Sign in with Google
-          </button>
-        </div>
-
-        <div id="msg"></div>
-        <button class="mt-2.5 bg-transparent border border-cardborder text-slate-500 mono text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-500 transition" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
-      </div>
+    <div class="mt-5 flex justify-between items-center text-[10px] font-mono text-slate-500">
+      <span class="game-font uppercase tracking-wider">Audited contract logic</span>
+      <span class="text-emerald-400 font-bold">SECURE</span>
     </div>
   </div>
-</section>
 
-<!-- Footer -->
-<footer class="w-full max-w-6xl mx-auto px-5 pt-6 pb-4 border-t border-slate-800/40 flex flex-col sm:flex-row justify-between items-center text-[11px] mono text-slate-600 gap-2">
-  <div>&copy; 2026 WICK.NETWORK</div>
-  <div class="flex gap-4">
+  <!-- Q4 — ROOM ENTRY / ACCESS GATE -->
+  <div class="quad animate-float d4">
+    <div>
+      <span class="text-[9px] bg-amber-600/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">ROOM ENTRY</span>
+
+      <h3 class="text-lg font-bold text-white game-font mb-1">Private beta. Invite only.</h3>
+      <p class="text-xs text-slate-400 mb-5 max-w-sm leading-relaxed">
+        Join the waitlist or enter your invite code to activate your private predictive trading desk.
+      </p>
+
+      <!-- Waitlist form -->
+      <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
+        <div>
+          <label class="block text-[9px] tracking-wider uppercase text-slate-500 mb-1.5 font-bold game-font">Email</label>
+          <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
+        </div>
+        <label class="check-group">
+          <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
+          <span class="text-[10px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
+        </label>
+        <label class="check-group">
+          <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
+          <span class="text-[10px] text-slate-500 leading-relaxed">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
+        </label>
+        <label class="check-group">
+          <input type="checkbox" id="chk-newsletter" checked>
+          <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
+        </label>
+        <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition text-xs uppercase tracking-wider game-font shadow-lg shadow-blue-600/10" type="submit" id="btn-submit" disabled>
+          Request Access
+        </button>
+      </form>
+
+      <!-- Invite code divider -->
+      <div class="flex items-center gap-2.5 my-4 text-[9px] text-slate-600 uppercase tracking-wider game-font">
+        <div class="flex-1 h-px bg-slate-800"></div>
+        <span>Have an invite code?</span>
+        <div class="flex-1 h-px bg-slate-800"></div>
+      </div>
+
+      <div id="invite-section" class="space-y-3">
+        <div>
+          <label class="block text-[9px] tracking-wider uppercase text-slate-500 mb-1.5 font-bold game-font">Invite Code</label>
+          <input class="form-input text-center uppercase tracking-widest" type="text" id="invite-code" placeholder="XXXX-XXXX" style="font-family:'Space Grotesk',monospace">
+        </div>
+        <div id="code-error" style="display:none" class="text-[10px] text-red-400 text-center game-font"></div>
+        <button class="w-full bg-[#141B25] hover:bg-[#19222E] border border-slate-800 text-slate-300 font-semibold py-2.5 px-4 rounded-xl transition text-xs game-font" id="btn-verify" onclick="verifyCode()">
+          Verify Code
+        </button>
+      </div>
+
+      <div id="signin-section" style="display:none" class="space-y-3">
+        <div id="code-accepted" class="text-[10px] text-blue-400 text-center game-font"></div>
+        <button class="w-full bg-[#141B25] hover:bg-[#19222E] border border-slate-800 text-slate-300 font-semibold py-3 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2" id="btn-signin">
+          <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+          Sign in with Google
+        </button>
+      </div>
+
+      <div id="msg"></div>
+      <button class="mt-2.5 bg-transparent border border-slate-800 text-slate-500 text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-600 transition game-font" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
+    </div>
+    <div class="mt-5 flex justify-between items-center text-[10px] font-mono text-slate-500">
+      <span class="game-font uppercase tracking-wider">Room status: verified main-net</span>
+      <span>v2.4</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="w-full max-w-7xl mx-auto mt-5 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-slate-600 gap-2 px-2">
+  <div class="game-font">&copy; 2026 WICK.NETWORK DIGITAL INTERACTIVE APPARATUS</div>
+  <div class="flex gap-4 game-font">
     <a href="/terms" class="hover:text-slate-400 transition">TERMS</a>
     <a href="/privacy" class="hover:text-slate-400 transition">PRIVACY</a>
   </div>
 </footer>
-<p class="w-full max-w-6xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-8 px-5 leading-relaxed opacity-50">
+<p class="w-full max-w-7xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-6 px-4 leading-relaxed opacity-50">
   WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.
 </p>
 
-<!-- Waitlist / Invite / Auth -->
+<!-- ═══ Waitlist / Invite / Auth JS ═══ -->
 <script>
 let verifiedCode = null;
 

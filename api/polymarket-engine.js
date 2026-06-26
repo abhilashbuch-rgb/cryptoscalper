@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 const { db } = require('../lib/firebase-config');
 const { PolymarketAlphaEngine } = require('../lib/polymarket-alpha');
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
+const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -267,6 +268,33 @@ module.exports = async (req, res) => {
     const verdict = await evaluateArbitrage(payload);
 
     return res.json({ ok: true, bracket: target.title, verdict });
+  }
+
+  // ── Risk Desk: trigger async boundary update ──
+  if (action === 'risk_update') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const [markets, sports, headlines] = await Promise.all([
+      fetchPolymarkets(),
+      fetchSportsScores(),
+      fetchNewsHeadlines(),
+    ]);
+
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const walletBalance = userDoc.exists ? (userDoc.data().walletBalance || 0) : 0;
+
+    const boundaries = await runRiskDeskCycle(markets, sports, headlines, walletBalance);
+    return res.json({ ok: true, boundaries });
+  }
+
+  // ── Risk Desk: read current boundaries ──
+  if (action === 'risk_status') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    const boundaries = await getRiskBoundaries();
+    return res.json(boundaries);
   }
 
   // ── Performance History ──

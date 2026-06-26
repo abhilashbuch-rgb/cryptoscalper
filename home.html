@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK.Network | Autonomous Prediction Engine</title>
-<meta name="description" content="WICK trades prediction markets on Polymarket using your own wallet. Non-custodial. Invite only.">
-<meta property="og:title" content="WICK.Network | Autonomous Prediction Engine">
-<meta property="og:description" content="Automated trading on Polymarket. Your wallet, your keys. Invite only.">
+<title>WICK.Network | Catch Market Anomalies on Polymarket</title>
+<meta name="description" content="WICK scans Polymarket for pricing anomalies and gives you seconds to act. Non-custodial. Invite only.">
+<meta property="og:title" content="WICK.Network | Catch Market Anomalies">
+<meta property="og:description" content="Real-time anomaly detection on Polymarket. You pick the play. Your wallet, your edge.">
 <meta property="og:url" content="https://wick.network">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
 tailwind.config = {
   theme: {
@@ -20,278 +20,336 @@ tailwind.config = {
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+      },
+      colors: {
+        surface: '#111827',
+        card: '#1a2236',
+        cardborder: '#263354',
       }
     }
   }
 }
 </script>
 <style>
-body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
 .mono { font-family: 'JetBrains Mono', monospace; }
-.glow-blue { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.2); }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-.blink { animation: blink 2s infinite; }
 
-/* Gate form styles */
+@keyframes pulse-ring {
+  0% { transform: scale(.95); opacity: 1; }
+  70% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(.95); opacity: 0; }
+}
+@keyframes countdown-bar {
+  0% { width: 100%; background: #22c55e; }
+  50% { background: #eab308; }
+  85% { background: #f97316; }
+  100% { width: 0%; background: #ef4444; }
+}
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-float-in { animation: float-in .5s ease-out both; }
+.delay-1 { animation-delay: .1s; }
+.delay-2 { animation-delay: .2s; }
+.delay-3 { animation-delay: .3s; }
+.delay-4 { animation-delay: .4s; }
+
+.timer-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.timer-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(59,130,246,.3);
+  animation: pulse-ring 2s infinite;
+}
+.demo-bar {
+  height: 4px;
+  border-radius: 2px;
+  animation: countdown-bar 12s linear infinite;
+}
+
 .form-input {
   width: 100%;
   padding: 10px 12px;
-  background: rgba(15,23,42,.6);
-  border: 1px solid rgba(148,163,184,.2);
-  border-radius: 8px;
-  color: #f0f4f8;
+  background: rgba(17,24,39,.8);
+  border: 1px solid rgba(99,118,163,.25);
+  border-radius: 10px;
+  color: #e2e8f0;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 13px;
   outline: none;
   transition: border-color .15s;
 }
-.form-input:focus { border-color: rgba(59,130,246,.5); }
-.form-input::placeholder { color: rgba(148,163,184,.4); }
-.check-group {
-  margin-bottom: 8px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  cursor: pointer;
-}
-.check-group input[type="checkbox"] {
-  width: 14px; height: 14px;
-  margin-top: 1px;
-  accent-color: #3b82f6;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-#msg { display: none; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 10px 14px; border-radius: 8px; line-height: 1.6; text-align: center; }
-#msg.success, #msg.waitlist { display: block; color: #3b82f6; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); }
-#msg.approved { display: block; color: #22c55e; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); }
-#msg.error { display: block; color: #ef4444; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
+.form-input:focus { border-color: rgba(59,130,246,.6); }
+.form-input::placeholder { color: rgba(148,163,184,.35); }
+.check-group { margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.check-group input[type="checkbox"] { width: 14px; height: 14px; margin-top: 1px; accent-color: #3b82f6; flex-shrink: 0; cursor: pointer; }
+#msg { display: none; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 10px 14px; border-radius: 10px; line-height: 1.6; text-align: center; }
+#msg.success, #msg.waitlist { display: block; color: #60a5fa; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); }
+#msg.approved { display: block; color: #4ade80; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); }
+#msg.error { display: block; color: #f87171; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
 </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-500/30 selection:text-blue-200">
+<body class="text-slate-200 min-h-screen selection:bg-blue-500/30 selection:text-blue-100">
 
-<header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-6 px-2">
+<!-- Nav -->
+<header class="w-full max-w-6xl mx-auto flex justify-between items-center px-5 py-5">
   <div class="flex items-center gap-3">
-    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter shadow-lg shadow-blue-600/20">W</div>
-    <span class="text-lg font-bold tracking-tight uppercase mono">Wick<span class="text-blue-500">.Network</span></span>
+    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-base tracking-tighter shadow-md shadow-blue-600/25">W</div>
+    <span class="text-base font-bold tracking-tight uppercase mono">Wick<span class="text-blue-400">.Network</span></span>
   </div>
-  <div class="flex items-center gap-6 text-xs mono text-slate-400">
-    <a href="/terms" class="hover:text-slate-200 transition hidden sm:inline">Terms</a>
-    <a href="/privacy" class="hover:text-slate-200 transition hidden sm:inline">Privacy</a>
-    <span class="flex items-center gap-1.5">
-      <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-      LIVE ENGINE v2.4
+  <div class="flex items-center gap-5 text-xs mono text-slate-500">
+    <a href="/terms" class="hover:text-slate-300 transition hidden sm:inline">Terms</a>
+    <a href="/privacy" class="hover:text-slate-300 transition hidden sm:inline">Privacy</a>
+    <span class="flex items-center gap-1.5 text-emerald-400">
+      <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+      SCANNING
     </span>
   </div>
 </header>
 
-<main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
-
-  <!-- Q1: THE ENGINE -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
-    <div>
-      <div class="grid grid-cols-3 gap-2 pb-4 mb-6 border-b border-slate-800/60 text-center mono text-[10px] sm:text-xs text-slate-400">
-        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
-          <span class="block text-blue-400 font-semibold">&lt;200ms</span> PROPAGATION
+<!-- Hero -->
+<section class="w-full max-w-6xl mx-auto px-5 pt-10 pb-16">
+  <div class="grid lg:grid-cols-2 gap-12 items-center">
+    <div class="animate-float-in">
+      <div class="mono text-[10px] tracking-[.2em] uppercase text-blue-400 font-semibold mb-4">Polymarket Anomaly Scanner</div>
+      <h1 class="text-4xl sm:text-5xl font-extrabold leading-[1.1] tracking-tight mb-5">
+        We find the edge.<br>
+        <span class="text-blue-400">You grab it.</span>
+      </h1>
+      <p class="text-base text-slate-400 leading-relaxed mb-8 max-w-lg">
+        WICK scans every market on Polymarket for pricing anomalies in real time. When we spot one, you get
+        <span class="text-white font-semibold">15 seconds</span> to lock it in. The edge is real. The clock is ticking.
+      </p>
+      <div class="flex flex-wrap gap-6 mono text-sm">
+        <div>
+          <span class="block text-2xl font-bold text-white">15s</span>
+          <span class="text-[10px] text-slate-500 tracking-wider uppercase">To Act</span>
         </div>
-        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
-          <span class="block text-emerald-400 font-semibold">99.97%</span> UPTIME
+        <div>
+          <span class="block text-2xl font-bold text-emerald-400">Real Edge</span>
+          <span class="text-[10px] text-slate-500 tracking-wider uppercase">Not Rigged</span>
         </div>
-        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
-          <span class="block text-slate-200 font-semibold">0</span> CUSTODY RISK
-        </div>
-      </div>
-
-      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 01 // Live Pipeline
-      </h2>
-
-      <div class="grid grid-cols-9 items-center gap-1 text-center text-[11px] mono">
-        <div class="col-span-2 flex flex-col gap-2">
-          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center h-9">
-            <img src="https://cdn.freebiesupply.com/images/large/2x/reuters-logo-white.png" class="h-4 opacity-90" alt="Reuters">
-          </div>
-          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center h-9">
-            <img src="https://www.freepnglogos.com/uploads/espn-png-logo/pn-white-png-logo-18.png" class="h-4 opacity-90" alt="ESPN">
-          </div>
-          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-500 truncate text-[10px]">Chain Data</div>
-          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-500 truncate text-[10px]">CLOB Feed</div>
-          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-500 truncate text-[10px]">Gov Filings</div>
-        </div>
-
-        <div class="col-span-1 text-slate-600 text-sm blink">&#10142;</div>
-
-        <div class="col-span-3 flex flex-col items-center justify-center py-4">
-          <div class="text-white font-bold text-xl sm:text-2xl tracking-widest leading-none text-center">WICK</div>
-          <div class="text-white font-bold text-xl sm:text-2xl tracking-widest leading-none text-center">NETWORK</div>
-          <div class="w-12 h-0.5 bg-blue-500 rounded-full mt-2 mb-1"></div>
-          <div class="text-blue-400 text-[9px] tracking-[.2em] uppercase font-semibold">AI Engine</div>
-        </div>
-
-        <div class="col-span-1 text-slate-600 text-sm blink">&#10142;</div>
-
-        <div class="col-span-2 flex flex-col gap-2 text-left">
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Research Desk</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Math Engine</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Execution</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Risk CRO</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Calibration</div>
+        <div>
+          <span class="block text-2xl font-bold text-white">$0 Fee</span>
+          <span class="text-[10px] text-slate-500 tracking-wider uppercase">On Deposits</span>
         </div>
       </div>
     </div>
-    <div class="mt-4 pt-4 border-t border-slate-800/40 text-slate-500 text-[11px] mono">
-      * Real-time multi-threaded ingestion matrix.
-    </div>
-  </div>
 
-  <!-- Q2: WHAT IT DOES -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
-    <div>
-      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 02 // Core Capabilities
-      </h2>
-      <h3 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-100 leading-tight mb-6">
-        Autonomous predictive modeling running directly on live-state primitives.
-      </h3>
-      <ul class="space-y-4 text-slate-400 text-sm md:text-base">
-        <li class="flex items-start gap-3">
-          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
-          <span><strong class="text-slate-200 font-medium">Reads the Global News:</strong> Parses streaming unstructured wires, filings, and telemetry instantly.</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
-          <span><strong class="text-slate-200 font-medium">Scores the Odds:</strong> Runs real-time probability distributions over cross-chain prediction markets.</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
-          <span><strong class="text-slate-200 font-medium">Places Trades:</strong> Executes capital allocation natively via decentralized routing architectures.</span>
-        </li>
-      </ul>
-    </div>
-    <div class="mt-6 text-xs text-slate-500 mono">
-      STRICT COMPLIANCE // 0% MANIPULATION RISK
-    </div>
-  </div>
-
-  <!-- Q3: SECURITY & CUSTODY -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
-    <div>
-      <h2 class="text-xs uppercase tracking-widest text-emerald-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> 03 // Custody & Architecture
-      </h2>
-
-      <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 mb-6">
-        <div class="flex gap-4">
-          <span class="text-2xl">&#128737;&#65039;</span>
+    <!-- Anomaly Demo Card -->
+    <div class="animate-float-in delay-2">
+      <div class="bg-card border border-cardborder rounded-2xl p-6 shadow-xl shadow-black/20 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1">
+          <div class="demo-bar rounded-full"></div>
+        </div>
+        <div class="flex justify-between items-start mb-4 mt-1">
           <div>
-            <h4 class="text-slate-200 font-semibold text-sm sm:text-base mb-1">Your Money Stays Yours</h4>
-            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Non-custodial by design. You retain <span class="text-emerald-400 font-medium">100% full custody</span> of your assets at all times. We do not touch your funds &mdash; ever. WICK can trade on your behalf but cannot withdraw, transfer, or access your capital.
-            </p>
+            <div class="mono text-[9px] tracking-[.15em] uppercase text-amber-400 font-semibold mb-1">Anomaly Detected</div>
+            <div class="text-lg font-bold text-white">US Presidential Election 2028</div>
+            <div class="text-xs text-slate-500 mt-0.5">Multi-outcome basket mispricing</div>
+          </div>
+          <div class="timer-ring">
+            <div class="w-12 h-12 rounded-full bg-blue-600/15 border-2 border-blue-500/40 flex items-center justify-center">
+              <span class="mono text-sm font-bold text-blue-400">12s</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex gap-3 items-center">
-          <span class="text-xl">&#9889;</span>
-          <div class="text-xs">
-            <span class="block text-slate-200 font-semibold uppercase mono tracking-wider">Trade Only</span>
-            <span class="text-slate-400">Scoped to placing orders. Nothing else.</span>
+        <div class="space-y-2 mb-4">
+          <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-xs text-slate-300">Buy NO: Candidate A</span>
+            </div>
+            <span class="mono text-xs text-emerald-400 font-semibold">$0.92</span>
+          </div>
+          <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-xs text-slate-300">Buy NO: Candidate B</span>
+            </div>
+            <span class="mono text-xs text-emerald-400 font-semibold">$0.88</span>
+          </div>
+          <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-xs text-slate-300">Buy NO: Candidate C</span>
+            </div>
+            <span class="mono text-xs text-emerald-400 font-semibold">$0.95</span>
           </div>
         </div>
-        <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex gap-3 items-center">
-          <span class="text-xl">&#9940;</span>
-          <div class="text-xs">
-            <span class="block text-red-400 font-semibold uppercase mono tracking-wider">Zero Withdrawal</span>
-            <span class="text-slate-400">No pathway to move or extract your capital.</span>
+
+        <div class="flex items-center justify-between bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2.5">
+          <div>
+            <span class="text-[10px] text-slate-400 mono uppercase">Estimated Edge</span>
+            <span class="block text-lg font-bold text-emerald-400 mono">+3.2%</span>
           </div>
+          <button class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-md shadow-blue-600/20 cursor-default">
+            Grab It
+          </button>
         </div>
       </div>
-    </div>
-    <div class="mt-6 text-xs text-slate-500 mono flex justify-between items-center">
-      <span>NON-CUSTODIAL BY DESIGN</span>
-      <span class="text-emerald-500 font-semibold">YOUR KEYS, YOUR FUNDS</span>
+      <div class="text-center text-[10px] text-slate-600 mt-3 mono">Simulated anomaly card. Actual plays appear in the dashboard.</div>
     </div>
   </div>
+</section>
 
-  <!-- Q4: ACCESS GATE -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
-    <div>
-      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 04 // Access Gate
-      </h2>
-      <p class="text-slate-400 text-sm mb-5">
-        Private beta. Invite only. Join the waitlist or enter your invite code.
+<!-- How It Works -->
+<section class="w-full max-w-6xl mx-auto px-5 py-16 border-t border-slate-800/50">
+  <div class="text-center mb-12 animate-float-in delay-1">
+    <div class="mono text-[10px] tracking-[.2em] uppercase text-blue-400 font-semibold mb-3">How It Works</div>
+    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Three steps. Real money. Real edge.</h2>
+  </div>
+
+  <div class="grid sm:grid-cols-3 gap-6">
+    <div class="bg-card border border-cardborder rounded-2xl p-6 animate-float-in delay-1">
+      <div class="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center mb-4">
+        <span class="text-lg">&#128269;</span>
+      </div>
+      <h3 class="font-bold text-white mb-2">WICK Scans</h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        Our AI scans every Polymarket market 24/7, looking for pricing anomalies where the odds don't add up. When the math says there's an edge, we flag it.
+      </p>
+    </div>
+
+    <div class="bg-card border border-cardborder rounded-2xl p-6 animate-float-in delay-2">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-4">
+        <span class="text-lg">&#9201;</span>
+      </div>
+      <h3 class="font-bold text-white mb-2">You Pick</h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        An anomaly card appears with a countdown timer. You have <span class="text-white font-semibold">~15 seconds</span> to review the play and decide. Grab it or let it pass.
+      </p>
+    </div>
+
+    <div class="bg-card border border-cardborder rounded-2xl p-6 animate-float-in delay-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-4">
+        <span class="text-lg">&#128176;</span>
+      </div>
+      <h3 class="font-bold text-white mb-2">You Profit</h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        If you grab it, the trade executes through your own wallet. The edge is real &mdash; we're giving <em>you</em> the advantage. We only take 20% of what you make.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Trust + Access -->
+<section class="w-full max-w-6xl mx-auto px-5 py-16 border-t border-slate-800/50">
+  <div class="grid lg:grid-cols-2 gap-10">
+
+    <!-- Trust -->
+    <div class="animate-float-in delay-2">
+      <div class="mono text-[10px] tracking-[.2em] uppercase text-emerald-400 font-semibold mb-4">Your Money Stays Yours</div>
+      <h2 class="text-2xl font-bold tracking-tight mb-5">Non-custodial by design.</h2>
+      <p class="text-sm text-slate-400 leading-relaxed mb-6">
+        We never touch your funds. WICK can place trades through your wallet but cannot withdraw, transfer, or access your capital. You're always in control.
       </p>
 
-      <!-- Waitlist form -->
-      <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
-        <div>
-          <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Email</label>
-          <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-card border border-cardborder rounded-xl p-4">
+          <div class="text-lg mb-1">&#9889;</div>
+          <div class="text-xs font-semibold text-white mb-0.5">Trade Only</div>
+          <div class="text-[11px] text-slate-500">Scoped to placing orders. Nothing else.</div>
         </div>
-        <label class="check-group">
-          <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
-          <span class="text-[10px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
-        </label>
-        <label class="check-group">
-          <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
-          <span class="text-[10px] text-slate-500 leading-relaxed">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
-        </label>
-        <label class="check-group">
-          <input type="checkbox" id="chk-newsletter" checked>
-          <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
-        </label>
-        <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm shadow-lg shadow-blue-600/10" type="submit" id="btn-submit" disabled>
-          Request Access
-        </button>
-      </form>
-
-      <!-- Invite code -->
-      <div class="flex items-center gap-2.5 my-4 mono text-[9px] text-slate-600 uppercase tracking-[.15em]">
-        <div class="flex-1 h-px bg-slate-800"></div>
-        <span>Have an invite code?</span>
-        <div class="flex-1 h-px bg-slate-800"></div>
-      </div>
-
-      <div id="invite-section" class="space-y-3">
-        <div>
-          <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Invite Code</label>
-          <input class="form-input text-center uppercase tracking-[.15em] mono" type="text" id="invite-code" placeholder="XXXX-XXXX">
+        <div class="bg-card border border-cardborder rounded-xl p-4">
+          <div class="text-lg mb-1">&#9940;</div>
+          <div class="text-xs font-semibold text-red-400 mb-0.5">Zero Withdrawal</div>
+          <div class="text-[11px] text-slate-500">No pathway to move your capital.</div>
         </div>
-        <div id="code-error" style="display:none" class="mono text-[10px] text-red-400 text-center"></div>
-        <button class="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800 text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm" id="btn-verify" onclick="verifyCode()">
-          Verify Code
-        </button>
+        <div class="bg-card border border-cardborder rounded-xl p-4">
+          <div class="text-lg mb-1">&#128274;</div>
+          <div class="text-xs font-semibold text-white mb-0.5">Your Keys</div>
+          <div class="text-[11px] text-slate-500">Trades run through your own wallet.</div>
+        </div>
+        <div class="bg-card border border-cardborder rounded-xl p-4">
+          <div class="text-lg mb-1">&#128683;</div>
+          <div class="text-xs font-semibold text-white mb-0.5">No Data Collection</div>
+          <div class="text-[11px] text-slate-500">We don't store personal information.</div>
+        </div>
       </div>
-
-      <div id="signin-section" style="display:none" class="space-y-3">
-        <div id="code-accepted" class="mono text-[10px] text-blue-400 text-center"></div>
-        <button class="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800 text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
-          <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-          Sign in with Google
-        </button>
-      </div>
-
-      <div id="msg"></div>
-      <button class="mt-2.5 bg-transparent border border-slate-800 text-slate-500 mono text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-700 transition" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
     </div>
-    <div class="mt-4 flex justify-between items-center text-xs text-slate-500 mono">
-      <span>CONTRACTS: VERIFIED</span>
-      <span>v2.0-MAIN</span>
+
+    <!-- Access Gate -->
+    <div class="animate-float-in delay-3">
+      <div class="bg-card border border-cardborder rounded-2xl p-6 shadow-lg shadow-black/15">
+        <div class="mono text-[10px] tracking-[.2em] uppercase text-blue-400 font-semibold mb-1">Get Access</div>
+        <h3 class="text-lg font-bold text-white mb-1">Private beta. Invite only.</h3>
+        <p class="text-xs text-slate-500 mb-5">Join the waitlist or enter your invite code to start catching anomalies.</p>
+
+        <!-- Waitlist form -->
+        <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
+          <div>
+            <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Email</label>
+            <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
+          </div>
+          <label class="check-group">
+            <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
+            <span class="text-[10px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
+          </label>
+          <label class="check-group">
+            <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
+            <span class="text-[10px] text-slate-500 leading-relaxed">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
+          </label>
+          <label class="check-group">
+            <input type="checkbox" id="chk-newsletter" checked>
+            <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
+          </label>
+          <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm shadow-md shadow-blue-600/15" type="submit" id="btn-submit" disabled>
+            Request Access
+          </button>
+        </form>
+
+        <!-- Invite code divider -->
+        <div class="flex items-center gap-2.5 my-4 mono text-[9px] text-slate-600 uppercase tracking-[.15em]">
+          <div class="flex-1 h-px bg-cardborder"></div>
+          <span>Have an invite code?</span>
+          <div class="flex-1 h-px bg-cardborder"></div>
+        </div>
+
+        <div id="invite-section" class="space-y-3">
+          <div>
+            <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Invite Code</label>
+            <input class="form-input text-center uppercase tracking-[.15em] mono" type="text" id="invite-code" placeholder="XXXX-XXXX">
+          </div>
+          <div id="code-error" style="display:none" class="mono text-[10px] text-red-400 text-center"></div>
+          <button class="w-full bg-surface hover:bg-slate-800 border border-cardborder text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm" id="btn-verify" onclick="verifyCode()">
+            Verify Code
+          </button>
+        </div>
+
+        <div id="signin-section" style="display:none" class="space-y-3">
+          <div id="code-accepted" class="mono text-[10px] text-blue-400 text-center"></div>
+          <button class="w-full bg-surface hover:bg-slate-800 border border-cardborder text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
+            <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+            Sign in with Google
+          </button>
+        </div>
+
+        <div id="msg"></div>
+        <button class="mt-2.5 bg-transparent border border-cardborder text-slate-500 mono text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-500 transition" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
+      </div>
     </div>
   </div>
+</section>
 
-</main>
-
-<footer class="w-full max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[11px] mono text-slate-600 gap-2 px-2">
-  <div>&copy; 2026 WICK.NETWORK. ALL RIGHTS RESERVED.</div>
+<!-- Footer -->
+<footer class="w-full max-w-6xl mx-auto px-5 pt-6 pb-4 border-t border-slate-800/40 flex flex-col sm:flex-row justify-between items-center text-[11px] mono text-slate-600 gap-2">
+  <div>&copy; 2026 WICK.NETWORK</div>
   <div class="flex gap-4">
     <a href="/terms" class="hover:text-slate-400 transition">TERMS</a>
     <a href="/privacy" class="hover:text-slate-400 transition">PRIVACY</a>
   </div>
 </footer>
-<p class="w-full max-w-7xl mx-auto text-center text-[9px] text-slate-700 mt-3 mb-6 px-4 leading-relaxed opacity-50">
+<p class="w-full max-w-6xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-8 px-5 leading-relaxed opacity-50">
   WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.
 </p>
 

@@ -1222,6 +1222,131 @@ body::before {
       </div>
     </div>
 
+    <!-- ═══ FLASH PLAY — on-demand NegRisk scan ═══ -->
+    <div class="tile tile-full" id="flash-play-tile" style="display:none">
+      <div class="tile-title">
+        Flash Play
+        <span class="tile-badge" id="flash-status-badge">READY</span>
+      </div>
+
+      <!-- Ready state -->
+      <div id="flash-ready">
+        <div style="display:flex;align-items:center;gap:20px;padding:8px 0">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Scan for NegRisk arbitrage</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.5">Checks live CLOB prices, filters by math, evaluates with Claude. You get 60 seconds to execute.</div>
+          </div>
+          <button class="btn-primary" onclick="flashScan()" id="flash-scan-btn" style="width:auto;padding:12px 28px;flex-shrink:0">Scan now</button>
+        </div>
+      </div>
+
+      <!-- Scanning state -->
+      <div id="flash-scanning" style="display:none">
+        <div style="text-align:center;padding:20px 0">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.06em">SCANNING CLOB PRICES...</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Math filter → Claude evaluation → best play</div>
+        </div>
+      </div>
+
+      <!-- Play found state -->
+      <div id="flash-play" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:800;line-height:1.3" id="flash-bracket">—</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)" id="flash-mode-label">sandbox</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:16px">
+            <div style="font-family:var(--mono);font-size:32px;font-weight:800" id="flash-timer">60</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">SECONDS</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
+          <div style="background:var(--card);padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">EDGE</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);margin-top:3px" id="flash-edge">—</div>
+          </div>
+          <div style="background:var(--card);padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">LEG SIZE</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;margin-top:3px" id="flash-leg">—</div>
+          </div>
+          <div style="background:var(--card);padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">YOUR PROFIT</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green);margin-top:3px" id="flash-profit-est">—</div>
+          </div>
+          <div style="background:var(--card);padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em">PLATFORM FEE</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text3);margin-top:3px" id="flash-fee-est">—</div>
+          </div>
+        </div>
+
+        <!-- Legs table -->
+        <div style="margin-bottom:14px" id="flash-legs-table"></div>
+
+        <!-- Timer bar -->
+        <div style="width:100%;height:3px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden">
+          <div id="flash-timer-bar" style="height:100%;background:var(--green);border-radius:2px;width:100%;transition:width 1s linear"></div>
+        </div>
+
+        <button class="btn-primary" onclick="flashExecute()" id="flash-exec-btn">Execute this play</button>
+      </div>
+
+      <!-- No edge state -->
+      <div id="flash-no-edge" style="display:none">
+        <div style="text-align:center;padding:16px 0">
+          <div style="font-size:13px;font-weight:700;color:var(--text3);margin-bottom:6px">No edge found</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px" id="flash-no-edge-detail">Markets are fairly priced. Try again later.</div>
+          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
+        </div>
+      </div>
+
+      <!-- Executed state -->
+      <div id="flash-executed" style="display:none">
+        <div style="text-align:center;padding:16px 0">
+          <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:14px">Play executed</div>
+          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:16px">
+            <div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">YOUR PROFIT</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--green);margin-top:4px" id="flash-profit-final">—</div>
+            </div>
+            <div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">PLATFORM FEE (20%)</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--text3);margin-top:4px" id="flash-fee-final">—</div>
+            </div>
+          </div>
+          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
+        </div>
+      </div>
+
+      <!-- Expired state -->
+      <div id="flash-expired" style="display:none">
+        <div style="text-align:center;padding:16px 0">
+          <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">Play expired</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">The 60-second window closed. Prices may have shifted.</div>
+          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RISK DESK STATUS ═══ -->
+    <div class="tile" id="risk-desk-tile" style="display:none">
+      <div class="tile-title">
+        Risk Desk
+        <span class="tile-badge" id="risk-level-badge">NORMAL</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em">RISK MULTIPLIER</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;margin-top:4px" id="risk-multiplier">1.0x</div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em">MAX LEG SIZE</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;margin-top:4px" id="risk-max-leg">$50</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5" id="risk-reasoning">Default parameters active.</div>
+    </div>
+
     <!-- Connection status -->
     <div class="tile tile-full" id="connection-banner" style="display:none">
       <div style="display:flex;align-items:center;gap:12px">
@@ -2202,6 +2327,160 @@ async function pmPollFeed() {
   } catch {}
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// FLASH PLAY — on-demand NegRisk scan + 60s execution window
+// ══════════════════════════════════════════════════════════════════════════════
+let _flashPlayId = null;
+let _flashTimer = null;
+let _flashSeconds = 0;
+
+function flashShowState(state) {
+  ['ready','scanning','play','no-edge','executed','expired'].forEach(s => {
+    const el = document.getElementById('flash-' + s);
+    if (el) el.style.display = s === state ? 'block' : 'none';
+  });
+  const badge = document.getElementById('flash-status-badge');
+  const map = {
+    ready:    { t:'READY',    c:'' },
+    scanning: { t:'SCANNING', c:'#4D8FFF' },
+    play:     { t:'LIVE',     c:'#10b981' },
+    'no-edge':{ t:'NO EDGE',  c:'#5a6a7a' },
+    executed: { t:'FILLED',   c:'#10b981' },
+    expired:  { t:'EXPIRED',  c:'#f43f5e' },
+  };
+  const m = map[state] || map.ready;
+  badge.textContent = m.t;
+  if (m.c) { badge.style.background = m.c + '18'; badge.style.color = m.c; }
+  else { badge.style.background = ''; badge.style.color = ''; }
+}
+
+window.flashScan = async function() {
+  flashShowState('scanning');
+  try {
+    const r = await apiFetch('/api/polymarket-engine?action=flash_scan', { method: 'POST' });
+    const d = await r.json();
+
+    if (d.error) {
+      document.getElementById('flash-no-edge-detail').textContent = d.error;
+      flashShowState('no-edge');
+      return;
+    }
+
+    if (d.verdict !== 'PLAY_FOUND') {
+      const detail = d.verdict === 'RISK_HALT' ? 'Risk desk has halted trading: ' + (d.reason || '')
+        : d.verdict === 'CRITICAL_STANDBY' ? 'Wallet balance below $500 minimum.'
+        : `Scanned ${d.scanned || 0} brackets, ${d.filtered || 0} passed filter. No mispricing above hurdle.`;
+      document.getElementById('flash-no-edge-detail').textContent = detail;
+      flashShowState('no-edge');
+      return;
+    }
+
+    _flashPlayId = d.playId;
+    document.getElementById('flash-bracket').textContent = d.bracket || '—';
+    document.getElementById('flash-edge').textContent = d.edgePct ? d.edgePct + '%' : '—';
+    document.getElementById('flash-leg').textContent = d.legs?.[0]?.size ? '$' + d.legs[0].size : '—';
+    document.getElementById('flash-profit-est').textContent = d.userProfit != null ? '+$' + d.userProfit.toFixed(4) : '—';
+    document.getElementById('flash-fee-est').textContent = d.platformFee != null ? '$' + d.platformFee.toFixed(4) : '—';
+    document.getElementById('flash-mode-label').textContent = (d.mode || 'sandbox') + ' · ' + (d.legs?.length || 0) + ' legs · $' + (d.totalDeployed || 0) + ' deployed';
+
+    const legsTable = document.getElementById('flash-legs-table');
+    if (d.legs?.length) {
+      legsTable.innerHTML = `<table class="trade-table"><thead><tr><th>Action</th><th>Token</th><th>Price</th><th>Size</th></tr></thead><tbody>${
+        d.legs.map(l => `<tr><td><span class="badge buy">${l.action}</span></td><td style="color:var(--text1)">${(l.slug||'').slice(0,30)}</td><td style="color:var(--text1)">$${l.price}</td><td>$${l.size}</td></tr>`).join('')
+      }</tbody></table>`;
+    }
+
+    flashShowState('play');
+    flashStartTimer(d.ttlSeconds || 60);
+  } catch (err) {
+    document.getElementById('flash-no-edge-detail').textContent = 'Scan failed: ' + err.message;
+    flashShowState('no-edge');
+  }
+};
+
+window.flashExecute = async function() {
+  if (!_flashPlayId) return;
+  const btn = document.getElementById('flash-exec-btn');
+  btn.disabled = true; btn.textContent = 'Executing...';
+  try {
+    const r = await apiFetch('/api/polymarket-engine?action=flash_execute', {
+      method: 'POST',
+      body: JSON.stringify({ playId: _flashPlayId }),
+    });
+    const d = await r.json();
+    clearInterval(_flashTimer);
+
+    if (!r.ok) {
+      if (r.status === 410) { flashShowState('expired'); return; }
+      document.getElementById('flash-no-edge-detail').textContent = d.error || 'Execution failed';
+      flashShowState('no-edge');
+      return;
+    }
+
+    document.getElementById('flash-profit-final').textContent = '+$' + (d.userProfit || 0).toFixed(4);
+    document.getElementById('flash-fee-final').textContent = '$' + (d.platformFee || 0).toFixed(4);
+    flashShowState('executed');
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Execute this play';
+  }
+};
+
+window.flashReset = function() {
+  _flashPlayId = null;
+  clearInterval(_flashTimer);
+  document.getElementById('flash-scan-btn').disabled = false;
+  document.getElementById('flash-exec-btn').disabled = false;
+  document.getElementById('flash-exec-btn').textContent = 'Execute this play';
+  document.getElementById('flash-timer').style.color = '';
+  document.getElementById('flash-timer-bar').style.background = 'var(--green)';
+  document.getElementById('flash-legs-table').innerHTML = '';
+  flashShowState('ready');
+};
+
+function flashStartTimer(seconds) {
+  _flashSeconds = seconds;
+  const timerEl = document.getElementById('flash-timer');
+  const barEl = document.getElementById('flash-timer-bar');
+  const total = seconds;
+  timerEl.textContent = _flashSeconds;
+  timerEl.style.color = 'var(--green)';
+  barEl.style.background = 'var(--green)';
+  barEl.style.width = '100%';
+
+  _flashTimer = setInterval(() => {
+    _flashSeconds--;
+    timerEl.textContent = _flashSeconds;
+    barEl.style.width = ((_flashSeconds / total) * 100) + '%';
+    if (_flashSeconds <= 10) {
+      timerEl.style.color = 'var(--red)';
+      barEl.style.background = 'var(--red)';
+    }
+    if (_flashSeconds <= 0) {
+      clearInterval(_flashTimer);
+      flashShowState('expired');
+    }
+  }, 1000);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RISK DESK STATUS — polls risk boundaries
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadRiskStatus() {
+  try {
+    const r = await apiFetch('/api/polymarket-engine?action=risk_status');
+    const d = await r.json();
+    const badge = document.getElementById('risk-level-badge');
+    const levelColors = { NORMAL:'#10b981', CAUTION:'#f59e0b', HALT:'#f43f5e' };
+    const c = levelColors[d.system_level] || '#10b981';
+    badge.textContent = d.system_level || 'NORMAL';
+    badge.style.background = c + '18';
+    badge.style.color = c;
+    document.getElementById('risk-multiplier').textContent = (d.risk_multiplier || 1.0) + 'x';
+    document.getElementById('risk-max-leg').textContent = '$' + (d.max_leg_size_pusd || 50);
+    document.getElementById('risk-reasoning').textContent = d.reasoning_brief || 'Default parameters active.';
+  } catch {}
+}
+
 window.wizSelectBroker = function (broker) {
   window._broker = broker;
   // Highlight in dynamic grid + static cards
@@ -2703,6 +2982,9 @@ function applyStatusToUI(d) {
   document.getElementById('stats-row').style.display     = 'grid';
   document.getElementById('bot-control').style.display   = 'block';
   document.getElementById('trades-card').style.display   = 'block';
+  document.getElementById('flash-play-tile').style.display = 'block';
+  document.getElementById('risk-desk-tile').style.display  = 'block';
+  loadRiskStatus();
 
   if (d.fuel) updateFuelUI(d.fuel);
   if (d.badges) renderBadges(d.badges);
@@ -3231,8 +3513,9 @@ async function dashConnectRobinhood() {
   }
 }
 
-// Refresh stats every 2 minutes
+// Refresh stats every 2 minutes, risk desk every 60s
 setInterval(() => { if (auth.currentUser && document.getElementById('dashboard').style.display !== 'none') loadStatus(); }, 120_000);
+setInterval(() => { if (auth.currentUser && document.getElementById('dashboard').style.display !== 'none') loadRiskStatus(); }, 60_000);
 
 // ── Polymarket signals ────────────────────────────────────────────────────────
 async function loadPolymarket() {

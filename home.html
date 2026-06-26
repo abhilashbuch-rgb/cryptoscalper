@@ -3,231 +3,307 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK.Network | Autonomous Prediction Engine</title>
-<meta name="description" content="WICK trades prediction markets on Polymarket using your own wallet. Non-custodial. Invite only.">
-<meta property="og:title" content="WICK.Network | Autonomous Prediction Engine">
-<meta property="og:description" content="Automated trading on Polymarket. Your wallet, your keys. Invite only.">
+<title>WICK NETWORK — Live Prediction Market Terminal</title>
+<meta name="description" content="WICK scans Polymarket, Kalshi & Limitless for pricing anomalies with AI confidence scoring and whale tracking. Grab the edge in 15 seconds. Non-custodial. Invite only.">
+<meta property="og:title" content="WICK.Network | Live Prediction Market Terminal">
+<meta property="og:description" content="AI-powered anomaly detection across prediction markets. Whale tracking. Confidence scoring. Your wallet, your edge.">
 <meta property="og:url" content="https://wick.network">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230B0E14'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300E676' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%23004BFF' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230026CC' stroke-width='14' stroke-linecap='round'/></g></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-      }
-    }
-  }
-}
-</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; }
-.mono { font-family: 'JetBrains Mono', monospace; }
-.glow-blue { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.2); }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-.blink { animation: blink 2s infinite; }
+body { font-family: 'Inter', sans-serif; background: #0B0E14; }
+.game-font { font-family: 'Space Grotesk', sans-serif; }
+.mono { font-family: 'Space Grotesk', monospace; }
 
-/* Gate form styles */
+@keyframes pulse-live { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes countdown-bar {
+  0%   { width:100%; background:#00E676; }
+  60%  { background:#f59e0b; }
+  85%  { background:#ff4455; }
+  100% { width:0%; background:#ff4455; }
+}
+@keyframes float-in {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-float { animation: float-in .45s ease-out both; }
+.d1 { animation-delay:.08s } .d2 { animation-delay:.16s } .d3 { animation-delay:.24s } .d4 { animation-delay:.32s }
+
+.demo-bar { height:3px; border-radius:2px; animation: countdown-bar 12s linear infinite; }
+.ticker-track { animation: ticker-scroll 30s linear infinite; }
+
 .form-input {
-  width: 100%;
-  padding: 10px 12px;
-  background: rgba(15,23,42,.6);
-  border: 1px solid rgba(148,163,184,.2);
-  border-radius: 8px;
-  color: #f0f4f8;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 13px;
-  outline: none;
-  transition: border-color .15s;
+  width:100%; padding:10px 12px;
+  background:rgba(20,27,37,.9); border:1px solid rgba(99,118,163,.2);
+  border-radius:10px; color:#e2e8f0; font-family:'Inter',sans-serif;
+  font-size:13px; outline:none; transition:border-color .15s;
 }
-.form-input:focus { border-color: rgba(59,130,246,.5); }
-.form-input::placeholder { color: rgba(148,163,184,.4); }
-.check-group {
-  margin-bottom: 8px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  cursor: pointer;
+.form-input:focus { border-color:rgba(0,75,255,.5); }
+.form-input::placeholder { color:rgba(148,163,184,.3); }
+.check-group { margin-bottom:6px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; }
+.check-group input[type="checkbox"] { width:14px; height:14px; margin-top:1px; accent-color:#004BFF; flex-shrink:0; cursor:pointer; }
+#msg { display:none; margin-top:12px; font-family:'Space Grotesk',monospace; font-size:10px; padding:10px 14px; border-radius:10px; line-height:1.6; text-align:center; }
+#msg.success, #msg.waitlist { display:block; color:#60a5fa; background:rgba(0,75,255,.08); border:1px solid rgba(0,75,255,.2); }
+#msg.approved { display:block; color:#00E676; background:rgba(0,230,118,.08); border:1px solid rgba(0,230,118,.2); }
+#msg.error { display:block; color:#ff4455; background:rgba(255,68,85,.08); border:1px solid rgba(255,68,85,.2); }
+
+.odds-btn {
+  font-weight:700; font-size:12px; padding:6px 14px; border-radius:8px;
+  transition:all .15s; cursor:default; min-width:52px; text-align:center;
 }
-.check-group input[type="checkbox"] {
-  width: 14px; height: 14px;
-  margin-top: 1px;
-  accent-color: #3b82f6;
-  flex-shrink: 0;
-  cursor: pointer;
+.odds-yes { background:rgba(0,75,255,.12); border:1px solid rgba(0,75,255,.3); color:#4D8FFF; }
+.odds-yes:hover { background:rgba(0,75,255,.25); }
+.odds-no  { background:rgba(255,68,85,.12); border:1px solid rgba(255,68,85,.3); color:#ff6b7a; }
+.odds-no:hover  { background:rgba(255,68,85,.25); }
+
+.quad {
+  background:#0F141C; border:1px solid rgba(148,163,184,.1);
+  border-radius:16px; padding:24px; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:space-between;
+  box-shadow: 0 4px 30px rgba(0,0,0,.3);
+  transition: border-color .2s;
 }
-#msg { display: none; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 10px 14px; border-radius: 8px; line-height: 1.6; text-align: center; }
-#msg.success, #msg.waitlist { display: block; color: #3b82f6; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); }
-#msg.approved { display: block; color: #22c55e; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); }
-#msg.error { display: block; color: #ef4444; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
+.quad:hover { border-color: rgba(148,163,184,.2); }
 </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-500/30 selection:text-blue-200">
+<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-600/30">
 
-<header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-6 px-2">
-  <div class="flex items-center gap-3">
-    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter shadow-lg shadow-blue-600/20">W</div>
-    <span class="text-lg font-bold tracking-tight uppercase mono">Wick<span class="text-blue-500">.Network</span></span>
+<!-- ═══ HEADER ═══ -->
+<header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 px-4 bg-[#0F141C] border border-slate-800/80 p-4 rounded-xl animate-float">
+  <div class="flex items-center gap-2.5">
+    <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-md shadow-blue-600/20">W</div>
+    <span class="text-md font-bold tracking-tight game-font">WICK<span class="text-blue-500">.NETWORK</span></span>
   </div>
-  <div class="flex items-center gap-6 text-xs mono text-slate-400">
-    <a href="/terms" class="hover:text-slate-200 transition hidden sm:inline">Terms</a>
-    <a href="/privacy" class="hover:text-slate-200 transition hidden sm:inline">Privacy</a>
-    <span class="flex items-center gap-1.5">
-      <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-      LIVE ENGINE v2.4
-    </span>
+  <div class="flex items-center gap-4 text-xs font-semibold">
+    <a href="/terms" class="text-slate-500 hover:text-slate-300 transition hidden sm:inline game-font">Terms</a>
+    <a href="/privacy" class="text-slate-500 hover:text-slate-300 transition hidden sm:inline game-font">Privacy</a>
+    <div class="bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1.5" style="animation:pulse-live 2s infinite">
+      <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+      SCANNING LIVE
+    </div>
   </div>
 </header>
 
-<main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
-
-  <!-- Q1: THE ENGINE -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
-    <div>
-      <div class="grid grid-cols-3 gap-2 pb-4 mb-6 border-b border-slate-800/60 text-center mono text-[10px] sm:text-xs text-slate-400">
-        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
-          <span class="block text-blue-400 font-semibold">&lt;200ms</span> PROPAGATION
-        </div>
-        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
-          <span class="block text-emerald-400 font-semibold">99.97%</span> UPTIME
-        </div>
-        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
-          <span class="block text-slate-200 font-semibold">0</span> CUSTODY RISK
-        </div>
-      </div>
-
-      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 01 // Live Pipeline
-      </h2>
-
-      <div class="grid grid-cols-9 items-center gap-1 text-center text-[11px] mono">
-        <div class="col-span-2 flex flex-col gap-2">
-          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center h-9">
-            <img src="https://cdn.freebiesupply.com/images/large/2x/reuters-logo-white.png" class="h-4 opacity-90" alt="Reuters">
-          </div>
-          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center h-9">
-            <img src="https://www.freepnglogos.com/uploads/espn-png-logo/pn-white-png-logo-18.png" class="h-4 opacity-90" alt="ESPN">
-          </div>
-          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-500 truncate text-[10px]">Chain Data</div>
-          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-500 truncate text-[10px]">CLOB Feed</div>
-          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-500 truncate text-[10px]">Gov Filings</div>
-        </div>
-
-        <div class="col-span-1 text-slate-600 text-sm blink">&#10142;</div>
-
-        <div class="col-span-3 flex flex-col items-center justify-center py-4">
-          <div class="text-white font-bold text-xl sm:text-2xl tracking-widest leading-none text-center">WICK</div>
-          <div class="text-white font-bold text-xl sm:text-2xl tracking-widest leading-none text-center">NETWORK</div>
-          <div class="w-12 h-0.5 bg-blue-500 rounded-full mt-2 mb-1"></div>
-          <div class="text-blue-400 text-[9px] tracking-[.2em] uppercase font-semibold">AI Engine</div>
-        </div>
-
-        <div class="col-span-1 text-slate-600 text-sm blink">&#10142;</div>
-
-        <div class="col-span-2 flex flex-col gap-2 text-left">
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Research Desk</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Math Engine</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Execution</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Risk CRO</div>
-          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Calibration</div>
-        </div>
+<!-- ═══ LIVE TICKER BAR ═══ -->
+<div class="w-full max-w-7xl mx-auto mb-4 bg-[#0F141C] border border-slate-800/60 rounded-xl overflow-hidden">
+  <div class="flex items-center">
+    <div class="bg-blue-600 text-white text-[9px] font-bold px-3 py-2 game-font tracking-wider flex-shrink-0">LIVE ODDS</div>
+    <div class="flex-1 overflow-hidden py-2 px-3">
+      <div class="ticker-track flex gap-8 whitespace-nowrap" style="width:max-content">
+        <span class="text-[11px] text-slate-400 font-mono">BTC &gt;$120K Jul <span class="text-emerald-400 font-bold">72&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Fed Rate Cut Sep <span class="text-blue-400 font-bold">58&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">ETH &gt;$8K Aug <span class="text-emerald-400 font-bold">41&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">NBA Finals G7 <span class="text-red-400 font-bold">23&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Trump Pardon Jun <span class="text-blue-400 font-bold">67&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">SOL &gt;$300 <span class="text-emerald-400 font-bold">34&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">AI Regulation EU <span class="text-blue-400 font-bold">81&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">BTC &gt;$120K Jul <span class="text-emerald-400 font-bold">72&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Fed Rate Cut Sep <span class="text-blue-400 font-bold">58&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">ETH &gt;$8K Aug <span class="text-emerald-400 font-bold">41&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">NBA Finals G7 <span class="text-red-400 font-bold">23&#162;</span></span>
+        <span class="text-[11px] text-slate-400 font-mono">Trump Pardon Jun <span class="text-blue-400 font-bold">67&#162;</span></span>
       </div>
     </div>
-    <div class="mt-4 pt-4 border-t border-slate-800/40 text-slate-500 text-[11px] mono">
-      * Real-time multi-threaded ingestion matrix.
+  </div>
+</div>
+
+<!-- ═══ 4-QUADRANT GRID ═══ -->
+<main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-5 flex-grow">
+
+  <!-- Q1 — WICK NETWORK -->
+  <div class="quad animate-float d1">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-blue-600/8 rounded-full blur-3xl pointer-events-none"></div>
+    <div>
+      <div class="flex justify-between items-center mb-5">
+        <span class="text-[9px] bg-blue-600/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font">LIVE NETWORK</span>
+        <span class="text-[10px] text-slate-500 font-mono tracking-tight">REAL-TIME</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white game-font mb-2">
+        WICK <span class="text-blue-500">NETWORK</span>
+      </h1>
+      <p class="text-sm text-slate-400 mb-5 leading-relaxed max-w-sm">
+        WICK watches breaking news, connects to Polymarket, and creates trades before anyone else can react.
+      </p>
+
+      <span class="text-[9px] font-bold tracking-wider text-slate-500 block uppercase mb-3 game-font">Connected Live Channels</span>
+
+      <!-- Live channel feeds -->
+      <div class="space-y-2 mb-4">
+        <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-white/5 border border-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[10px] font-black text-white game-font">R</span>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">Reuters Wire</div>
+              <div class="text-[10px] text-slate-500">Breaking news &amp; global events</div>
+            </div>
+          </div>
+          <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold game-font"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="animation:pulse-live 1.5s infinite"></span>LIVE</span>
+        </div>
+
+        <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-red-600/10 border border-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[10px] font-black text-red-400 game-font">CNN</span>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">CNN</div>
+              <div class="text-[10px] text-slate-500">Politics &amp; world news</div>
+            </div>
+          </div>
+          <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold game-font"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="animation:pulse-live 1.5s infinite"></span>LIVE</span>
+        </div>
+
+        <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-orange-600/10 border border-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[9px] font-black text-orange-400 game-font">ESPN</span>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">ESPN</div>
+              <div class="text-[10px] text-slate-500">Live scores &amp; sports outcomes</div>
+            </div>
+          </div>
+          <span class="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold game-font"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full" style="animation:pulse-live 1.5s infinite"></span>LIVE</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-blue-600/10 border border-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[8px] font-black text-blue-400 game-font">GOV</span>
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-white">Gov Filings</div>
+              <div class="text-[9px] text-slate-500">SEC &amp; regulatory</div>
+            </div>
+          </div>
+          <div class="bg-[#141B25] border border-slate-800 hover:border-slate-700 transition p-3 rounded-xl flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-emerald-600/10 border border-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span class="text-[7px] font-black text-emerald-400 game-font">NDQ</span>
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-white">NASDAQ</div>
+              <div class="text-[9px] text-slate-500">Market data</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-blue-600/8 border border-blue-500/15 rounded-lg px-3 py-2 text-center">
+        <span class="text-[10px] text-blue-400 font-bold game-font uppercase tracking-wider">News breaks &#8594; WICK trades &#8594; Real-time execution</span>
+      </div>
+    </div>
+    <div class="mt-4 pt-3 border-t border-slate-800/60 flex justify-between items-center text-[10px] font-mono text-slate-500">
+      <span>5 live channels connected to Polymarket</span>
+      <span class="text-emerald-400 font-bold">ONLINE</span>
     </div>
   </div>
 
-  <!-- Q2: WHAT IT DOES -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
+  <!-- Q2 — HOW IT WORKS (simple) -->
+  <div class="quad animate-float d2">
     <div>
-      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 02 // Core Capabilities
-      </h2>
-      <h3 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-100 leading-tight mb-6">
-        Autonomous predictive modeling running directly on live-state primitives.
+      <span class="text-[9px] bg-purple-600/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">HOW IT WORKS</span>
+
+      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-100 game-font mb-2 leading-snug">
+        Breaking news hits.<br>WICK trades it instantly.
       </h3>
-      <ul class="space-y-4 text-slate-400 text-sm md:text-base">
-        <li class="flex items-start gap-3">
-          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
-          <span><strong class="text-slate-200 font-medium">Reads the Global News:</strong> Parses streaming unstructured wires, filings, and telemetry instantly.</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
-          <span><strong class="text-slate-200 font-medium">Scores the Odds:</strong> Runs real-time probability distributions over cross-chain prediction markets.</span>
-        </li>
-        <li class="flex items-start gap-3">
-          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
-          <span><strong class="text-slate-200 font-medium">Places Trades:</strong> Executes capital allocation natively via decentralized routing architectures.</span>
-        </li>
-      </ul>
-    </div>
-    <div class="mt-6 text-xs text-slate-500 mono">
-      STRICT COMPLIANCE // 0% MANIPULATION RISK
-    </div>
-  </div>
+      <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+        WICK is plugged into live news channels. When something happens in the real world, it finds the matching market on Polymarket and places the trade &mdash; before anyone else.
+      </p>
 
-  <!-- Q3: SECURITY & CUSTODY -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
-    <div>
-      <h2 class="text-xs uppercase tracking-widest text-emerald-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> 03 // Custody & Architecture
-      </h2>
-
-      <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 mb-6">
-        <div class="flex gap-4">
-          <span class="text-2xl">&#128737;&#65039;</span>
-          <div>
-            <h4 class="text-slate-200 font-semibold text-sm sm:text-base mb-1">Your Money Stays Yours</h4>
-            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Non-custodial by design. You retain <span class="text-emerald-400 font-medium">100% full custody</span> of your assets at all times. We do not touch your funds &mdash; ever. WICK can trade on your behalf but cannot withdraw, transfer, or access your capital.
-            </p>
+      <div class="space-y-3">
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+          <div class="text-xs">
+            <strong class="text-white block font-semibold mb-0.5">News breaks</strong>
+            <span class="text-slate-400">Reuters drops a headline, ESPN updates a score, a government filing goes public. WICK sees it the second it happens.</span>
           </div>
         </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex gap-3 items-center">
-          <span class="text-xl">&#9889;</span>
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
           <div class="text-xs">
-            <span class="block text-slate-200 font-semibold uppercase mono tracking-wider">Trade Only</span>
-            <span class="text-slate-400">Scoped to placing orders. Nothing else.</span>
+            <strong class="text-white block font-semibold mb-0.5">WICK finds the trade</strong>
+            <span class="text-slate-400">It matches the news to prediction markets on Polymarket. If the odds haven't caught up yet, that's your edge.</span>
           </div>
         </div>
-        <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex gap-3 items-center">
-          <span class="text-xl">&#9940;</span>
+        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
+          <span class="bg-emerald-500 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
           <div class="text-xs">
-            <span class="block text-red-400 font-semibold uppercase mono tracking-wider">Zero Withdrawal</span>
-            <span class="text-slate-400">No pathway to move or extract your capital.</span>
+            <strong class="text-white block font-semibold mb-0.5">Real-time execution</strong>
+            <span class="text-slate-400">The trade goes through your wallet automatically. You keep the profit. WICK only takes a cut of what you make &mdash; never a cut of what you put in.</span>
           </div>
         </div>
       </div>
     </div>
-    <div class="mt-6 text-xs text-slate-500 mono flex justify-between items-center">
-      <span>NON-CUSTODIAL BY DESIGN</span>
-      <span class="text-emerald-500 font-semibold">YOUR KEYS, YOUR FUNDS</span>
+    <div class="mt-5 text-[10px] font-mono text-slate-500 uppercase tracking-wider game-font">
+      That's it. News in, trades out.
     </div>
   </div>
 
-  <!-- Q4: ACCESS GATE -->
-  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
+  <!-- Q3 — VAULT / CUSTODY -->
+  <div class="quad animate-float d3">
+    <div class="absolute top-0 right-0 w-36 h-36 bg-emerald-600/8 rounded-full blur-3xl pointer-events-none"></div>
     <div>
-      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 04 // Access Gate
-      </h2>
-      <p class="text-slate-400 text-sm mb-5">
-        Private beta. Invite only. Join the waitlist or enter your invite code.
+      <span class="text-[9px] bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">VAULT INTEGRITY</span>
+
+      <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 mb-5 flex gap-3">
+        <span class="text-2xl flex-shrink-0">&#127920;</span>
+        <div>
+          <h4 class="text-slate-100 font-bold text-sm game-font mb-1">Sovereign Asset Rules</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            You retain <span class="text-emerald-400 font-bold">100% full custody of your chips</span>. Your money stays yours — by design. WICK places positions but has <span class="text-red-400 font-bold">zero withdrawal capability</span>.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-emerald-400 font-bold text-[10px] uppercase mb-1 game-font">&#9989; Permitted</span>
+          <span class="text-[11px] text-slate-400">Position placement routing only</span>
+        </div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-red-400 font-bold text-[10px] uppercase mb-1 game-font">&#9940; Blocked</span>
+          <span class="text-[11px] text-slate-400">No withdrawal, no transfers</span>
+        </div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-blue-400 font-bold text-[10px] uppercase mb-1 game-font">&#128274; Your Keys</span>
+          <span class="text-[11px] text-slate-400">Trades run through your own wallet</span>
+        </div>
+        <div class="bg-[#141B25] border border-slate-800 p-3 rounded-xl">
+          <span class="block text-slate-300 font-bold text-[10px] uppercase mb-1 game-font">&#128683; Zero PII</span>
+          <span class="text-[11px] text-slate-400">We don't store personal information</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5 flex justify-between items-center text-[10px] font-mono text-slate-500">
+      <span class="game-font uppercase tracking-wider">Audited contract logic</span>
+      <span class="text-emerald-400 font-bold">SECURE</span>
+    </div>
+  </div>
+
+  <!-- Q4 — ROOM ENTRY / ACCESS GATE -->
+  <div class="quad animate-float d4">
+    <div>
+      <span class="text-[9px] bg-amber-600/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">ROOM ENTRY</span>
+
+      <h3 class="text-lg font-bold text-white game-font mb-1">Private beta. Invite only.</h3>
+      <p class="text-xs text-slate-400 mb-5 max-w-sm leading-relaxed">
+        Join the waitlist or enter your invite code to activate your private predictive trading desk.
       </p>
 
       <!-- Waitlist form -->
       <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
         <div>
-          <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Email</label>
+          <label class="block text-[9px] tracking-wider uppercase text-slate-500 mb-1.5 font-bold game-font">Email</label>
           <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
         </div>
         <label class="check-group">
@@ -242,13 +318,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; 
           <input type="checkbox" id="chk-newsletter" checked>
           <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
         </label>
-        <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm shadow-lg shadow-blue-600/10" type="submit" id="btn-submit" disabled>
+        <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition text-xs uppercase tracking-wider game-font shadow-lg shadow-blue-600/10" type="submit" id="btn-submit" disabled>
           Request Access
         </button>
       </form>
 
-      <!-- Invite code -->
-      <div class="flex items-center gap-2.5 my-4 mono text-[9px] text-slate-600 uppercase tracking-[.15em]">
+      <!-- Invite code divider -->
+      <div class="flex items-center gap-2.5 my-4 text-[9px] text-slate-600 uppercase tracking-wider game-font">
         <div class="flex-1 h-px bg-slate-800"></div>
         <span>Have an invite code?</span>
         <div class="flex-1 h-px bg-slate-800"></div>
@@ -256,46 +332,47 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; 
 
       <div id="invite-section" class="space-y-3">
         <div>
-          <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Invite Code</label>
-          <input class="form-input text-center uppercase tracking-[.15em] mono" type="text" id="invite-code" placeholder="XXXX-XXXX">
+          <label class="block text-[9px] tracking-wider uppercase text-slate-500 mb-1.5 font-bold game-font">Invite Code</label>
+          <input class="form-input text-center uppercase tracking-widest" type="text" id="invite-code" placeholder="XXXX-XXXX" style="font-family:'Space Grotesk',monospace">
         </div>
-        <div id="code-error" style="display:none" class="mono text-[10px] text-red-400 text-center"></div>
-        <button class="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800 text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm" id="btn-verify" onclick="verifyCode()">
+        <div id="code-error" style="display:none" class="text-[10px] text-red-400 text-center game-font"></div>
+        <button class="w-full bg-[#141B25] hover:bg-[#19222E] border border-slate-800 text-slate-300 font-semibold py-2.5 px-4 rounded-xl transition text-xs game-font" id="btn-verify" onclick="verifyCode()">
           Verify Code
         </button>
       </div>
 
       <div id="signin-section" style="display:none" class="space-y-3">
-        <div id="code-accepted" class="mono text-[10px] text-blue-400 text-center"></div>
-        <button class="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800 text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
+        <div id="code-accepted" class="text-[10px] text-blue-400 text-center game-font"></div>
+        <button class="w-full bg-[#141B25] hover:bg-[#19222E] border border-slate-800 text-slate-300 font-semibold py-3 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2" id="btn-signin">
           <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
           Sign in with Google
         </button>
       </div>
 
       <div id="msg"></div>
-      <button class="mt-2.5 bg-transparent border border-slate-800 text-slate-500 mono text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-700 transition" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
+      <button class="mt-2.5 bg-transparent border border-slate-800 text-slate-500 text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-600 transition game-font" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
     </div>
-    <div class="mt-4 flex justify-between items-center text-xs text-slate-500 mono">
-      <span>CONTRACTS: VERIFIED</span>
-      <span>v2.0-MAIN</span>
+    <div class="mt-5 flex justify-between items-center text-[10px] font-mono text-slate-500">
+      <span class="game-font uppercase tracking-wider">Room status: verified main-net</span>
+      <span>v2.4</span>
     </div>
   </div>
 
 </main>
 
-<footer class="w-full max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[11px] mono text-slate-600 gap-2 px-2">
-  <div>&copy; 2026 WICK.NETWORK. ALL RIGHTS RESERVED.</div>
-  <div class="flex gap-4">
+<!-- ═══ FOOTER ═══ -->
+<footer class="w-full max-w-7xl mx-auto mt-5 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-slate-600 gap-2 px-2">
+  <div class="game-font">&copy; 2026 WICK.NETWORK DIGITAL INTERACTIVE APPARATUS</div>
+  <div class="flex gap-4 game-font">
     <a href="/terms" class="hover:text-slate-400 transition">TERMS</a>
     <a href="/privacy" class="hover:text-slate-400 transition">PRIVACY</a>
   </div>
 </footer>
-<p class="w-full max-w-7xl mx-auto text-center text-[9px] text-slate-700 mt-3 mb-6 px-4 leading-relaxed opacity-50">
+<p class="w-full max-w-7xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-6 px-4 leading-relaxed opacity-50">
   WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.
 </p>
 
-<!-- Waitlist / Invite / Auth -->
+<!-- ═══ Waitlist / Invite / Auth JS ═══ -->
 <script>
 let verifiedCode = null;
 

@@ -3,1121 +3,430 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK — Automated Prediction Market Trading</title>
+<title>WICK.Network | Autonomous Prediction Engine</title>
 <meta name="description" content="WICK trades prediction markets on Polymarket using your own wallet. Non-custodial. Invite only.">
-<meta property="og:title" content="WICK — Automated Prediction Market Trading">
+<meta property="og:title" content="WICK.Network | Autonomous Prediction Engine">
 <meta property="og:description" content="Automated trading on Polymarket. Your wallet, your keys. Invite only.">
 <meta property="og:url" content="https://wick.network">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
+<script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      }
+    }
+  }
+}
+</script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#ffffff;
-  --surface:#f7f7f8;
-  --surface2:#eeeff2;
-  --border:rgba(0,0,0,.08);
-  --border2:rgba(0,0,0,.14);
-  --text1:#1a1a2e;
-  --text2:#5a5d6b;
-  --text3:#9a9caa;
-  --accent:#2962FF;
-  --accent2:#4D8FFF;
-  --green:#16a34a;
-  --red:#ef4444;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Inter',system-ui,-apple-system,sans-serif;
-}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);
-  color:var(--text1);
-  font-family:var(--sans);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  line-height:1.5;
-}
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.glow-blue { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.2); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.blink { animation: blink 2s infinite; }
 
-/* Nav */
-.nav{
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:rgba(255,255,255,.9);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-  padding:0 24px;
-}
-.nav-inner{
-  max-width:1120px;
-  margin:0 auto;
-  height:56px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.nav-logo svg{width:100px;height:auto}
-.nav-right{display:flex;align-items:center;gap:20px}
-.nav-links{display:flex;gap:4px}
-.nav-links a{
-  font-size:12px;
-  color:var(--text3);
-  text-decoration:none;
-  padding:6px 12px;
-  border-radius:6px;
-  transition:all .15s;
-  font-weight:500;
-}
-.nav-links a:hover{color:var(--text1);background:rgba(0,0,0,.04)}
-
-/* Layout */
-.container{max-width:1120px;margin:0 auto;padding:0 24px}
-section{border-bottom:1px solid var(--border)}
-
-/* ═══ SECTION 1: HERO / CONNECTOR ═══ */
-.hero{padding:64px 0 56px}
-.hero-split{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:48px;
-  align-items:center;
-}
-@media(max-width:768px){.hero-split{grid-template-columns:1fr;gap:32px}}
-.hero-tag{
-  font-family:var(--mono);
-  font-size:10px;
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  color:var(--accent);
-  margin-bottom:16px;
-  font-weight:600;
-}
-.hero-title{
-  font-size:clamp(1.75rem,4vw,2.5rem);
-  font-weight:700;
-  line-height:1.15;
-  margin-bottom:16px;
-  color:var(--text1);
-}
-.hero-desc{
-  font-size:14px;
-  color:var(--text2);
-  line-height:1.8;
-  margin-bottom:24px;
-  max-width:480px;
-}
-.hero-meta{
-  display:flex;
-  gap:24px;
-  flex-wrap:wrap;
-}
-.hero-meta-item{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.hero-meta-val{
-  font-family:var(--mono);
-  font-size:18px;
-  font-weight:700;
-  color:var(--text1);
-}
-.hero-meta-label{
-  font-family:var(--mono);
-  font-size:9px;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  color:var(--text3);
-}
-
-/* Connector diagram */
-.connector{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:28px 24px;
-  position:relative;
-  overflow:hidden;
-}
-.connector::before{
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;
-  height:2px;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);
-  opacity:.2;
-}
-.conn-header{
-  font-family:var(--mono);
-  font-size:9px;
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-bottom:20px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.conn-live{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  color:var(--green);
-  font-weight:600;
-}
-.conn-live-dot{
-  width:5px;height:5px;border-radius:50%;
-  background:var(--green);
-  animation:blink 2s infinite;
-}
-.conn-flow{
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
-  gap:12px;
-  align-items:center;
-}
-.conn-col{display:flex;flex-direction:column;gap:6px}
-.conn-node{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 10px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:6px;
-  font-family:var(--mono);
-  font-size:10px;
-  color:var(--text2);
-  transition:border-color .15s;
-}
-.conn-node:hover{border-color:var(--border2)}
-.conn-node-dot{
-  width:7px;height:7px;
-  border-radius:2px;
-  flex-shrink:0;
-}
-.conn-bridge{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:4px;
-  padding:12px 0;
-}
-.conn-bridge-icon{
-  width:40px;height:40px;
-  border-radius:8px;
-  background:linear-gradient(135deg,var(--accent),#1d4ed8);
-  display:flex;align-items:center;justify-content:center;
-}
-.conn-bridge-label{
-  font-family:var(--mono);
-  font-size:8px;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  color:var(--accent2);
-  font-weight:600;
-}
-.conn-arrow{
-  font-family:var(--mono);
-  font-size:10px;
-  color:var(--text3);
-  text-align:center;
-  letter-spacing:2px;
-}
-
-/* ═══ SECTION 2: CAPABILITIES ═══ */
-.cap-section{padding:48px 0}
-.section-header{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  margin-bottom:24px;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.section-tag{
-  font-family:var(--mono);
-  font-size:10px;
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  color:var(--text3);
-  font-weight:600;
-}
-.section-title{
-  font-size:18px;
-  font-weight:700;
-  color:var(--text1);
-}
-.cap-table{
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:10px;
-  overflow:hidden;
-}
-.cap-thead{
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr 100px;
-  padding:10px 16px;
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  font-family:var(--mono);
-  font-size:9px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:var(--text3);
-  font-weight:600;
-}
-.cap-row{
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr 100px;
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
-  align-items:center;
-  transition:background .15s;
-}
-.cap-row:last-child{border-bottom:none}
-.cap-row:hover{background:rgba(0,0,0,.02)}
-.cap-name{
-  font-size:13px;
-  font-weight:600;
-  color:var(--text1);
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.cap-icon{
-  width:28px;height:28px;
-  border-radius:6px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-}
-.cap-icon svg{width:14px;height:14px;stroke:var(--accent);stroke-width:2;fill:none}
-.cap-desc{
-  font-size:12px;
-  color:var(--text2);
-  line-height:1.5;
-}
-.cap-metric{
-  font-family:var(--mono);
-  font-size:12px;
-  font-weight:600;
-  color:var(--text1);
-}
-.cap-status{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  font-family:var(--mono);
-  font-size:10px;
-  font-weight:600;
-}
-.cap-status.live{color:var(--green)}
-.cap-status.soon{color:var(--text3)}
-.status-dot{
-  width:5px;height:5px;
-  border-radius:50%;
-}
-.status-dot.live{background:var(--green)}
-.status-dot.soon{background:var(--text3)}
-
-@media(max-width:768px){
-  .cap-thead,.cap-row{grid-template-columns:1fr 1fr;gap:8px}
-  .cap-desc{display:none}
-}
-
-/* ═══ SECTION 3: SECURITY ═══ */
-.sec-section{padding:48px 0}
-.sec-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-}
-@media(max-width:768px){.sec-grid{grid-template-columns:1fr}}
-.sec-box{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:24px 20px;
-  position:relative;
-  overflow:hidden;
-}
-.sec-box::before{
-  content:'';
-  position:absolute;
-  top:0;left:0;
-  width:3px;height:100%;
-}
-.sec-box.green::before{background:var(--green)}
-.sec-box.blue::before{background:var(--accent)}
-.sec-box-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:12px;
-}
-.sec-box-title{
-  font-size:13px;
-  font-weight:700;
-  color:var(--text1);
-}
-.sec-badge{
-  font-family:var(--mono);
-  font-size:9px;
-  font-weight:700;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  padding:3px 8px;
-  border-radius:4px;
-}
-.sec-badge.active{color:var(--green);background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.15)}
-.sec-badge.verified{color:var(--accent);background:rgba(41,98,255,.08);border:1px solid rgba(41,98,255,.15)}
-.sec-box-desc{
-  font-size:12px;
-  color:var(--text2);
-  line-height:1.7;
-  margin-bottom:16px;
-}
-.sec-params{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-.sec-param{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:6px 0;
-  border-top:1px solid var(--border);
-}
-.sec-param-key{
-  font-family:var(--mono);
-  font-size:10px;
-  color:var(--text3);
-  text-transform:uppercase;
-  letter-spacing:.08em;
-}
-.sec-param-val{
-  font-family:var(--mono);
-  font-size:11px;
-  font-weight:600;
-  color:var(--text1);
-}
-
-/* ═══ SECTION 4: CTA / GATE ═══ */
-.cta-section{padding:48px 0 64px;border-bottom:none}
-.cta-split{
-  display:grid;
-  grid-template-columns:1fr 400px;
-  gap:48px;
-  align-items:start;
-}
-@media(max-width:860px){.cta-split{grid-template-columns:1fr;gap:32px}}
-.cta-info{padding-top:8px}
-.cta-title{
-  font-size:clamp(1.4rem,3vw,2rem);
-  font-weight:700;
-  line-height:1.2;
-  margin-bottom:12px;
-}
-.cta-desc{
-  font-size:14px;
-  color:var(--text2);
-  line-height:1.8;
-  margin-bottom:28px;
-  max-width:440px;
-}
-.price-table{
-  border:1px solid var(--border);
-  border-radius:10px;
-  overflow:hidden;
-}
-.price-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
-}
-.price-row:last-child{border-bottom:none}
-.price-row.head{
-  background:var(--surface);
-  font-family:var(--mono);
-  font-size:9px;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  color:var(--text3);
-  font-weight:600;
-}
-.price-label{font-size:13px;color:var(--text2)}
-.price-val{
-  font-family:var(--mono);
-  font-size:13px;
-  font-weight:700;
-  color:var(--text1);
-}
-.price-val.free{color:var(--green)}
-
-/* Gate card */
-.gate-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:28px 24px;
-  position:relative;
-  overflow:hidden;
-}
-.gate-card::before{
-  content:'';
-  position:absolute;
-  top:0;left:0;right:0;
-  height:2px;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);
-  opacity:.2;
-}
-.gate-title{
-  font-size:16px;
-  font-weight:700;
-  margin-bottom:4px;
-  color:var(--text1);
-}
-.gate-desc{
-  font-size:12px;
-  color:var(--text3);
-  margin-bottom:20px;
-}
-.form-group{margin-bottom:14px}
-.form-label{
-  display:block;
-  font-family:var(--mono);
-  font-size:9px;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-bottom:5px;
-  font-weight:600;
-}
-.form-input{
-  width:100%;
-  padding:10px 12px;
-  background:#fff;
-  border:1px solid var(--border2);
-  border-radius:6px;
-  color:var(--text1);
-  font-family:var(--sans);
-  font-size:13px;
-  outline:none;
-  transition:border-color .15s;
-}
-.form-input:focus{border-color:rgba(41,98,255,.5)}
-.form-input::placeholder{color:var(--text3)}
-.check-group{
-  margin-bottom:8px;
-  display:flex;
-  align-items:flex-start;
-  gap:8px;
-  cursor:pointer;
-}
-.check-group input[type="checkbox"]{
-  width:14px;height:14px;
-  margin-top:1px;
-  accent-color:var(--accent);
-  flex-shrink:0;
-  cursor:pointer;
-}
-.check-label{
-  font-size:10px;
-  color:var(--text3);
-  line-height:1.5;
-}
-.check-label a{color:var(--accent2);text-decoration:none}
-.check-label a:hover{text-decoration:underline}
-.btn-submit{
-  width:100%;
-  padding:11px;
-  background:var(--accent);
-  color:#fff;
-  font-family:var(--sans);
-  font-size:12px;
-  font-weight:700;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  transition:all .15s;
-  margin-top:14px;
-  letter-spacing:.03em;
-}
-.btn-submit:hover:not(:disabled){
-  background:var(--accent2);
-  box-shadow:0 4px 16px rgba(41,98,255,.2);
-}
-.btn-submit:disabled{opacity:.25;cursor:not-allowed}
-.divider{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin:18px 0;
-  font-family:var(--mono);
-  font-size:9px;
-  color:var(--text3);
-  text-transform:uppercase;
-  letter-spacing:.15em;
-}
-.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
-.btn-google{
-  display:inline-flex;
-  align-items:center;
-  background:#fff;
-  color:var(--text2);
-  font-weight:600;
-  font-size:12px;
-  padding:10px 16px;
-  border-radius:6px;
-  border:1px solid var(--border2);
-  cursor:pointer;
-  transition:all .15s;
-  width:100%;
-  justify-content:center;
-  gap:8px;
-  font-family:var(--sans);
-}
-.btn-google:hover{background:var(--surface);border-color:rgba(0,0,0,.2)}
-.btn-google svg{width:14px;height:14px;flex-shrink:0}
-#msg{
-  display:none;
-  margin-top:12px;
-  font-family:var(--mono);
-  font-size:10px;
-  padding:10px 14px;
-  border-radius:6px;
-  line-height:1.6;
-  text-align:center;
-}
-#msg.success,#msg.waitlist{display:block;color:var(--accent);background:rgba(41,98,255,.05);border:1px solid rgba(41,98,255,.15)}
-#msg.approved{display:block;color:var(--green);background:rgba(22,163,74,.05);border:1px solid rgba(22,163,74,.15)}
-#msg.error{display:block;color:var(--red);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15)}
-.signout{
-  margin-top:10px;
-  background:none;
-  border:1px solid var(--border);
-  color:var(--text3);
-  font-family:var(--mono);
-  font-size:10px;
-  padding:6px 14px;
-  border-radius:4px;
-  cursor:pointer;
-  display:none;
-}
-.signout:hover{color:var(--text2);border-color:var(--border2)}
-
-/* Footer */
-.site-footer{
-  border-top:1px solid var(--border);
-  padding:24px;
-}
-.footer-inner{
-  max-width:1120px;
-  margin:0 auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.foot-logo svg{width:72px;height:auto}
-.foot-links{display:flex;gap:16px}
-.foot-links a{
-  font-family:var(--mono);
-  font-size:10px;
-  color:var(--text3);
-  text-decoration:none;
-  transition:color .15s;
-}
-.foot-links a:hover{color:var(--text2)}
-.disclaimer{
-  max-width:1120px;
-  margin:0 auto;
-  padding:0 24px 40px;
-  font-size:9px;
-  color:var(--text3);
-  text-align:center;
-  line-height:1.7;
-  opacity:.5;
-}
+/* Gate form styles */
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(15,23,42,.6);
+  border: 1px solid rgba(148,163,184,.2);
+  border-radius: 8px;
+  color: #f0f4f8;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+.form-input:focus { border-color: rgba(59,130,246,.5); }
+.form-input::placeholder { color: rgba(148,163,184,.4); }
+.check-group {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+.check-group input[type="checkbox"] {
+  width: 14px; height: 14px;
+  margin-top: 1px;
+  accent-color: #3b82f6;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+#msg { display: none; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 10px 14px; border-radius: 8px; line-height: 1.6; text-align: center; }
+#msg.success, #msg.waitlist { display: block; color: #3b82f6; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); }
+#msg.approved { display: block; color: #22c55e; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); }
+#msg.error { display: block; color: #ef4444; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
 </style>
 </head>
-<body>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-500/30 selection:text-blue-200">
 
-<!-- Nav -->
-<nav class="nav">
-  <div class="nav-inner">
-    <div class="nav-logo">
-      <svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g transform="translate(0,8)">
-          <path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/>
-          <path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/>
-          <path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/>
-        </g>
-        <g transform="translate(265,102)" fill="#1a1a2e">
-          <path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/>
-          <path d="M152,-88 L174,-88 L174,0 L152,0 Z"/>
-          <circle cx="163" cy="-112" r="11" fill="#00f2fe"/>
-          <path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/>
-          <path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/>
-        </g>
-      </svg>
-    </div>
-    <div class="nav-right">
-      <div class="nav-links">
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-      </div>
-    </div>
+<header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-6 px-2">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter shadow-lg shadow-blue-600/20">W</div>
+    <span class="text-lg font-bold tracking-tight uppercase mono">Wick<span class="text-blue-500">.Network</span></span>
   </div>
-</nav>
-
-<!-- ═══ SECTION 1: THE CONNECTOR ═══ -->
-<section>
-  <div class="container">
-    <div class="hero">
-      <div class="hero-split">
-        <div>
-          <div class="hero-tag">Prediction Market Trading</div>
-          <h1 class="hero-title">WICK trades Polymarket so you don't have to.</h1>
-          <p class="hero-desc">It reads the news, scores the odds, and places trades through your own wallet. You keep full custody. WICK can trade but never withdraw.</p>
-          <div class="hero-meta">
-            <div class="hero-meta-item">
-              <span class="hero-meta-val">&lt;200ms</span>
-              <span class="hero-meta-label">Propagation</span>
-            </div>
-            <div class="hero-meta-item">
-              <span class="hero-meta-val">99.97%</span>
-              <span class="hero-meta-label">Uptime</span>
-            </div>
-            <div class="hero-meta-item">
-              <span class="hero-meta-val">0</span>
-              <span class="hero-meta-label">Custody Risk</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Connector Diagram -->
-        <div class="connector">
-          <div class="conn-header">
-            <span>How It Works</span>
-            <span class="conn-live"><span class="conn-live-dot"></span>Live</span>
-          </div>
-          <div class="conn-flow">
-            <div class="conn-col">
-              <div class="conn-node"><span class="conn-node-dot" style="background:#3b82f6"></span>Reuters Wire</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#22c55e"></span>ESPN Scores</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#f59e0b"></span>Chain Data</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#8b5cf6"></span>CLOB Feed</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#ec4899"></span>Gov Filings</div>
-            </div>
-            <div class="conn-bridge">
-              <div class="conn-arrow">---&gt;</div>
-              <div class="conn-bridge-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              </div>
-              <div class="conn-bridge-label">WICK</div>
-              <div class="conn-arrow">---&gt;</div>
-            </div>
-            <div class="conn-col">
-              <div class="conn-node"><span class="conn-node-dot" style="background:#3b82f6"></span>Research Desk</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#22c55e"></span>Math Engine</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#f59e0b"></span>Execution</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#8b5cf6"></span>Risk CRO</div>
-              <div class="conn-node"><span class="conn-node-dot" style="background:#ec4899"></span>Calibration</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ SECTION 2: CAPABILITIES ═══ -->
-<section>
-  <div class="container">
-    <div class="cap-section">
-      <div class="section-header">
-        <span class="section-tag">Capabilities</span>
-        <span class="section-title">What WICK Does</span>
-      </div>
-      <div class="cap-table">
-        <div class="cap-thead">
-          <span>Feature</span>
-          <span>Throughput</span>
-          <span>Latency</span>
-          <span>Status</span>
-        </div>
-        <div class="cap-row">
-          <div class="cap-name">
-            <div class="cap-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
-            <div>
-              <div>Data Ingestion</div>
-              <div class="cap-desc">Pulls news, scores, filings, and order books in real time</div>
-            </div>
-          </div>
-          <span class="cap-metric">50K msg/s</span>
-          <span class="cap-metric">&lt;180ms</span>
-          <span class="cap-status live"><span class="status-dot live"></span>Live</span>
-        </div>
-        <div class="cap-row">
-          <div class="cap-name">
-            <div class="cap-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
-            <div>
-              <div>Multi-Source Analysis</div>
-              <div class="cap-desc">Combines signals across chains and platforms into one view</div>
-            </div>
-          </div>
-          <span class="cap-metric">12 chains</span>
-          <span class="cap-metric">&lt;300ms</span>
-          <span class="cap-status live"><span class="status-dot live"></span>Live</span>
-        </div>
-        <div class="cap-row">
-          <div class="cap-name">
-            <div class="cap-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
-            <div>
-              <div>Signal Validation</div>
-              <div class="cap-desc">Cross-checks every signal before placing a trade</div>
-            </div>
-          </div>
-          <span class="cap-metric">8K TPS</span>
-          <span class="cap-metric">&lt;500ms</span>
-          <span class="cap-status live"><span class="status-dot live"></span>Live</span>
-        </div>
-        <div class="cap-row">
-          <div class="cap-name">
-            <div class="cap-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <div>
-              <div>NegRisk Arbitrage</div>
-              <div class="cap-desc">Finds guaranteed profits when multi-outcome markets misprice</div>
-            </div>
-          </div>
-          <span class="cap-metric">Full scan</span>
-          <span class="cap-metric">&lt;2s</span>
-          <span class="cap-status live"><span class="status-dot live"></span>Live</span>
-        </div>
-        <div class="cap-row">
-          <div class="cap-name">
-            <div class="cap-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-            <div>
-              <div>Nightly Calibration</div>
-              <div class="cap-desc">Re-scores its own accuracy every night and adjusts</div>
-            </div>
-          </div>
-          <span class="cap-metric">Nightly</span>
-          <span class="cap-metric">Async</span>
-          <span class="cap-status live"><span class="status-dot live"></span>Live</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ SECTION 3: SECURITY ═══ -->
-<section>
-  <div class="container">
-    <div class="sec-section">
-      <div class="section-header">
-        <span class="section-tag">Security</span>
-        <span class="section-title">Your Money, Your Control</span>
-      </div>
-      <div class="sec-grid">
-        <div class="sec-box green">
-          <div class="sec-box-header">
-            <span class="sec-box-title">Non-Custodial Architecture</span>
-            <span class="sec-badge active">Active</span>
-          </div>
-          <p class="sec-box-desc">Trades execute through your Polymarket wallet. WICK can place orders but cannot withdraw, transfer, or touch your funds.</p>
-          <div class="sec-params">
-            <div class="sec-param">
-              <span class="sec-param-key">Encryption</span>
-              <span class="sec-param-val">AES-256-GCM</span>
-            </div>
-            <div class="sec-param">
-              <span class="sec-param-key">Key Scope</span>
-              <span class="sec-param-val">Trade-only</span>
-            </div>
-            <div class="sec-param">
-              <span class="sec-param-key">Withdrawal Access</span>
-              <span class="sec-param-val" style="color:var(--green)">None</span>
-            </div>
-          </div>
-        </div>
-        <div class="sec-box blue">
-          <div class="sec-box-header">
-            <span class="sec-box-title">Risk Controls</span>
-            <span class="sec-badge verified">Verified</span>
-          </div>
-          <p class="sec-box-desc">Auto-stops at 5% drawdown. Revoke API keys instantly. Zero personal data collected.</p>
-          <div class="sec-params">
-            <div class="sec-param">
-              <span class="sec-param-key">Circuit Breaker</span>
-              <span class="sec-param-val">5% Drawdown</span>
-            </div>
-            <div class="sec-param">
-              <span class="sec-param-key">Key Revocation</span>
-              <span class="sec-param-val">Instant</span>
-            </div>
-            <div class="sec-param">
-              <span class="sec-param-key">Data Collection</span>
-              <span class="sec-param-val" style="color:var(--green)">Zero</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ SECTION 4: CTA / MARKET ENTRY ═══ -->
-<div class="container">
-  <div class="cta-section">
-    <div class="cta-split">
-      <div class="cta-info">
-        <div class="hero-tag">Get Access</div>
-        <h2 class="cta-title">Private beta. Invite only.</h2>
-        <p class="cta-desc">Join the waitlist or enter an invite code.</p>
-        <div class="price-table">
-          <div class="price-row head">
-            <span>Tier</span>
-            <span>Access</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">Waitlist</span>
-            <span class="price-val free">Free</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">Invite Code</span>
-            <span class="price-val">Immediate</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">Sandbox Mode</span>
-            <span class="price-val free">Free</span>
-          </div>
-          <div class="price-row">
-            <span class="price-label">Live Trading</span>
-            <span class="price-val">Your capital only</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="gate-card">
-          <div class="gate-title">Request Access</div>
-          <div class="gate-desc">Waitlist or invite code.</div>
-
-          <form id="waitlist-form" onsubmit="return handleWaitlist(event)">
-            <div class="form-group">
-              <label class="form-label" for="wl-email">Email</label>
-              <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
-            </div>
-            <label class="check-group">
-              <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
-              <span class="check-label">I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</span>
-            </label>
-            <label class="check-group">
-              <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
-              <span class="check-label">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
-            </label>
-            <label class="check-group">
-              <input type="checkbox" id="chk-newsletter" checked>
-              <span class="check-label">Send me updates and the WICK Weekly newsletter.</span>
-            </label>
-            <button class="btn-submit" type="submit" id="btn-submit" disabled>Request Access</button>
-          </form>
-
-          <div class="divider">Have an invite code?</div>
-
-          <div id="invite-section">
-            <div class="form-group">
-              <label class="form-label" for="invite-code">Invite Code</label>
-              <input class="form-input" type="text" id="invite-code" placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.15em;font-family:var(--mono);text-align:center">
-            </div>
-            <div id="code-error" style="display:none;font-family:var(--mono);font-size:10px;color:var(--red);margin-bottom:10px;text-align:center"></div>
-            <button class="btn-submit" id="btn-verify" onclick="verifyCode()" style="background:var(--surface);color:var(--text1);margin-top:0;border:1px solid var(--border2)">Verify Code</button>
-          </div>
-
-          <div id="signin-section" style="display:none">
-            <div id="code-accepted" style="font-family:var(--mono);font-size:10px;color:var(--accent);text-align:center;margin-bottom:12px"></div>
-            <button class="btn-google" id="btn-signin">
-              <svg viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-              Sign in with Google
-            </button>
-          </div>
-
-          <div id="msg"></div>
-        </div>
-        <button class="signout" id="btn-signout" onclick="signOut(auth)">Sign out</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Footer -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <span class="foot-logo">
-      <svg viewBox="0 0 800 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g transform="translate(0,8)">
-          <path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/>
-          <path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/>
-          <path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/>
-        </g>
-        <g transform="translate(265,102)" fill="rgba(0,0,0,.2)">
-          <path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/>
-          <path d="M152,-88 L174,-88 L174,0 L152,0 Z"/>
-          <circle cx="163" cy="-112" r="11" fill="rgba(0,242,254,.3)"/>
-          <path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/>
-          <path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/>
-        </g>
-      </svg>
+  <div class="flex items-center gap-6 text-xs mono text-slate-400">
+    <a href="/terms" class="hover:text-slate-200 transition hidden sm:inline">Terms</a>
+    <a href="/privacy" class="hover:text-slate-200 transition hidden sm:inline">Privacy</a>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+      LIVE ENGINE v2.4
     </span>
-    <div class="foot-links">
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
+  </div>
+</header>
+
+<main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
+
+  <!-- Q1: THE ENGINE -->
+  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
+    <div>
+      <div class="grid grid-cols-3 gap-2 pb-4 mb-6 border-b border-slate-800/60 text-center mono text-[10px] sm:text-xs text-slate-400">
+        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
+          <span class="block text-blue-400 font-semibold">&lt;200ms</span> PROPAGATION
+        </div>
+        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
+          <span class="block text-emerald-400 font-semibold">99.97%</span> UPTIME
+        </div>
+        <div class="bg-slate-950/40 py-2 px-1 rounded-lg border border-slate-800/40">
+          <span class="block text-slate-200 font-semibold">0</span> CUSTODY RISK
+        </div>
+      </div>
+
+      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 01 // Live Pipeline
+      </h2>
+
+      <div class="grid grid-cols-7 items-center gap-1 text-center text-[11px] mono">
+        <div class="col-span-2 flex flex-col gap-2">
+          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center h-9 gap-1.5">
+            <span class="text-blue-400 text-[10px] font-semibold">REUTERS</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-center h-9">
+            <span class="text-emerald-400 text-[10px] font-semibold">ESPN</span>
+          </div>
+          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-400 truncate">Chain Data</div>
+          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-400 truncate">CLOB Feed</div>
+          <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800/60 text-slate-400 truncate">Gov Filings</div>
+        </div>
+
+        <div class="col-span-1 text-slate-600 text-sm blink">&#10142;</div>
+
+        <div class="col-span-1 flex flex-col justify-center">
+          <div class="bg-blue-600 text-white py-6 rounded-xl font-bold tracking-wider text-xs shadow-lg shadow-blue-600/20 border border-blue-400/20">
+            W<br>I<br>C<br>K
+          </div>
+        </div>
+
+        <div class="col-span-1 text-slate-600 text-sm blink">&#10142;</div>
+
+        <div class="col-span-2 flex flex-col gap-2 text-left">
+          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Research Desk</div>
+          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Math Engine</div>
+          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Execution</div>
+          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Risk CRO</div>
+          <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800 pl-3 text-slate-300">Calibration</div>
+        </div>
+      </div>
     </div>
+    <div class="mt-4 pt-4 border-t border-slate-800/40 text-slate-500 text-[11px] mono">
+      * Real-time multi-threaded ingestion matrix.
+    </div>
+  </div>
+
+  <!-- Q2: WHAT IT DOES -->
+  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
+    <div>
+      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 02 // Core Capabilities
+      </h2>
+      <h3 class="text-2xl md:text-3xl font-bold tracking-tight text-slate-100 leading-tight mb-6">
+        Autonomous predictive modeling running directly on live-state primitives.
+      </h3>
+      <ul class="space-y-4 text-slate-400 text-sm md:text-base">
+        <li class="flex items-start gap-3">
+          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
+          <span><strong class="text-slate-200 font-medium">Reads the Global News:</strong> Parses streaming unstructured wires, filings, and telemetry instantly.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
+          <span><strong class="text-slate-200 font-medium">Scores the Odds:</strong> Runs real-time probability distributions over cross-chain prediction markets.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-blue-500 mt-1 text-xs">&#10022;</span>
+          <span><strong class="text-slate-200 font-medium">Places Trades:</strong> Executes capital allocation natively via decentralized routing architectures.</span>
+        </li>
+      </ul>
+    </div>
+    <div class="mt-6 text-xs text-slate-500 mono">
+      STRICT COMPLIANCE // 0% MANIPULATION RISK
+    </div>
+  </div>
+
+  <!-- Q3: SECURITY & CUSTODY -->
+  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
+    <div>
+      <h2 class="text-xs uppercase tracking-widest text-emerald-500 font-bold mono mb-6 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> 03 // Custody & Architecture
+      </h2>
+
+      <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 mb-6">
+        <div class="flex gap-4">
+          <span class="text-2xl">&#128737;&#65039;</span>
+          <div>
+            <h4 class="text-slate-200 font-semibold text-sm sm:text-base mb-1">Non-Custodial Smart Logic</h4>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              You retain <span class="text-emerald-400 font-medium">100% full custody</span> of your assets at all times. WICK operates under scoped smart-contract permissions.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex gap-3 items-center">
+          <span class="text-xl">&#9889;</span>
+          <div class="text-xs">
+            <span class="block text-slate-200 font-semibold uppercase mono tracking-wider">Trading Authority</span>
+            <span class="text-slate-400">Restricted to contract routing.</span>
+          </div>
+        </div>
+        <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex gap-3 items-center">
+          <span class="text-xl">&#9940;</span>
+          <div class="text-xs">
+            <span class="block text-red-400 font-semibold uppercase mono tracking-wider">Zero Withdrawal</span>
+            <span class="text-slate-400">No logical pathway to extract capital.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 text-xs text-slate-500 mono flex justify-between items-center">
+      <span>NON-CUSTODIAL BY DESIGN</span>
+      <span class="text-emerald-500 font-semibold">SECURE</span>
+    </div>
+  </div>
+
+  <!-- Q4: ACCESS GATE -->
+  <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between glow-blue backdrop-blur-sm">
+    <div>
+      <h2 class="text-xs uppercase tracking-widest text-blue-500 font-bold mono mb-6 flex items-center gap-2">
+        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> 04 // Access Gate
+      </h2>
+      <p class="text-slate-400 text-sm mb-5">
+        Private beta. Invite only. Join the waitlist or enter your invite code.
+      </p>
+
+      <!-- Waitlist form -->
+      <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
+        <div>
+          <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Email</label>
+          <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
+        </div>
+        <label class="check-group">
+          <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
+          <span class="text-[10px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
+        </label>
+        <label class="check-group">
+          <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
+          <span class="text-[10px] text-slate-500 leading-relaxed">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
+        </label>
+        <label class="check-group">
+          <input type="checkbox" id="chk-newsletter" checked>
+          <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
+        </label>
+        <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm shadow-lg shadow-blue-600/10" type="submit" id="btn-submit" disabled>
+          Request Access
+        </button>
+      </form>
+
+      <!-- Invite code -->
+      <div class="flex items-center gap-2.5 my-4 mono text-[9px] text-slate-600 uppercase tracking-[.15em]">
+        <div class="flex-1 h-px bg-slate-800"></div>
+        <span>Have an invite code?</span>
+        <div class="flex-1 h-px bg-slate-800"></div>
+      </div>
+
+      <div id="invite-section" class="space-y-3">
+        <div>
+          <label class="block mono text-[9px] tracking-[.15em] uppercase text-slate-500 mb-1.5 font-semibold">Invite Code</label>
+          <input class="form-input text-center uppercase tracking-[.15em] mono" type="text" id="invite-code" placeholder="XXXX-XXXX">
+        </div>
+        <div id="code-error" style="display:none" class="mono text-[10px] text-red-400 text-center"></div>
+        <button class="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800 text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm" id="btn-verify" onclick="verifyCode()">
+          Verify Code
+        </button>
+      </div>
+
+      <div id="signin-section" style="display:none" class="space-y-3">
+        <div id="code-accepted" class="mono text-[10px] text-blue-400 text-center"></div>
+        <button class="w-full bg-slate-950/60 hover:bg-slate-950 border border-slate-800 text-slate-300 font-medium py-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
+          <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+          Sign in with Google
+        </button>
+      </div>
+
+      <div id="msg"></div>
+      <button class="mt-2.5 bg-transparent border border-slate-800 text-slate-500 mono text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-700 transition" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
+    </div>
+    <div class="mt-4 flex justify-between items-center text-xs text-slate-500 mono">
+      <span>CONTRACTS: VERIFIED</span>
+      <span>v2.0-MAIN</span>
+    </div>
+  </div>
+
+</main>
+
+<footer class="w-full max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[11px] mono text-slate-600 gap-2 px-2">
+  <div>&copy; 2026 WICK.NETWORK. ALL RIGHTS RESERVED.</div>
+  <div class="flex gap-4">
+    <a href="/terms" class="hover:text-slate-400 transition">TERMS</a>
+    <a href="/privacy" class="hover:text-slate-400 transition">PRIVACY</a>
   </div>
 </footer>
-<p class="disclaimer">WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.</p>
+<p class="w-full max-w-7xl mx-auto text-center text-[9px] text-slate-700 mt-3 mb-6 px-4 leading-relaxed opacity-50">
+  WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.
+</p>
 
-<!-- ═══ Waitlist / Invite / Auth ═══ -->
+<!-- Waitlist / Invite / Auth -->
 <script>
 let verifiedCode = null;
 
-
-function updateSubmit(){
+function updateSubmit() {
   document.getElementById('btn-submit').disabled =
     !document.getElementById('chk-terms').checked || !document.getElementById('chk-risk').checked;
 }
 
-async function verifyCode(){
+async function verifyCode() {
   const input = document.getElementById('invite-code');
   const errEl = document.getElementById('code-error');
   const btn = document.getElementById('btn-verify');
   const code = input.value.trim();
-  if(!code){errEl.textContent='Enter your invite code';errEl.style.display='block';return;}
-  btn.disabled=true;btn.textContent='Verifying...';errEl.style.display='none';
-  try{
-    const r = await fetch('/api/invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+  if (!code) { errEl.textContent = 'Enter your invite code'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Verifying...'; errEl.style.display = 'none';
+  try {
+    const r = await fetch('/api/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
     const d = await r.json();
-    if(!r.ok){errEl.textContent=d.error||'Invalid code';errEl.style.display='block';btn.disabled=false;btn.textContent='Verify Code';return;}
+    if (!r.ok) { errEl.textContent = d.error || 'Invalid code'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Verify Code'; return; }
     verifiedCode = d.code;
-    document.getElementById('invite-section').style.display='none';
-    document.getElementById('signin-section').style.display='';
-    document.getElementById('code-accepted').textContent='Code accepted. Sign in to continue.';
-  }catch{errEl.textContent='Connection error. Try again.';errEl.style.display='block';btn.disabled=false;btn.textContent='Verify Code';}
+    document.getElementById('invite-section').style.display = 'none';
+    document.getElementById('signin-section').style.display = '';
+    document.getElementById('code-accepted').textContent = 'Code accepted. Sign in to continue.';
+  } catch { errEl.textContent = 'Connection error. Try again.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Verify Code'; }
 }
 
-function handleWaitlist(e){
+function handleWaitlist(e) {
   e.preventDefault();
   const email = document.getElementById('wl-email').value.trim();
   const newsletter = document.getElementById('chk-newsletter').checked;
   const btn = document.getElementById('btn-submit');
   const msg = document.getElementById('msg');
-  btn.disabled=true;btn.textContent='Submitting...';
-  fetch('/api/newsletter?action=subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,waitlist:true,newsletter,agreed_terms:true,agreed_risk:true,agreed_at:new Date().toISOString()})})
-    .then(()=>{
-      document.getElementById('waitlist-form').style.display='none';
-      msg.className='success';
-      msg.innerHTML="You're on the list.<br><span style='color:var(--text2);font-size:10px'>"+email+"</span><br><span style='color:var(--text3);font-size:9px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  fetch('/api/newsletter?action=subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, waitlist: true, newsletter, agreed_terms: true, agreed_risk: true, agreed_at: new Date().toISOString() }) })
+    .then(() => {
+      document.getElementById('waitlist-form').style.display = 'none';
+      msg.className = 'success';
+      msg.innerHTML = "You're on the list.<br><span style='color:rgba(148,163,184,.6);font-size:10px'>" + email + "</span><br><span style='color:rgba(148,163,184,.4);font-size:9px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
     })
-    .catch(()=>{msg.className='error';msg.textContent='Something went wrong. Try again.';btn.disabled=false;btn.textContent='Request Access';});
+    .catch(() => { msg.className = 'error'; msg.textContent = 'Something went wrong. Try again.'; btn.disabled = false; btn.textContent = 'Request Access'; });
   return false;
 }
 </script>
 
 <script type="module">
-import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getAuth,signInWithPopup,signInWithRedirect,getRedirectResult,GoogleAuthProvider,onAuthStateChanged,signOut}
-  from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-const app=initializeApp({
-  apiKey:'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
-  authDomain:'wick.network',
-  projectId:'wicknetwork',
-  storageBucket:'wicknetwork.firebasestorage.app',
+const app = initializeApp({
+  apiKey: 'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
+  authDomain: 'wick.network',
+  projectId: 'wicknetwork',
+  storageBucket: 'wicknetwork.firebasestorage.app',
 });
-const auth=getAuth(app);
-window.auth=auth;
-window.signOut=signOut;
-const provider=new GoogleAuthProvider();
+const auth = getAuth(app);
+window.auth = auth;
+window.signOut = signOut;
+const provider = new GoogleAuthProvider();
 
-const msg=document.getElementById('msg');
-const signinBtn=document.getElementById('btn-signin');
-const signoutBtn=document.getElementById('btn-signout');
-const form=document.getElementById('waitlist-form');
+const msg = document.getElementById('msg');
+const signinBtn = document.getElementById('btn-signin');
+const signoutBtn = document.getElementById('btn-signout');
+const form = document.getElementById('waitlist-form');
 
-signinBtn.addEventListener('click',async()=>{
-  try{await signInWithPopup(auth,provider);}
-  catch{signInWithRedirect(auth,provider);}
+signinBtn.addEventListener('click', async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch { signInWithRedirect(auth, provider); }
 });
 
-getRedirectResult(auth).catch(()=>{});
+getRedirectResult(auth).catch(() => {});
 
-onAuthStateChanged(auth,async user=>{
-  if(!user){
-    signinBtn.style.display='';
-    signoutBtn.style.display='none';
-    form.style.display='';
-    document.getElementById('invite-section').style.display='';
-    document.getElementById('signin-section').style.display='none';
-    msg.style.display='none';
-    msg.className='';
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    signinBtn.style.display = '';
+    signoutBtn.style.display = 'none';
+    form.style.display = '';
+    document.getElementById('invite-section').style.display = '';
+    document.getElementById('signin-section').style.display = 'none';
+    msg.style.display = 'none';
+    msg.className = '';
     return;
   }
 
-  signinBtn.style.display='none';
-  signoutBtn.style.display='';
-  form.style.display='none';
-  document.getElementById('invite-section').style.display='none';
-  document.getElementById('signin-section').style.display='none';
+  signinBtn.style.display = 'none';
+  signoutBtn.style.display = '';
+  form.style.display = 'none';
+  document.getElementById('invite-section').style.display = 'none';
+  document.getElementById('signin-section').style.display = 'none';
 
-  msg.className='';
-  msg.style.display='block';
-  msg.textContent='Checking access...';
+  msg.className = '';
+  msg.style.display = 'block';
+  msg.textContent = 'Checking access...';
 
-  try{
-    const token=await user.getIdToken();
-    const code=window.verifiedCode;
+  try {
+    const token = await user.getIdToken();
+    const code = window.verifiedCode;
 
-    if(code){
-      const redeem=await fetch('/api/bot?action=redeem_code',{
-        method:'POST',
-        headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({code}),
+    if (code) {
+      const redeem = await fetch('/api/bot?action=redeem_code', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
       });
-      if(redeem.ok){
-        window.verifiedCode=null;
+      if (redeem.ok) {
+        window.verifiedCode = null;
         await user.getIdToken(true);
       }
     }
 
-    const r=await fetch('/api/bot',{
-      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+    const r = await fetch('/api/bot', {
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
     });
 
-    if(r.status===403){
-      msg.className='waitlist';
-      msg.innerHTML="You're on the waitlist.<br><span style='color:var(--text2);font-size:10px'>"+user.email+"</span><br><span style='color:var(--text3);font-size:9px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
+    if (r.status === 403) {
+      msg.className = 'waitlist';
+      msg.innerHTML = "You're on the waitlist.<br><span style='color:rgba(148,163,184,.6);font-size:10px'>" + user.email + "</span><br><span style='color:rgba(148,163,184,.4);font-size:9px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
       return;
     }
 
-    if(r.ok){
-      msg.className='approved';
-      msg.textContent='Access granted. Redirecting...';
+    if (r.ok) {
+      msg.className = 'approved';
+      msg.textContent = 'Access granted. Redirecting...';
       window.location.replace('/bot');
       return;
     }
 
-    msg.className='error';
-    msg.textContent='Something went wrong. Try again.';
-  }catch{
-    msg.className='error';
-    msg.textContent='Connection error. Try again.';
+    msg.className = 'error';
+    msg.textContent = 'Something went wrong. Try again.';
+  } catch {
+    msg.className = 'error';
+    msg.textContent = 'Connection error. Try again.';
   }
 });
 </script>

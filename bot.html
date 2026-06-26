@@ -1250,15 +1250,36 @@ body::before {
 
       <!-- Play found state -->
       <div id="flash-play" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div style="flex:1;min-width:0">
-            <div style="font-size:15px;font-weight:800;line-height:1.3" id="flash-bracket">—</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)" id="flash-mode-label">sandbox</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <div style="font-size:15px;font-weight:800;line-height:1.3" id="flash-bracket">—</div>
+              <span id="flash-whale-badge" style="display:none;font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:#c084fc;padding:1px 6px;border-radius:4px">&#129395; WHALE</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="flash-mode-label">sandbox</div>
+              <span id="flash-platform-badge" style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 6px;border-radius:4px">POLYMARKET</span>
+            </div>
           </div>
           <div style="text-align:right;flex-shrink:0;margin-left:16px">
             <div style="font-family:var(--mono);font-size:32px;font-weight:800" id="flash-timer">60</div>
             <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">SECONDS</div>
           </div>
+        </div>
+
+        <!-- AI Confidence bar -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+          <span style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.08em;white-space:nowrap">AI CONFIDENCE</span>
+          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div id="flash-confidence-bar" style="height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);border-radius:3px;width:0%;transition:width .5s ease"></div>
+          </div>
+          <span id="flash-confidence-pct" style="font-family:var(--mono);font-size:13px;font-weight:700;color:#10b981;min-width:36px;text-align:right">—</span>
+        </div>
+
+        <!-- Whale intel line -->
+        <div id="flash-whale-detail" style="display:none;align-items:center;gap:6px;margin-bottom:10px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);border-radius:8px;padding:6px 12px">
+          <span style="font-size:12px">&#129395;</span>
+          <span id="flash-whale-text" style="font-family:var(--mono);font-size:10px;color:#c084fc"></span>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
@@ -1284,11 +1305,18 @@ body::before {
         <div style="margin-bottom:14px" id="flash-legs-table"></div>
 
         <!-- Timer bar -->
-        <div style="width:100%;height:3px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden">
+        <div style="width:100%;height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;overflow:hidden">
           <div id="flash-timer-bar" style="height:100%;background:var(--green);border-radius:2px;width:100%;transition:width 1s linear"></div>
         </div>
 
-        <button class="btn-primary" onclick="flashExecute()" id="flash-exec-btn">Execute this play</button>
+        <!-- Fee escalation notice -->
+        <div id="flash-fee-escalation" style="font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;margin-bottom:10px">
+          <span id="flash-fee-label">Grab it now: <span style="color:#10b981">20% fee</span></span>
+          <span style="color:var(--border);margin:0 6px">|</span>
+          <span>Auto-execute at 0s: <span style="color:#f59e0b">50% fee</span></span>
+        </div>
+
+        <button class="btn-primary" onclick="flashExecute()" id="flash-exec-btn">Grab It — 20% Fee</button>
       </div>
 
       <!-- No edge state -->
@@ -1322,7 +1350,26 @@ body::before {
       <div id="flash-expired" style="display:none">
         <div style="text-align:center;padding:16px 0">
           <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">Play expired</div>
-          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">The 60-second window closed. Prices may have shifted.</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px">The window closed and auto-execute was off. Prices may have shifted.</div>
+          <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
+        </div>
+      </div>
+
+      <!-- Auto-executed state -->
+      <div id="flash-auto-executed" style="display:none">
+        <div style="text-align:center;padding:16px 0">
+          <div style="font-size:14px;font-weight:700;color:#f59e0b;margin-bottom:6px">Auto-executed at 50% fee</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Timer ran out. WICK grabbed it for you at a higher platform cut. Next time, act faster to keep more.</div>
+          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:16px">
+            <div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">YOUR PROFIT</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:#f59e0b;margin-top:4px" id="flash-auto-profit">—</div>
+            </div>
+            <div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">PLATFORM FEE (50%)</div>
+              <div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--text3);margin-top:4px" id="flash-auto-fee">—</div>
+            </div>
+          </div>
           <button class="nav-btn" onclick="flashReset()" style="font-size:12px">Scan again</button>
         </div>
       </div>
@@ -2350,9 +2397,10 @@ async function pmPollFeed() {
 let _flashPlayId = null;
 let _flashTimer = null;
 let _flashSeconds = 0;
+let _flashAutoExecute = true;
 
 function flashShowState(state) {
-  ['ready','scanning','play','no-edge','executed','expired'].forEach(s => {
+  ['ready','scanning','play','no-edge','executed','expired','auto-executed'].forEach(s => {
     const el = document.getElementById('flash-' + s);
     if (el) el.style.display = s === state ? 'block' : 'none';
   });
@@ -2364,6 +2412,7 @@ function flashShowState(state) {
     'no-edge':{ t:'NO EDGE',  c:'#5a6a7a' },
     executed: { t:'FILLED',   c:'#10b981' },
     expired:  { t:'EXPIRED',  c:'#f43f5e' },
+    'auto-executed': { t:'AUTO-FILLED', c:'#f59e0b' },
   };
   const m = map[state] || map.ready;
   badge.textContent = m.t;
@@ -2393,12 +2442,32 @@ window.flashScan = async function() {
     }
 
     _flashPlayId = d.playId;
+    _flashAutoExecute = d.autoExecute !== false;
     document.getElementById('flash-bracket').textContent = d.bracket || '—';
     document.getElementById('flash-edge').textContent = d.edgePct ? d.edgePct + '%' : '—';
     document.getElementById('flash-leg').textContent = d.legs?.[0]?.size ? '$' + d.legs[0].size : '—';
     document.getElementById('flash-profit-est').textContent = d.userProfit != null ? '+$' + d.userProfit.toFixed(4) : '—';
     document.getElementById('flash-fee-est').textContent = d.platformFee != null ? '$' + d.platformFee.toFixed(4) : '—';
     document.getElementById('flash-mode-label').textContent = (d.mode || 'sandbox') + ' · ' + (d.legs?.length || 0) + ' legs · $' + (d.totalDeployed || 0) + ' deployed';
+
+    const confPct = d.confidence || 0;
+    document.getElementById('flash-confidence-bar').style.width = confPct + '%';
+    document.getElementById('flash-confidence-pct').textContent = confPct + '%';
+    document.getElementById('flash-confidence-pct').style.color = confPct >= 75 ? '#10b981' : confPct >= 50 ? '#f59e0b' : '#f43f5e';
+
+    const whaleBadge = document.getElementById('flash-whale-badge');
+    const whaleDetail = document.getElementById('flash-whale-detail');
+    if (d.whaleSignal) {
+      whaleBadge.style.display = 'inline-block';
+      whaleDetail.style.display = 'flex';
+      document.getElementById('flash-whale-text').textContent = d.whaleSignal;
+    } else {
+      whaleBadge.style.display = 'none';
+      whaleDetail.style.display = 'none';
+    }
+
+    const platformBadge = document.getElementById('flash-platform-badge');
+    platformBadge.textContent = (d.platform || 'POLYMARKET').toUpperCase();
 
     const legsTable = document.getElementById('flash-legs-table');
     if (d.legs?.length) {
@@ -2415,14 +2484,14 @@ window.flashScan = async function() {
   }
 };
 
-window.flashExecute = async function() {
+window.flashExecute = async function(autoTriggered) {
   if (!_flashPlayId) return;
   const btn = document.getElementById('flash-exec-btn');
-  btn.disabled = true; btn.textContent = 'Executing...';
+  btn.disabled = true; btn.textContent = autoTriggered ? 'Auto-executing...' : 'Executing...';
   try {
     const r = await apiFetch('/api/polymarket-engine?action=flash_execute', {
       method: 'POST',
-      body: JSON.stringify({ playId: _flashPlayId }),
+      body: JSON.stringify({ playId: _flashPlayId, autoExecuted: !!autoTriggered }),
     });
     const d = await r.json();
     clearInterval(_flashTimer);
@@ -2434,23 +2503,34 @@ window.flashExecute = async function() {
       return;
     }
 
-    document.getElementById('flash-profit-final').textContent = '+$' + (d.userProfit || 0).toFixed(4);
-    document.getElementById('flash-fee-final').textContent = '$' + (d.platformFee || 0).toFixed(4);
-    flashShowState('executed');
+    if (autoTriggered) {
+      document.getElementById('flash-auto-profit').textContent = '+$' + (d.userProfit || 0).toFixed(4);
+      document.getElementById('flash-auto-fee').textContent = '$' + (d.platformFee || 0).toFixed(4);
+      flashShowState('auto-executed');
+    } else {
+      document.getElementById('flash-profit-final').textContent = '+$' + (d.userProfit || 0).toFixed(4);
+      document.getElementById('flash-fee-final').textContent = '$' + (d.platformFee || 0).toFixed(4);
+      flashShowState('executed');
+    }
   } catch (err) {
-    btn.disabled = false; btn.textContent = 'Execute this play';
+    btn.disabled = false; btn.textContent = 'Grab It — 20% Fee';
   }
 };
 
 window.flashReset = function() {
   _flashPlayId = null;
+  _flashAutoExecute = true;
   clearInterval(_flashTimer);
   document.getElementById('flash-scan-btn').disabled = false;
   document.getElementById('flash-exec-btn').disabled = false;
-  document.getElementById('flash-exec-btn').textContent = 'Execute this play';
+  document.getElementById('flash-exec-btn').textContent = 'Grab It — 20% Fee';
   document.getElementById('flash-timer').style.color = '';
   document.getElementById('flash-timer-bar').style.background = 'var(--green)';
   document.getElementById('flash-legs-table').innerHTML = '';
+  document.getElementById('flash-confidence-bar').style.width = '0%';
+  document.getElementById('flash-confidence-pct').textContent = '—';
+  document.getElementById('flash-whale-badge').style.display = 'none';
+  document.getElementById('flash-whale-detail').style.display = 'none';
   flashShowState('ready');
 };
 
@@ -2458,7 +2538,10 @@ function flashStartTimer(seconds) {
   _flashSeconds = seconds;
   const timerEl = document.getElementById('flash-timer');
   const barEl = document.getElementById('flash-timer-bar');
+  const feeLabel = document.getElementById('flash-fee-label');
+  const execBtn = document.getElementById('flash-exec-btn');
   const total = seconds;
+  const halfwayMark = Math.floor(total / 2);
   timerEl.textContent = _flashSeconds;
   timerEl.style.color = 'var(--green)';
   barEl.style.background = 'var(--green)';
@@ -2468,13 +2551,26 @@ function flashStartTimer(seconds) {
     _flashSeconds--;
     timerEl.textContent = _flashSeconds;
     barEl.style.width = ((_flashSeconds / total) * 100) + '%';
+
+    if (_flashSeconds <= halfwayMark && _flashSeconds > 10) {
+      timerEl.style.color = '#f59e0b';
+      barEl.style.background = '#f59e0b';
+      feeLabel.innerHTML = 'Grab now: <span style="color:#f59e0b">35% fee</span>';
+      execBtn.textContent = 'Grab It — 35% Fee';
+    }
     if (_flashSeconds <= 10) {
       timerEl.style.color = 'var(--red)';
       barEl.style.background = 'var(--red)';
+      feeLabel.innerHTML = 'Grab now: <span style="color:#f43f5e">50% fee</span>';
+      execBtn.textContent = 'Grab It — 50% Fee';
     }
     if (_flashSeconds <= 0) {
       clearInterval(_flashTimer);
-      flashShowState('expired');
+      if (_flashAutoExecute) {
+        flashExecute(true);
+      } else {
+        flashShowState('expired');
+      }
     }
   }, 1000);
 }

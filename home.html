@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WICK.Network | Catch Market Anomalies on Polymarket</title>
-<meta name="description" content="WICK scans Polymarket for pricing anomalies and gives you seconds to act. Non-custodial. Invite only.">
+<meta name="description" content="WICK scans Polymarket, Kalshi & Limitless for pricing anomalies with AI confidence scoring and whale tracking. Grab the edge in 15 seconds. Non-custodial. Invite only.">
 <meta property="og:title" content="WICK.Network | Catch Market Anomalies">
-<meta property="og:description" content="Real-time anomaly detection on Polymarket. You pick the play. Your wallet, your edge.">
+<meta property="og:description" content="AI-powered anomaly detection across prediction markets. Whale tracking. Confidence scoring. Your wallet, your edge.">
 <meta property="og:url" content="https://wick.network">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%2308090d'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300f2fe' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%230066ff' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230012e6' stroke-width='14' stroke-linecap='round'/></g></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -125,8 +125,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
         <span class="text-blue-400">You grab it.</span>
       </h1>
       <p class="text-base text-slate-400 leading-relaxed mb-8 max-w-lg">
-        WICK scans every market on Polymarket for pricing anomalies in real time. When we spot one, you get
-        <span class="text-white font-semibold">15 seconds</span> to lock it in. The edge is real. The clock is ticking.
+        WICK scans prediction markets for pricing anomalies in real time, cross-checking whale activity and AI confidence. When we spot one, you get
+        <span class="text-white font-semibold">15 seconds</span> to lock it in. Act fast, keep more. Wait too long, and the bot takes over at a higher cut.
       </p>
       <div class="flex flex-wrap gap-6 mono text-sm">
         <div>
@@ -138,8 +138,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
           <span class="text-[10px] text-slate-500 tracking-wider uppercase">Not Rigged</span>
         </div>
         <div>
-          <span class="block text-2xl font-bold text-white">$0 Fee</span>
-          <span class="text-[10px] text-slate-500 tracking-wider uppercase">On Deposits</span>
+          <span class="block text-2xl font-bold text-purple-400">Whale Intel</span>
+          <span class="text-[10px] text-slate-500 tracking-wider uppercase">Big Money Tracked</span>
         </div>
       </div>
     </div>
@@ -150,11 +150,19 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
         <div class="absolute top-0 left-0 right-0 h-1">
           <div class="demo-bar rounded-full"></div>
         </div>
-        <div class="flex justify-between items-start mb-4 mt-1">
+        <div class="flex justify-between items-start mb-3 mt-1">
           <div>
-            <div class="mono text-[9px] tracking-[.15em] uppercase text-amber-400 font-semibold mb-1">Anomaly Detected</div>
+            <div class="flex items-center gap-2 mb-1">
+              <div class="mono text-[9px] tracking-[.15em] uppercase text-amber-400 font-semibold">Anomaly Detected</div>
+              <span class="inline-flex items-center gap-1 bg-purple-500/12 border border-purple-500/25 text-purple-400 text-[9px] mono font-semibold px-1.5 py-0.5 rounded">
+                &#129395; Whale
+              </span>
+            </div>
             <div class="text-lg font-bold text-white">US Presidential Election 2028</div>
-            <div class="text-xs text-slate-500 mt-0.5">Multi-outcome basket mispricing</div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs text-slate-500">Multi-outcome basket mispricing</span>
+              <span class="inline-flex items-center bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] mono font-semibold px-1.5 py-0.5 rounded">POLYMARKET</span>
+            </div>
           </div>
           <div class="timer-ring">
             <div class="w-12 h-12 rounded-full bg-blue-600/15 border-2 border-blue-500/40 flex items-center justify-center">
@@ -163,7 +171,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
           </div>
         </div>
 
-        <div class="space-y-2 mb-4">
+        <!-- Confidence bar -->
+        <div class="flex items-center gap-2.5 mb-3 bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
+          <span class="text-[9px] mono text-slate-500 uppercase tracking-wider whitespace-nowrap">AI Confidence</span>
+          <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full" style="width:87%"></div>
+          </div>
+          <span class="mono text-xs font-bold text-emerald-400">87%</span>
+        </div>
+
+        <div class="space-y-2 mb-3">
           <div class="flex items-center justify-between bg-surface/60 rounded-lg px-3 py-2 border border-cardborder/50">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -185,6 +202,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
             </div>
             <span class="mono text-xs text-emerald-400 font-semibold">$0.95</span>
           </div>
+        </div>
+
+        <!-- Whale signal detail -->
+        <div class="flex items-center gap-2 mb-3 px-3 py-1.5 bg-purple-500/6 border border-purple-500/15 rounded-lg">
+          <span class="text-[10px]">&#129395;</span>
+          <span class="text-[10px] text-purple-300 mono">3 whale wallets moved $42K on this bracket in the last 8 min</span>
         </div>
 
         <div class="flex items-center justify-between bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-3 py-2.5">
@@ -209,34 +232,44 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f1629; }
     <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Three steps. Real money. Real edge.</h2>
   </div>
 
-  <div class="grid sm:grid-cols-3 gap-6">
-    <div class="bg-card border border-cardborder rounded-2xl p-6 animate-float-in delay-1">
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-1">
       <div class="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center mb-4">
         <span class="text-lg">&#128269;</span>
       </div>
       <h3 class="font-bold text-white mb-2">WICK Scans</h3>
       <p class="text-sm text-slate-400 leading-relaxed">
-        Our AI scans every Polymarket market 24/7, looking for pricing anomalies where the odds don't add up. When the math says there's an edge, we flag it.
+        AI scans Polymarket, Kalshi &amp; Limitless 24/7 for mispriced odds. Each anomaly gets an <span class="text-blue-400 font-semibold">AI confidence score</span> so you know how strong the edge is.
       </p>
     </div>
 
-    <div class="bg-card border border-cardborder rounded-2xl p-6 animate-float-in delay-2">
+    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-2">
+      <div class="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center mb-4">
+        <span class="text-lg">&#129395;</span>
+      </div>
+      <h3 class="font-bold text-white mb-2">Whale Intel</h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        We track large wallets in real time. When whales are moving on the same anomaly, you'll see it &mdash; social proof from the <span class="text-purple-400 font-semibold">smart money</span>.
+      </p>
+    </div>
+
+    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-3">
       <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-4">
         <span class="text-lg">&#9201;</span>
       </div>
-      <h3 class="font-bold text-white mb-2">You Pick</h3>
+      <h3 class="font-bold text-white mb-2">You Pick (15s)</h3>
       <p class="text-sm text-slate-400 leading-relaxed">
-        An anomaly card appears with a countdown timer. You have <span class="text-white font-semibold">~15 seconds</span> to review the play and decide. Grab it or let it pass.
+        An anomaly card drops with a countdown timer. <span class="text-white font-semibold">Grab it fast = you keep 80%</span>. If the timer runs out, WICK auto-executes at a higher platform cut.
       </p>
     </div>
 
-    <div class="bg-card border border-cardborder rounded-2xl p-6 animate-float-in delay-3">
+    <div class="bg-card border border-cardborder rounded-2xl p-5 animate-float-in delay-4">
       <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-4">
         <span class="text-lg">&#128176;</span>
       </div>
       <h3 class="font-bold text-white mb-2">You Profit</h3>
       <p class="text-sm text-slate-400 leading-relaxed">
-        If you grab it, the trade executes through your own wallet. The edge is real &mdash; we're giving <em>you</em> the advantage. We only take 20% of what you make.
+        The trade executes through your own wallet. Non-custodial. The edge is real &mdash; <span class="text-emerald-400 font-semibold">act fast, earn more</span>. We only win when you win.
       </p>
     </div>
   </div>

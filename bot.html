@@ -925,7 +925,17 @@ body::before {
     <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--text1);">You're on the waitlist</div>
     <div style="font-size:14px; color:var(--text2); line-height:1.7; margin-bottom:24px;">WICK is currently in private beta. We'll send you an email when your spot opens up.</div>
     <div id="invite-email" style="font-family:var(--mono); font-size:12px; color:var(--accent); background:rgba(41,98,255,.08); border:1px solid rgba(41,98,255,.15); border-radius:8px; padding:10px 16px; margin-bottom:20px;"></div>
-    <div style="font-size:12px; color:var(--text3); line-height:1.6;">Have an invite code? Contact <span style="color:var(--text2); font-weight:600;">support@wick.network</span></div>
+    <div style="margin-top:20px">
+      <div style="font-size:12px; color:var(--text2); font-weight:600; margin-bottom:8px;">Have an invite code?</div>
+      <div style="display:flex;gap:8px">
+        <input id="invite-code-input" type="text" placeholder="WICK-XXXXXXXX" spellcheck="false" autocomplete="off"
+          style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--text1);letter-spacing:.08em;text-transform:uppercase;outline:none" />
+        <button id="invite-code-btn" onclick="redeemInviteCode()"
+          style="background:#2962FF;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.06em;white-space:nowrap">REDEEM</button>
+      </div>
+      <div id="invite-code-error" style="display:none;font-size:11px;color:#f43f5e;margin-top:8px;font-family:var(--mono)"></div>
+      <div id="invite-code-success" style="display:none;font-size:11px;color:#10b981;margin-top:8px;font-family:var(--mono)"></div>
+    </div>
   </div>
   <button onclick="signOut(window._firebaseAuth)" style="margin-top:24px; background:none; border:1px solid var(--border); color:var(--text3); font-family:var(--mono); font-size:12px; padding:8px 20px; border-radius:6px; cursor:pointer;">Sign out</button>
 </div>
@@ -1267,6 +1277,35 @@ body::before {
         <div class="tile-title">Status</div>
         <div class="tile-value" id="stat-status">Idle</div>
         <div class="tile-sub" id="stat-mode-sub">paper mode</div>
+      </div>
+    </div>
+
+    <!-- ═══ TRENDING: WORLD CUP 2026 ═══ -->
+    <div class="tile tile-full" id="worldcup-tile" style="display:none">
+      <div class="tile-title" style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">&#127942;</span>
+        <span>FIFA World Cup 2026</span>
+        <span class="tile-badge" style="background:rgba(234,179,8,.12);color:#eab308">TRENDING</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">
+          Live anomaly detection — goals, upsets, and odds shifts
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:6px;height:6px;border-radius:50%;background:#eab308;animation:pulse 1.5s infinite"></span>
+          <span style="font-family:var(--mono);font-size:9px;color:#eab308;letter-spacing:.08em">ACTIVE</span>
+        </div>
+      </div>
+      <div id="worldcup-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;min-height:60px">
+        <div id="worldcup-empty" style="grid-column:1/-1;text-align:center;padding:20px 0">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.06em">Scanning World Cup markets...</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">
+        <span style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.15);color:#eab308;padding:2px 8px;border-radius:3px;letter-spacing:.06em">ESPN LIVE SCORES</span>
+        <span style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.15);color:#eab308;padding:2px 8px;border-radius:3px;letter-spacing:.06em">48 TEAMS</span>
+        <span style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.15);color:#eab308;padding:2px 8px;border-radius:3px;letter-spacing:.06em">MATCH ODDS</span>
+        <span style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.15);color:#eab308;padding:2px 8px;border-radius:3px;letter-spacing:.06em">GROUP STAGE</span>
       </div>
     </div>
 
@@ -2335,6 +2374,13 @@ const STREAM_TTL = 15;
 const STREAM_MAX_CARDS = 3;
 const STREAM_POLL_MS = 4000;
 
+const WC_KEYWORDS = ['WORLD CUP', 'FIFA', 'WORLD_CUP', 'GROUP STAGE', 'KNOCKOUT', 'SEMI FINAL', 'QUARTER FINAL'];
+function isWorldCupPlay(play) {
+  if (play.categories && play.categories.includes('WORLD_CUP')) return true;
+  const text = ((play.bracket || '') + ' ' + (play.signal || '')).toUpperCase();
+  return WC_KEYWORDS.some(kw => text.includes(kw));
+}
+
 function streamStart() {
   if (_streamPollTimer) return;
   streamPoll();
@@ -2347,6 +2393,44 @@ function streamStop() {
   _streamCards.clear();
 }
 
+function updateWorldCupTile(plays) {
+  const container = document.getElementById('worldcup-cards');
+  const emptyEl = document.getElementById('worldcup-empty');
+  const wcPlays = (plays || []).filter(isWorldCupPlay);
+
+  if (wcPlays.length === 0) {
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  container.querySelectorAll('.wc-mini-card').forEach(el => el.remove());
+
+  for (const p of wcPlays.slice(0, 4)) {
+    const card = document.createElement('div');
+    card.className = 'wc-mini-card';
+    card.style.cssText = 'background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.12);border-radius:8px;padding:10px 12px;cursor:pointer';
+    card.onclick = () => {
+      const target = document.getElementById('anom-' + p.playId);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    const conf = p.confidence || 0;
+    const confColor = conf >= 75 ? '#10b981' : conf >= 50 ? '#f59e0b' : '#f43f5e';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+        <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.25);color:#eab308;padding:1px 5px;border-radius:3px">&#9917; WC</span>
+        <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:${p.anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.1)' : 'rgba(59,130,246,.1)'};color:${p.anomalyType === 'NEWS_LAG' ? '#f59e0b' : '#4D8FFF'};padding:1px 5px;border-radius:3px">${p.anomalyType === 'NEWS_LAG' ? 'NEWS LAG' : 'ARB'}</span>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--text1);line-height:1.3;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(p.bracket || '').slice(0, 40)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:var(--mono);font-size:10px;color:#10b981;font-weight:700">${p.edgePct}% edge</span>
+        <span style="font-family:var(--mono);font-size:10px;color:${confColor};font-weight:700">${conf}%</span>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+}
+
 async function streamPoll() {
   if (_streamCards.size >= STREAM_MAX_CARDS) return;
   try {
@@ -2356,7 +2440,9 @@ async function streamPoll() {
     document.getElementById('stream-scan-count').textContent = _streamScanCount;
 
     if (d.verdict === 'PLAYS_FOUND' && d.plays) {
-      for (const play of d.plays) {
+      const sorted = [...d.plays].sort((a, b) => (isWorldCupPlay(b) ? 1 : 0) - (isWorldCupPlay(a) ? 1 : 0));
+      updateWorldCupTile(sorted);
+      for (const play of sorted) {
         if (_streamCards.size >= STREAM_MAX_CARDS) break;
         if (_streamCards.has(play.playId)) continue;
         streamAddCard(play);
@@ -2403,6 +2489,9 @@ function streamAddCard(d) {
   const whaleBadge = d.whaleSignal
     ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.25);color:#c084fc;padding:1px 5px;border-radius:3px;margin-left:4px">&#129395;</span>'
     : '';
+  const wcBadge = isWorldCupPlay(d)
+    ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);color:#eab308;padding:1px 5px;border-radius:3px;margin-left:4px">&#9917; WC</span>'
+    : '';
 
   const card = document.createElement('div');
   card.className = 'anom-card';
@@ -2415,6 +2504,7 @@ function streamAddCard(d) {
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:${typeBg};border:1px solid ${typeBorder};color:${typeColor};padding:1px 5px;border-radius:3px">${typeLabel}</span>
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 5px;border-radius:3px">${platform}</span>
           ${whaleBadge}
+          ${wcBadge}
         </div>
         <div style="font-size:13px;font-weight:800;line-height:1.3;color:var(--text1)">${bracket}</div>
         ${signalHtml}
@@ -3037,6 +3127,51 @@ document.getElementById('btn-signin').addEventListener('click', async () => {
 
 getRedirectResult(auth).catch(() => {});
 
+async function redeemInviteCode() {
+  const input = document.getElementById('invite-code-input');
+  const errEl = document.getElementById('invite-code-error');
+  const okEl = document.getElementById('invite-code-success');
+  const btn = document.getElementById('invite-code-btn');
+  const code = (input.value || '').trim().toUpperCase();
+
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (!code || code.length < 4) {
+    errEl.textContent = 'Enter a valid invite code';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    const r = await fetch('/api/bot?action=redeem_code', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const d = await r.json();
+
+    if (r.ok) {
+      okEl.textContent = 'Access granted! Loading dashboard...';
+      okEl.style.display = 'block';
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      errEl.textContent = d.error || 'Invalid or expired code';
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'Network error — try again';
+    errEl.style.display = 'block';
+  }
+
+  btn.textContent = 'REDEEM';
+  btn.disabled = false;
+}
+
 document.getElementById('btn-signout').addEventListener('click', () => {
   signOut(auth);
 });
@@ -3154,6 +3289,7 @@ function applyStatusToUI(d) {
   document.getElementById('stats-row').style.display     = 'grid';
   document.getElementById('bot-control').style.display   = 'block';
   document.getElementById('trades-card').style.display   = 'block';
+  document.getElementById('worldcup-tile').style.display    = 'block';
   document.getElementById('flash-play-tile').style.display = 'block';
   document.getElementById('risk-desk-tile').style.display  = 'block';
   loadRiskStatus();

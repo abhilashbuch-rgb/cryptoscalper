@@ -4,7 +4,12 @@ const { PolymarketAlphaEngine, PLATFORM_FEE_PCT } = require('../lib/polymarket-a
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 const { verifyConnection, deriveApiCredentials } = require('../lib/polymarket-clob');
-const { getStrip, matchHeadline } = require('../lib/market-strip');
+const { getStrip, matchHeadline, ENTITY_ALIASES } = require('../lib/market-strip');
+
+const ALIAS_INDEX = new Map();
+for (const [category, aliases] of Object.entries(ENTITY_ALIASES)) {
+  for (const alias of aliases) ALIAS_INDEX.set(alias, category);
+}
 const { scanAllSources } = require('../lib/news-scanner');
 
 const FLASH_PLAY_TTL_MS = 15 * 1000;
@@ -405,6 +410,10 @@ module.exports = async (req, res) => {
             + (bracket.totalVolume > 100000 ? 5 : 0)
         ));
 
+        const bracketKeys = (bracket.title || '').toUpperCase().replace(/[^A-Z0-9\s]/g, ' ').split(/\s+/);
+        const arbCategories = [...new Set(bracketKeys.map(k => ALIAS_INDEX.get(k)).filter(Boolean))];
+        const arbIsWC = arbCategories.includes('WORLD_CUP');
+
         anomalies.push({
           type: 'NEGRISK_ARB',
           bracket,
@@ -415,7 +424,8 @@ module.exports = async (req, res) => {
           platformFee,
           userProfit,
           signal: `Basket sum ${basketSum.toFixed(3)} > 1.00 — mathematical arbitrage`,
-          sortScore: confidence + (edge * 500),
+          categories: arbCategories,
+          sortScore: confidence + (edge * 500) + (arbIsWC ? 50 : 0),
         });
       }
     }
@@ -471,6 +481,9 @@ module.exports = async (req, res) => {
       );
       if (alreadyCovered) continue;
 
+      const categories = [...new Set(match.matchedKeys.map(k => ALIAS_INDEX.get(k)).filter(Boolean))];
+      const isWorldCup = categories.includes('WORLD_CUP');
+
       anomalies.push({
         type: 'NEWS_LAG',
         bracket: isBracket ? market : {
@@ -494,7 +507,8 @@ module.exports = async (req, res) => {
         newsSource: match.source,
         matchScore: match.score,
         matchedKeys: match.matchedKeys.slice(0, 5),
-        sortScore: confidence + (match.score * 10) + (match.upvotes > 0 ? 15 : 0),
+        categories,
+        sortScore: confidence + (match.score * 10) + (match.upvotes > 0 ? 15 : 0) + (isWorldCup ? 50 : 0),
       });
     }
 
@@ -559,6 +573,7 @@ module.exports = async (req, res) => {
         anomalyType: a.type,
         signal: a.signal,
         newsSource: a.newsSource || null,
+        categories: a.categories || [],
         bracket: a.bracket.title,
         edgePct: (a.edge * 100).toFixed(2),
         confidence: a.confidence,

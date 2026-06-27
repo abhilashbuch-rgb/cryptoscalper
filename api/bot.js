@@ -36,20 +36,18 @@ function cors(res) {
 }
 
 async function isAllowed(email, uid) {
-  // Check env var allowlist first (comma-separated emails)
   const envList = process.env.ALLOWED_EMAILS;
   if (envList) {
     const emails = envList.split(',').map(e => e.trim().toLowerCase());
     if (emails.includes(email)) return true;
   }
 
-  // Check Firestore allowlist collection
   try {
-    const doc = await db.collection('allowlist').doc(email).get();
-    if (doc.exists) return true;
-    // Also check by UID
-    const uidDoc = await db.collection('allowlist').doc(uid).get();
-    if (uidDoc.exists) return true;
+    const [emailDoc, uidDoc] = await Promise.all([
+      db.collection('allowlist').doc(email).get(),
+      db.collection('allowlist').doc(uid).get(),
+    ]);
+    if (emailDoc.exists || uidDoc.exists) return true;
   } catch {}
 
   return false;
@@ -106,9 +104,11 @@ module.exports = async (req, res) => {
     if (codeData.used) return res.status(403).json({ error: 'This code has already been used' });
     if (codeData.active === false) return res.status(403).json({ error: 'This code is no longer active' });
 
-    await codeRef.update({ used: true, used_by: email, used_by_uid: uid, used_at: FieldValue.serverTimestamp() });
-    await db.collection('allowlist').doc(email).set({ uid, email, code: clean, granted: FieldValue.serverTimestamp() });
-    await userRef.set({ invited: true, invite_code: clean, updated: FieldValue.serverTimestamp() }, { merge: true });
+    await Promise.all([
+      codeRef.update({ used: true, used_by: email, used_by_uid: uid, used_at: FieldValue.serverTimestamp() }),
+      db.collection('allowlist').doc(email).set({ uid, email, code: clean, granted: FieldValue.serverTimestamp() }),
+      userRef.set({ invited: true, invite_code: clean, updated: FieldValue.serverTimestamp() }, { merge: true }),
+    ]);
     return res.json({ ok: true });
   }
 
@@ -165,11 +165,15 @@ module.exports = async (req, res) => {
   }
 
   // ── Default: return full dashboard status ──
-  const doc = await userRef.get();
+  const [doc, tradesSnap, actSnap] = await Promise.all([
+    userRef.get(),
+    db.collection('users').doc(uid).collection('trades')
+      .orderBy('timestamp', 'desc').limit(20).get(),
+    db.collection('users').doc(uid).collection('activity')
+      .orderBy('timestamp', 'desc').limit(10).get(),
+  ]);
   const data = doc.exists ? doc.data() : {};
 
-  const tradesSnap = await db.collection('users').doc(uid).collection('trades')
-    .orderBy('timestamp', 'desc').limit(20).get();
   const recentTrades = tradesSnap.docs.map(d => {
     const t = d.data();
     return {
@@ -179,8 +183,6 @@ module.exports = async (req, res) => {
     };
   });
 
-  const actSnap = await db.collection('users').doc(uid).collection('activity')
-    .orderBy('timestamp', 'desc').limit(10).get();
   const recentActivity = actSnap.docs.map(d => {
     const a = d.data();
     return {

@@ -27,31 +27,35 @@ async function fetchPolymarkets() {
 
 async function fetchSportsScores() {
   const leagues = [
-    'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
-    'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard',
-    'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard',
+    { url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard', league: 'NFL' },
+    { url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard', league: 'NBA' },
+    { url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard', league: 'MLB' },
   ];
+  const responses = await Promise.allSettled(
+    leagues.map(({ url, league }) =>
+      fetch(url, { signal: AbortSignal.timeout(3000) })
+        .then(r => r.json())
+        .then(d => ({ league, events: d.events || [] }))
+    )
+  );
   const results = [];
-  for (const url of leagues) {
-    try {
-      const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
-      const d = await r.json();
-      const league = url.includes('nfl') ? 'NFL' : url.includes('nba') ? 'NBA' : 'MLB';
-      (d.events || []).forEach(ev => {
-        const c = ev.competitions?.[0];
-        if (!c) return;
-        const teams = c.competitors || [];
-        const home = teams.find(t => t.homeAway === 'home');
-        const away = teams.find(t => t.homeAway === 'away');
-        results.push({
-          league,
-          match: `${away?.team?.abbreviation || '?'} @ ${home?.team?.abbreviation || '?'}`,
-          score: `${away?.score || 0}-${home?.score || 0}`,
-          status: c.status?.type?.shortDetail || '',
-          decided: c.status?.type?.completed || false,
-        });
+  for (const r of responses) {
+    if (r.status !== 'fulfilled') continue;
+    const { league, events } = r.value;
+    for (const ev of events) {
+      const c = ev.competitions?.[0];
+      if (!c) continue;
+      const teams = c.competitors || [];
+      const home = teams.find(t => t.homeAway === 'home');
+      const away = teams.find(t => t.homeAway === 'away');
+      results.push({
+        league,
+        match: `${away?.team?.abbreviation || '?'} @ ${home?.team?.abbreviation || '?'}`,
+        score: `${away?.score || 0}-${home?.score || 0}`,
+        status: c.status?.type?.shortDetail || '',
+        decided: c.status?.type?.completed || false,
       });
-    } catch {}
+    }
   }
   return results;
 }
@@ -60,7 +64,7 @@ async function fetchNewsHeadlines() {
   try {
     const r = await fetch('https://news.google.com/rss/search?q=breaking+news+when:1h&hl=en-US&gl=US&ceid=US:en', {
       headers: { 'User-Agent': 'WICK/1.0' },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(3000),
     });
     const xml = await r.text();
     const titles = [];
@@ -277,13 +281,12 @@ module.exports = async (req, res) => {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
-    const [markets, sports, headlines] = await Promise.all([
+    const [markets, sports, headlines, userDoc] = await Promise.all([
       fetchPolymarkets(),
       fetchSportsScores(),
       fetchNewsHeadlines(),
+      db.collection('users').doc(decoded.uid).get(),
     ]);
-
-    const userDoc = await db.collection('users').doc(decoded.uid).get();
     const walletBalance = userDoc.exists ? (userDoc.data().walletBalance || 0) : 0;
 
     const boundaries = await runRiskDeskCycle(markets, sports, headlines, walletBalance);
@@ -314,15 +317,14 @@ module.exports = async (req, res) => {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
-    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const [userDoc, riskBounds] = await Promise.all([
+      db.collection('users').doc(decoded.uid).get(),
+      getRiskBoundaries(),
+    ]);
     const userData = userDoc.exists ? userDoc.data() : {};
     const walletBalance = userData.walletBalance || 0;
     const mode = userData.mode || 'sandbox';
-
-    const [riskBounds, engine] = [
-      await getRiskBoundaries(),
-      new PolymarketAlphaEngine(decoded.uid, { mode }),
-    ];
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
 
     if (riskBounds.system_level === 'HALT') {
       return res.json({ verdict: 'RISK_HALT', reason: riskBounds.reasoning_brief });
@@ -451,7 +453,10 @@ module.exports = async (req, res) => {
     if (!playId) return res.status(400).json({ error: 'playId required' });
 
     const playRef = db.collection('flash_plays').doc(playId);
-    const playDoc = await playRef.get();
+    const [playDoc, userDoc] = await Promise.all([
+      playRef.get(),
+      db.collection('users').doc(decoded.uid).get(),
+    ]);
 
     if (!playDoc.exists) return res.status(404).json({ error: 'Play not found' });
 
@@ -473,7 +478,6 @@ module.exports = async (req, res) => {
     const adjustedPlatformFee = parseFloat((play.expectedProfit * effectiveFeePct).toFixed(4));
     const adjustedUserProfit = parseFloat((play.expectedProfit - adjustedPlatformFee).toFixed(4));
 
-    const userDoc = await db.collection('users').doc(decoded.uid).get();
     const mode = userDoc.exists ? (userDoc.data().mode || 'sandbox') : 'sandbox';
 
     const engine = new PolymarketAlphaEngine(decoded.uid, { mode });

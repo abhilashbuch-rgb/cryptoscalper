@@ -1,4 +1,5 @@
 const { db, FieldValue } = require('../lib/firebase-config');
+const { waitlistNotification } = require('../lib/notify-admin');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,6 +38,7 @@ module.exports = async (req, res) => {
         agreed_at: body.agreed_at || new Date().toISOString(),
         joined: FieldValue.serverTimestamp(),
       }, { merge: true });
+      waitlistNotification(email.toLowerCase(), 'homepage').catch(() => {});
     }
 
     return res.json({ ok: true });

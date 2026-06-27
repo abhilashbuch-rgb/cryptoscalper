@@ -94,7 +94,29 @@ module.exports = async (req, res) => {
     return res.json({ ok: true });
   }
 
-  // ── Redeem invite code (adds user to allowlist) ──
+  // ── Generate invite codes (admin only) ──
+  if (action === 'generate_codes' && req.method === 'POST') {
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
+    if (email !== adminEmail) return res.status(403).json({ error: 'Admin only' });
+
+    const count = Math.min(req.body?.count || 5, 20);
+    const codes = [];
+    const writes = [];
+    for (let i = 0; i < count; i++) {
+      const code = 'WICK-' + Array.from({ length: 8 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+      codes.push(code);
+      writes.push(db.collection('invite_codes').doc(code).set({
+        created_by: email,
+        created_at: FieldValue.serverTimestamp(),
+        used: false,
+        seed: true,
+      }));
+    }
+    await Promise.all(writes);
+    return res.json({ ok: true, codes });
+  }
+
+  // ── Redeem invite code (adds user to allowlist + generates referral codes) ──
   if (action === 'redeem_code' && req.method === 'POST') {
     const { code } = req.body || {};
     if (!code) return res.status(400).json({ error: 'Code required' });
@@ -104,15 +126,30 @@ module.exports = async (req, res) => {
     if (!codeDoc.exists) return res.status(403).json({ error: 'Invalid invite code' });
     const codeData = codeDoc.data();
     if (codeData.used) return res.status(403).json({ error: 'This code has already been used' });
-    if (codeData.active === false) return res.status(403).json({ error: 'This code is no longer active' });
 
-    await Promise.all([
+    const referralCodes = [];
+    for (let i = 0; i < 3; i++) {
+      const rc = 'WICK-' + Array.from({ length: 8 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+      referralCodes.push(rc);
+    }
+
+    const writes = [
       codeRef.update({ used: true, used_by: email, used_by_uid: uid, used_at: FieldValue.serverTimestamp() }),
       db.collection('allowlist').doc(email).set({ uid, email, code: clean, granted: FieldValue.serverTimestamp() }),
-      userRef.set({ invited: true, invite_code: clean, updated: FieldValue.serverTimestamp() }, { merge: true }),
-    ]);
+      userRef.set({ invited: true, invite_code: clean, referral_codes: referralCodes, updated: FieldValue.serverTimestamp() }, { merge: true }),
+    ];
+    for (const rc of referralCodes) {
+      writes.push(db.collection('invite_codes').doc(rc).set({
+        created_by: email,
+        created_by_uid: uid,
+        created_at: FieldValue.serverTimestamp(),
+        used: false,
+      }));
+    }
+    await Promise.all(writes);
+
     inviteRedeemedNotification(email, clean).catch(() => {});
-    return res.json({ ok: true });
+    return res.json({ ok: true, referralCodes });
   }
 
   // ── Waitlist ──
@@ -207,6 +244,7 @@ module.exports = async (req, res) => {
     cumulative_profit: 0, referral_code: uid.slice(0, 8),
     paused_reason: null,
   };
+  fuel.referral_codes = data.referral_codes || [];
 
   const earnedBadges = data.badges_earned || [];
 

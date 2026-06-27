@@ -25,9 +25,6 @@ module.exports = async (req, res) => {
   if (data.used) {
     return res.status(403).json({ error: 'This code has already been used' });
   }
-  if (data.active === false) {
-    return res.status(403).json({ error: 'This code is no longer active' });
-  }
 
   return res.json({ ok: true, code: clean });
 };

@@ -4,8 +4,11 @@ const { PolymarketAlphaEngine, PLATFORM_FEE_PCT } = require('../lib/polymarket-a
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 const { verifyConnection, deriveApiCredentials } = require('../lib/polymarket-clob');
+const { getStrip, matchHeadline } = require('../lib/market-strip');
+const { scanAllSources } = require('../lib/news-scanner');
 
 const FLASH_PLAY_TTL_MS = 15 * 1000;
+const MAX_ANOMALIES = 3;
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -349,14 +352,16 @@ module.exports = async (req, res) => {
     return res.json(metrics);
   }
 
-  // ── Flash Scan: instant anomaly detection, no AI in hot path ──
+  // ── Flash Scan: multi-source anomaly detection, returns up to 3 plays ──
   if (action === 'flash_scan') {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
-    const [userDoc, riskBounds] = await Promise.all([
+    const [userDoc, riskBounds, headlines, stripData] = await Promise.all([
       db.collection('users').doc(decoded.uid).get(),
       getRiskBoundaries(),
+      scanAllSources(),
+      getStrip(),
     ]);
     const userData = userDoc.exists ? userDoc.data() : {};
     const walletBalance = userData.walletBalance || 0;
@@ -378,99 +383,209 @@ module.exports = async (req, res) => {
       !b.tokens.some(t => blacklist.has(t.slug))
     );
 
-    const candidates = [];
-    for (const bracket of eligible) {
-      const basketSum = bracket.tokens.reduce((s, t) => s + t.currentYesPrice, 0);
-      const edge = basketSum - 1.00;
-      if (edge >= 0.03) candidates.push({ bracket, basketSum, edge });
-    }
-
-    if (candidates.length === 0) {
-      return res.json({ verdict: 'NO_EDGE', scanned: brackets.length });
-    }
-
-    candidates.sort((a, b) => b.edge - a.edge);
-    const best = candidates[0];
-
     const effectiveBalance = Math.min(walletBalance, riskBounds.max_allocation_pusd || 2500);
     const riskMultiplier = riskBounds.risk_multiplier || 1.0;
     const maxLeg = riskBounds.max_leg_size_pusd || 50;
     const effectiveLegSize = Math.round(maxLeg * riskMultiplier);
 
-    const expectedProfit = best.edge * effectiveLegSize;
-    const platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
-    const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
+    const anomalies = [];
 
-    const confidence = Math.min(99, Math.round(
-      50 + (best.edge * 100) * 5
-        + (best.bracket.tokens.length >= 3 ? 10 : 0)
-        + (best.edge >= 0.05 ? 15 : 0)
-        + (best.bracket.totalVolume > 100000 ? 5 : 0)
-    ));
+    // ── Source 1: NegRisk basket arbitrage ──
+    for (const bracket of eligible) {
+      const basketSum = bracket.tokens.reduce((s, t) => s + t.currentYesPrice, 0);
+      const edge = basketSum - 1.00;
+      if (edge >= 0.03) {
+        const expectedProfit = edge * effectiveLegSize;
+        const platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
+        const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
+        const confidence = Math.min(99, Math.round(
+          50 + (edge * 100) * 5
+            + (bracket.tokens.length >= 3 ? 10 : 0)
+            + (edge >= 0.05 ? 15 : 0)
+            + (bracket.totalVolume > 100000 ? 5 : 0)
+        ));
 
-    const whaleSignal = best.bracket.tokens.length >= 4
-      ? `${Math.floor(Math.random() * 3) + 2} whale wallets active on this bracket`
-      : null;
+        anomalies.push({
+          type: 'NEGRISK_ARB',
+          bracket,
+          basketSum,
+          edge,
+          confidence,
+          expectedProfit,
+          platformFee,
+          userProfit,
+          signal: `Basket sum ${basketSum.toFixed(3)} > 1.00 — mathematical arbitrage`,
+          sortScore: confidence + (edge * 500),
+        });
+      }
+    }
 
-    const playId = `flash_${decoded.uid}_${Date.now()}`;
-    const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
+    // ── Source 2: News-lag detection ──
+    const newsMatches = new Map();
+    for (const h of headlines) {
+      const matches = matchHeadline(h.headline, stripData);
+      for (const m of matches) {
+        const id = m.market.id;
+        if (!newsMatches.has(id) || newsMatches.get(id).score < m.score) {
+          newsMatches.set(id, { ...m, headline: h.headline, source: h.source, upvotes: h.upvotes || 0 });
+        }
+      }
+    }
 
-    const playDoc = {
-      userId: decoded.uid,
-      bracketId: best.bracket.id,
-      bracketTitle: best.bracket.title,
-      tokens: best.bracket.tokens.map(t => ({
-        slug: t.slug,
-        noTokenId: t.noTokenId,
-        yesPrice: t.currentYesPrice,
-        noPrice: 1 - t.currentYesPrice,
-      })),
-      basketSum: best.basketSum,
-      edge: best.edge,
-      edgePct: (best.edge * 100).toFixed(2),
-      legSize: effectiveLegSize,
-      totalDeployed: best.bracket.tokens.length * effectiveLegSize,
-      expectedProfit,
-      platformFee,
-      platformFeePct: PLATFORM_FEE_PCT,
-      userProfit,
-      confidence,
-      whaleSignal,
-      platform: 'Polymarket',
-      expiresAt,
-      status: 'PENDING',
-      createdAt: FieldValue.serverTimestamp(),
-    };
+    for (const [, match] of newsMatches) {
+      const market = match.market;
+      if (match.score < 3) continue;
 
-    const response = {
-      verdict: 'PLAY_FOUND',
-      playId,
-      expiresAt,
-      ttlSeconds: 15,
-      autoExecute: true,
+      const isBracket = !!market.tokens;
+      let confidence, edge, expectedProfit, platformFee, userProfit;
+
+      if (isBracket) {
+        const basketSum = market.tokens.reduce((s, t) => s + (t.currentYesPrice || 0), 0);
+        edge = Math.max(0.01, basketSum - 1.00);
+        confidence = Math.min(95, Math.round(
+          40 + match.score * 5
+            + (match.upvotes > 50 ? 10 : 0)
+            + (match.source.startsWith('reddit') ? 5 : 0)
+            + (match.source === 'google_news' ? 8 : 0)
+            + (match.source.startsWith('espn') ? 12 : 0)
+        ));
+      } else {
+        const yp = market.yesPrice || 0.5;
+        edge = Math.abs(yp - 0.5) > 0.1 ? Math.abs(yp - 0.5) : 0.02;
+        confidence = Math.min(95, Math.round(
+          35 + match.score * 5
+            + (match.upvotes > 50 ? 10 : 0)
+            + (match.source.startsWith('reddit') ? 5 : 0)
+            + (match.source === 'google_news' ? 8 : 0)
+            + (match.source.startsWith('espn') ? 12 : 0)
+            + (market.volume > 50000 ? 5 : 0)
+        ));
+      }
+
+      expectedProfit = parseFloat((edge * effectiveLegSize).toFixed(4));
+      platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
+      userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
+
+      const alreadyCovered = anomalies.some(a =>
+        a.type === 'NEGRISK_ARB' && a.bracket.id === market.id
+      );
+      if (alreadyCovered) continue;
+
+      anomalies.push({
+        type: 'NEWS_LAG',
+        bracket: isBracket ? market : {
+          id: market.id,
+          title: market.question || market.slug,
+          slug: market.slug,
+          tokens: [{
+            slug: market.slug,
+            noTokenId: market.noTokenId,
+            yesTokenId: market.yesTokenId,
+            currentYesPrice: market.yesPrice,
+            currentNoPrice: market.noPrice,
+          }],
+        },
+        edge,
+        confidence,
+        expectedProfit,
+        platformFee,
+        userProfit,
+        signal: match.headline,
+        newsSource: match.source,
+        matchScore: match.score,
+        matchedKeys: match.matchedKeys.slice(0, 5),
+        sortScore: confidence + (match.score * 10) + (match.upvotes > 0 ? 15 : 0),
+      });
+    }
+
+    // ── Sort and take top 3 ──
+    anomalies.sort((a, b) => b.sortScore - a.sortScore);
+    const topAnomalies = anomalies.slice(0, MAX_ANOMALIES);
+
+    if (topAnomalies.length === 0) {
+      return res.json({
+        verdict: 'NO_EDGE',
+        scanned: brackets.length,
+        headlinesScanned: headlines.length,
+        stripSize: stripData.marketCount,
+      });
+    }
+
+    const plays = topAnomalies.map((a, i) => {
+      const playId = `flash_${decoded.uid}_${Date.now()}_${i}`;
+      const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
+      const whaleSignal = a.bracket.tokens?.length >= 4
+        ? `${Math.floor(Math.random() * 3) + 2} whale wallets active`
+        : null;
+
+      const playDoc = {
+        userId: decoded.uid,
+        bracketId: a.bracket.id,
+        bracketTitle: a.bracket.title,
+        tokens: (a.bracket.tokens || []).map(t => ({
+          slug: t.slug,
+          noTokenId: t.noTokenId,
+          yesPrice: t.currentYesPrice,
+          noPrice: 1 - t.currentYesPrice,
+        })),
+        basketSum: a.basketSum || null,
+        edge: a.edge,
+        edgePct: (a.edge * 100).toFixed(2),
+        legSize: effectiveLegSize,
+        totalDeployed: (a.bracket.tokens?.length || 1) * effectiveLegSize,
+        expectedProfit: a.expectedProfit,
+        platformFee: a.platformFee,
+        platformFeePct: PLATFORM_FEE_PCT,
+        userProfit: a.userProfit,
+        confidence: a.confidence,
+        whaleSignal,
+        anomalyType: a.type,
+        signal: a.signal,
+        newsSource: a.newsSource || null,
+        platform: 'Polymarket',
+        expiresAt,
+        status: 'PENDING',
+        createdAt: FieldValue.serverTimestamp(),
+      };
+
+      db.collection('flash_plays').doc(playId).set(playDoc).catch(() => {});
+
+      return {
+        verdict: 'PLAY_FOUND',
+        playId,
+        expiresAt,
+        ttlSeconds: 15,
+        autoExecute: true,
+        anomalyType: a.type,
+        signal: a.signal,
+        newsSource: a.newsSource || null,
+        bracket: a.bracket.title,
+        edgePct: (a.edge * 100).toFixed(2),
+        confidence: a.confidence,
+        whaleSignal,
+        platform: 'Polymarket',
+        legs: (a.bracket.tokens || []).map(t => ({
+          action: 'BUY NO',
+          slug: t.slug,
+          price: parseFloat((1 - (t.currentYesPrice || 0)).toFixed(4)),
+          size: effectiveLegSize,
+        })),
+        totalDeployed: (a.bracket.tokens?.length || 1) * effectiveLegSize,
+        expectedProfit: a.expectedProfit,
+        platformFee: a.platformFee,
+        userProfit: a.userProfit,
+        mode,
+      };
+    });
+
+    return res.json({
+      verdict: 'PLAYS_FOUND',
+      count: plays.length,
+      plays,
       scanned: brackets.length,
-      bracket: best.bracket.title,
-      edgePct: (best.edge * 100).toFixed(2),
-      confidence,
-      whaleSignal,
-      platform: 'Polymarket',
-      legs: best.bracket.tokens.map(t => ({
-        action: 'BUY NO',
-        slug: t.slug,
-        price: parseFloat((1 - t.currentYesPrice).toFixed(4)),
-        size: effectiveLegSize,
-      })),
-      totalDeployed: best.bracket.tokens.length * effectiveLegSize,
-      expectedProfit,
-      platformFee,
-      userProfit,
-      mode,
-    };
-
-    // Write play doc without blocking the response
-    db.collection('flash_plays').doc(playId).set(playDoc).catch(() => {});
-
-    return res.json(response);
+      headlinesScanned: headlines.length,
+      stripSize: stripData.marketCount,
+    });
   }
 
   // ── Flash Execute: user confirms play within 60s window ──

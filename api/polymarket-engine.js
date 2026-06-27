@@ -425,6 +425,8 @@ module.exports = async (req, res) => {
           userProfit,
           signal: `Basket sum ${basketSum.toFixed(3)} > 1.00 — mathematical arbitrage`,
           categories: arbCategories,
+          marketPrice: parseFloat((1 / bracket.tokens.length).toFixed(4)),
+          eventProb: parseFloat(((1 / bracket.tokens.length) + edge).toFixed(4)),
           sortScore: confidence + (edge * 500) + (arbIsWC ? 50 : 0),
         });
       }
@@ -447,11 +449,13 @@ module.exports = async (req, res) => {
       if (match.score < 3) continue;
 
       const isBracket = !!market.tokens;
-      let confidence, edge, expectedProfit, platformFee, userProfit;
+      let confidence, edge, expectedProfit, platformFee, userProfit, mktPrice, evtProb;
 
       if (isBracket) {
         const basketSum = market.tokens.reduce((s, t) => s + (t.currentYesPrice || 0), 0);
         edge = Math.max(0.01, basketSum - 1.00);
+        mktPrice = parseFloat((1 / market.tokens.length).toFixed(4));
+        evtProb = parseFloat((mktPrice + edge).toFixed(4));
         confidence = Math.min(95, Math.round(
           40 + match.score * 5
             + (match.upvotes > 50 ? 10 : 0)
@@ -462,6 +466,8 @@ module.exports = async (req, res) => {
       } else {
         const yp = market.yesPrice || 0.5;
         edge = Math.abs(yp - 0.5) > 0.1 ? Math.abs(yp - 0.5) : 0.02;
+        mktPrice = parseFloat(yp.toFixed(4));
+        evtProb = parseFloat(Math.min(0.99, yp + edge).toFixed(4));
         confidence = Math.min(95, Math.round(
           35 + match.score * 5
             + (match.upvotes > 50 ? 10 : 0)
@@ -503,6 +509,8 @@ module.exports = async (req, res) => {
         expectedProfit,
         platformFee,
         userProfit,
+        marketPrice: mktPrice,
+        eventProb: evtProb,
         signal: match.headline,
         newsSource: match.source,
         matchScore: match.score,
@@ -574,6 +582,8 @@ module.exports = async (req, res) => {
         signal: a.signal,
         newsSource: a.newsSource || null,
         categories: a.categories || [],
+        marketPrice: a.marketPrice || 0,
+        eventProb: a.eventProb || 0,
         bracket: a.bracket.title,
         edgePct: (a.edge * 100).toFixed(2),
         confidence: a.confidence,

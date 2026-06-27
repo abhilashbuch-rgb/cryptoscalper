@@ -358,10 +358,94 @@ module.exports = async (req, res) => {
   }
 
   // ── Flash Scan: multi-source anomaly detection, returns up to 3 plays ──
+  // Hybrid mode: checks Firestore live_anomalies first (VPS engine), falls back to on-demand scan
   if (action === 'flash_scan') {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
+    const liveSnap = await db.collection('live_anomalies')
+      .where('status', '==', 'LIVE')
+      .where('expiresAt', '>', Date.now())
+      .orderBy('expiresAt', 'desc')
+      .limit(6)
+      .get();
+
+    if (!liveSnap.empty) {
+      const userDoc = await db.collection('users').doc(decoded.uid).get();
+      const userData = userDoc.exists ? userDoc.data() : {};
+      const mode = userData.mode || 'sandbox';
+      const riskBounds = await getRiskBoundaries();
+      const effectiveLegSize = Math.round((riskBounds.max_leg_size_pusd || 50) * (riskBounds.risk_multiplier || 1.0));
+
+      const plays = liveSnap.docs.slice(0, MAX_ANOMALIES).map((doc, i) => {
+        const a = doc.data();
+        const playId = `flash_${decoded.uid}_${Date.now()}_${i}`;
+        const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
+
+        db.collection('flash_plays').doc(playId).set({
+          userId: decoded.uid,
+          bracketId: a.bracketId,
+          bracketTitle: a.bracket,
+          tokens: a.legs || [],
+          edge: a.edge,
+          edgePct: a.edgePct,
+          legSize: effectiveLegSize,
+          totalDeployed: a.totalDeployed || effectiveLegSize,
+          expectedProfit: a.expectedProfit,
+          platformFee: a.platformFee,
+          userProfit: a.userProfit,
+          confidence: a.confidence,
+          anomalyType: a.anomalyType,
+          signal: a.signal,
+          newsSource: a.newsSource,
+          platform: 'Polymarket',
+          expiresAt,
+          status: 'PENDING',
+          createdAt: FieldValue.serverTimestamp(),
+          source: 'vps_engine',
+        }).catch(() => {});
+
+        return {
+          verdict: 'PLAY_FOUND',
+          playId,
+          expiresAt,
+          ttlSeconds: 15,
+          autoExecute: true,
+          anomalyType: a.anomalyType,
+          signal: a.signal,
+          newsSource: a.newsSource || null,
+          categories: a.categories || [],
+          marketPrice: a.marketPrice || 0,
+          eventProb: a.eventProb || 0,
+          bracket: a.bracket,
+          edgePct: a.edgePct,
+          confidence: a.confidence,
+          whaleSignal: null,
+          platform: 'Polymarket',
+          legs: (a.legs || []).map(l => ({
+            action: 'BUY NO',
+            slug: l.slug,
+            price: parseFloat((l.noPrice || 0).toFixed(4)),
+            size: effectiveLegSize,
+          })),
+          totalDeployed: a.totalDeployed || effectiveLegSize,
+          expectedProfit: a.expectedProfit,
+          platformFee: a.platformFee,
+          userProfit: a.userProfit,
+          mode,
+          source: 'vps_engine',
+        };
+      });
+
+      return res.json({
+        verdict: 'PLAYS_FOUND',
+        count: plays.length,
+        plays,
+        source: 'vps_engine',
+      });
+    }
+
+    // Fallback: on-demand scan when VPS engine isn't running
     const [userDoc, riskBounds, headlines, stripData] = await Promise.all([
       db.collection('users').doc(decoded.uid).get(),
       getRiskBoundaries(),

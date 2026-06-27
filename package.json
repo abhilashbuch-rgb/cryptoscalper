@@ -8,7 +8,8 @@
     "daemon": "node server.js",
     "legacy": "node trader.js",
     "backtest": "node trader.js --backtest",
-    "paper": "DRY_RUN=true node trader.js"
+    "paper": "DRY_RUN=true node trader.js",
+    "engine": "node engine/index.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
@@ -16,7 +17,8 @@
     "axios": "^1.7.0",
     "dotenv": "^16.4.0",
     "firebase-admin": "^12.0.0",
-    "stripe": "^17.0.0"
+    "stripe": "^17.0.0",
+    "ws": "^8.21.0"
   },
   "engines": {
     "node": ">=18.0.0"

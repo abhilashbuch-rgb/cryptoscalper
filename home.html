@@ -3,260 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK NETWORK — Live Prediction Market Terminal</title>
-<meta name="description" content="WICK scans Polymarket, Kalshi & Limitless for pricing anomalies with AI confidence scoring and whale tracking. Grab the edge in 15 seconds. Non-custodial. Invite only.">
-<meta property="og:title" content="WICK.Network | Live Prediction Market Terminal">
-<meta property="og:description" content="AI-powered anomaly detection across prediction markets. Whale tracking. Confidence scoring. Your wallet, your edge.">
+<title>WICK NETWORK</title>
+<meta name="description" content="Breaking news hits. WICK finds the trade. You confirm it. Non-custodial prediction market trading on Polymarket.">
+<meta property="og:title" content="WICK.Network">
+<meta property="og:description" content="Breaking news hits. WICK finds the trade. You confirm it.">
 <meta property="og:url" content="https://wick.network">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230B0E14'/><g transform='translate(15,22)'><path d='M0,0 L20,0 M40,0 L60,0 M80,0 L100,0' stroke='%2300E676' stroke-width='14' stroke-linecap='round'/><path d='M0,24 L25,24 M45,24 L56,24 M76,24 L100,24' stroke='%23004BFF' stroke-width='14' stroke-linecap='round'/><path d='M0,48 L100,48' stroke='%230026CC' stroke-width='14' stroke-linecap='round'/></g></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230B0E14'/><text x='50' y='68' text-anchor='middle' font-size='56' font-weight='900' fill='%23fff'>W</text></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Inter', sans-serif; background: #0B0E14; }
-.game-font { font-family: 'Space Grotesk', sans-serif; }
-.mono { font-family: 'Space Grotesk', monospace; }
-
-@keyframes pulse-live { 0%,100%{opacity:1} 50%{opacity:.4} }
-@keyframes countdown-bar {
-  0%   { width:100%; background:#00E676; }
-  60%  { background:#f59e0b; }
-  85%  { background:#ff4455; }
-  100% { width:0%; background:#ff4455; }
-}
-@keyframes float-in {
-  from { opacity:0; transform:translateY(14px); }
+body { font-family: 'Inter', sans-serif; background: #090C10; }
+@keyframes fade-up {
+  from { opacity:0; transform:translateY(20px); }
   to   { opacity:1; transform:translateY(0); }
 }
-.animate-float { animation: float-in .45s ease-out both; }
-.d1 { animation-delay:.08s } .d2 { animation-delay:.16s } .d3 { animation-delay:.24s } .d4 { animation-delay:.32s }
-
-.demo-bar { height:3px; border-radius:2px; animation: countdown-bar 12s linear infinite; }
+.fade-up { animation: fade-up .5s ease-out both; }
+.d1 { animation-delay:.05s } .d2 { animation-delay:.1s } .d3 { animation-delay:.15s }
 
 .form-input {
-  width:100%; padding:10px 12px;
-  background:rgba(20,27,37,.9); border:1px solid rgba(99,118,163,.2);
-  border-radius:10px; color:#e2e8f0; font-family:'Inter',sans-serif;
-  font-size:13px; outline:none; transition:border-color .15s;
+  width:100%; padding:12px 14px;
+  background:#111820; border:1px solid rgba(148,163,184,.12);
+  border-radius:10px; color:#e2e8f0; font-size:14px; outline:none;
+  transition:border-color .15s;
 }
-.form-input:focus { border-color:rgba(0,75,255,.5); }
-.form-input::placeholder { color:rgba(148,163,184,.3); }
-.check-group { margin-bottom:6px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; }
-.check-group input[type="checkbox"] { width:14px; height:14px; margin-top:1px; accent-color:#004BFF; flex-shrink:0; cursor:pointer; }
-#msg { display:none; margin-top:12px; font-family:'Space Grotesk',monospace; font-size:10px; padding:10px 14px; border-radius:10px; line-height:1.6; text-align:center; }
-#msg.success, #msg.waitlist { display:block; color:#60a5fa; background:rgba(0,75,255,.08); border:1px solid rgba(0,75,255,.2); }
-#msg.approved { display:block; color:#00E676; background:rgba(0,230,118,.08); border:1px solid rgba(0,230,118,.2); }
-#msg.error { display:block; color:#ff4455; background:rgba(255,68,85,.08); border:1px solid rgba(255,68,85,.2); }
+.form-input:focus { border-color:rgba(59,130,246,.5); }
+.form-input::placeholder { color:rgba(148,163,184,.25); }
 
-.quad {
-  background:#0F141C; border:1px solid rgba(148,163,184,.1);
-  border-radius:16px; padding:24px; position:relative; overflow:hidden;
-  display:flex; flex-direction:column; justify-content:space-between;
-  box-shadow: 0 4px 30px rgba(0,0,0,.3);
-  transition: border-color .2s;
+.check-group { margin-bottom:4px; display:flex; align-items:flex-start; gap:8px; cursor:pointer; }
+.check-group input[type="checkbox"] { width:14px; height:14px; margin-top:2px; accent-color:#3b82f6; flex-shrink:0; cursor:pointer; }
+
+#msg { display:none; margin-top:14px; font-size:13px; padding:12px 16px; border-radius:10px; line-height:1.6; text-align:center; }
+#msg.success, #msg.waitlist { display:block; color:#93c5fd; background:rgba(59,130,246,.06); border:1px solid rgba(59,130,246,.15); }
+#msg.approved { display:block; color:#4ade80; background:rgba(74,222,128,.06); border:1px solid rgba(74,222,128,.15); }
+#msg.error { display:block; color:#f87171; background:rgba(248,113,113,.06); border:1px solid rgba(248,113,113,.15); }
+
+.section {
+  background:#0D1117; border:1px solid rgba(148,163,184,.06);
+  border-radius:16px; padding:32px;
 }
-.quad:hover { border-color: rgba(148,163,184,.2); }
 </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-600/30">
+<body class="text-slate-100 min-h-screen flex flex-col p-5 md:p-8 selection:bg-blue-600/30">
 
-<!-- ═══ HEADER ═══ -->
-<header class="w-full max-w-3xl mx-auto flex justify-between items-center mb-4 px-4 bg-[#0F141C] border border-slate-800/80 p-4 rounded-xl animate-float">
-  <div class="flex items-center gap-2.5">
-    <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-md shadow-blue-600/20">W</div>
-    <span class="text-md font-bold tracking-tight game-font">WICK<span class="text-blue-500">.NETWORK</span></span>
-  </div>
-  <div class="flex items-center gap-4 text-xs font-semibold">
-    <a href="/terms" class="text-slate-500 hover:text-slate-300 transition hidden sm:inline game-font">Terms</a>
-    <a href="/privacy" class="text-slate-500 hover:text-slate-300 transition hidden sm:inline game-font">Privacy</a>
-    <div class="bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1.5" style="animation:pulse-live 2s infinite">
-      <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-      SCANNING LIVE
+<div class="w-full max-w-xl mx-auto flex flex-col gap-6 flex-grow">
+
+  <!-- ═══ HERO ═══ -->
+  <section class="section fade-up d1">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-sm text-white">W</div>
+      <span class="text-lg font-bold tracking-tight">WICK<span class="text-blue-500">.NETWORK</span></span>
     </div>
-  </div>
-</header>
 
-<!-- ═══ VERTICAL SECTIONS ═══ -->
-<main class="w-full max-w-3xl mx-auto flex flex-col gap-5 flex-grow">
+    <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight mb-3">
+      Breaking news hits.<br>WICK finds the trade.<br>You confirm it.
+    </h1>
 
-  <!-- Q1 — WICK NETWORK -->
-  <div class="quad animate-float d1">
-    <div class="absolute top-0 right-0 w-40 h-40 bg-blue-600/8 rounded-full blur-3xl pointer-events-none"></div>
-    <div>
-      <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white game-font mb-2">
-        WICK <span class="text-blue-500">NETWORK</span>
-      </h1>
-      <p class="text-sm text-slate-400 mb-6 leading-relaxed max-w-sm">
-        Breaking news hits. WICK finds the trade. You confirm it.
-      </p>
+    <p class="text-sm text-slate-500 mb-8 leading-relaxed max-w-md">
+      Real-time news scanning across 8+ sources. Matched to live Polymarket contracts. Anomalies surfaced before the market reprices.
+    </p>
 
-      <span class="text-[9px] font-bold tracking-wider text-slate-500 block uppercase mb-4 game-font">Information Channels</span>
-
-      <!-- Channel logos — inline text badges (no external image deps) -->
-      <div class="flex flex-wrap items-center gap-3 mb-4">
-        <span class="text-[11px] font-bold tracking-wide text-slate-400 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5" style="font-family:'Reuters',Georgia,serif;letter-spacing:.05em">REUTERS</span>
-        <span class="text-[11px] font-black tracking-tight text-red-500/70 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5">CNN</span>
-        <span class="text-[11px] font-black tracking-tight text-red-600/70 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5" style="font-style:italic">ESPN</span>
-        <span class="text-[11px] font-bold tracking-wide text-orange-400/70 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5">AP NEWS</span>
-        <span class="text-[11px] font-bold tracking-wide text-slate-400 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5">SEC EDGAR</span>
-        <span class="text-[11px] font-bold tracking-wide text-sky-400/70 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5">GOOGLE NEWS</span>
-        <span class="text-[11px] font-bold tracking-wide text-orange-500/70 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5">REDDIT</span>
-        <span class="text-[11px] font-bold tracking-wide text-green-400/70 opacity-60 hover:opacity-100 transition border border-slate-700/50 rounded px-2 py-0.5">FIFA</span>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+      <div class="bg-[#111820] rounded-xl p-4 border border-slate-800/40">
+        <div class="text-xs text-slate-500 mb-1">Step 1</div>
+        <div class="text-sm font-semibold text-white">News breaks</div>
+        <div class="text-xs text-slate-500 mt-1">Headlines scanned in real-time</div>
+      </div>
+      <div class="bg-[#111820] rounded-xl p-4 border border-slate-800/40">
+        <div class="text-xs text-slate-500 mb-1">Step 2</div>
+        <div class="text-sm font-semibold text-white">WICK matches it</div>
+        <div class="text-xs text-slate-500 mt-1">Finds the Polymarket contract</div>
+      </div>
+      <div class="bg-[#111820] rounded-xl p-4 border border-slate-800/40">
+        <div class="text-xs text-slate-500 mb-1">Step 3</div>
+        <div class="text-sm font-semibold text-white">You decide</div>
+        <div class="text-xs text-slate-500 mt-1">Confirm or skip. Your wallet.</div>
       </div>
     </div>
-  </div>
 
-  <!-- Q2 — HOW IT WORKS (simple) -->
-  <div class="quad animate-float d2">
-    <div>
-      <span class="text-[9px] bg-purple-600/10 text-purple-400 border border-purple-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">HOW IT WORKS</span>
+    <div class="flex flex-wrap gap-2">
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">REUTERS</span>
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">ESPN</span>
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">AP NEWS</span>
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">SEC EDGAR</span>
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">GOOGLE NEWS</span>
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">REDDIT</span>
+      <span class="text-[10px] text-slate-500 border border-slate-800/40 rounded-md px-2 py-1">FIFA</span>
+    </div>
+  </section>
 
-      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-100 game-font mb-2 leading-snug">
-        Breaking news hits.<br>WICK trades it instantly.
-      </h3>
-      <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-        WICK is plugged into live news channels. When something happens in the real world, it finds the matching market on Polymarket and places the trade &mdash; before anyone else.
-      </p>
+  <!-- ═══ NON-CUSTODIAL ═══ -->
+  <section class="section fade-up d2">
+    <h2 class="text-lg font-bold text-white mb-2">Your wallet. Your funds.</h2>
+    <p class="text-sm text-slate-500 mb-5">WICK routes trades through your Polymarket wallet. We never hold your money and can never withdraw it.</p>
 
-      <div class="space-y-3">
-        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
-          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-          <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">News breaks</strong>
-            <span class="text-slate-400">Reuters drops a headline, ESPN updates a score, a government filing goes public. WICK sees it the second it happens.</span>
-          </div>
-        </div>
-        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
-          <span class="bg-blue-600 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-          <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">WICK finds the trade</strong>
-            <span class="text-slate-400">It matches the news to prediction markets on Polymarket. If the odds haven't caught up yet, that's your edge.</span>
-          </div>
-        </div>
-        <div class="flex gap-3 items-start bg-[#141B25] p-3.5 rounded-xl border border-slate-800/60">
-          <span class="bg-emerald-500 text-white font-black text-[10px] w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-          <div class="text-xs">
-            <strong class="text-white block font-semibold mb-0.5">Real-time execution</strong>
-            <span class="text-slate-400">The trade goes through your wallet automatically. You keep the profit. WICK only takes a cut of what you make &mdash; never a cut of what you put in.</span>
-          </div>
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="bg-[#111820] rounded-xl p-4 border border-slate-800/40 text-center">
+        <div class="text-emerald-400 text-xs font-semibold mb-1">Trades</div>
+        <div class="text-sm text-slate-300">Routed to your wallet</div>
+      </div>
+      <div class="bg-[#111820] rounded-xl p-4 border border-slate-800/40 text-center">
+        <div class="text-red-400 text-xs font-semibold mb-1">Withdrawals</div>
+        <div class="text-sm text-slate-300">Blocked by design</div>
+      </div>
+      <div class="bg-[#111820] rounded-xl p-4 border border-slate-800/40 text-center">
+        <div class="text-blue-400 text-xs font-semibold mb-1">Profit</div>
+        <div class="text-sm text-slate-300">WICK takes a cut only if you win</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Q3 — VAULT / CUSTODY -->
-  <div class="quad animate-float d3">
-    <div class="absolute top-0 right-0 w-36 h-36 bg-emerald-600/8 rounded-full blur-3xl pointer-events-none"></div>
-    <div>
-      <div class="flex items-center gap-2 mb-5">
-        <span class="text-2xl">&#127920;</span>
-        <span class="text-[9px] bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font">VAULT INTEGRITY</span>
-      </div>
+  <!-- ═══ ACCESS ═══ -->
+  <section class="section fade-up d3">
+    <h2 class="text-lg font-bold text-white mb-1">Get access</h2>
+    <p class="text-xs text-slate-500 mb-5">Private beta. Join the waitlist or enter your invite code.</p>
 
-      <h3 class="text-xl md:text-2xl font-extrabold tracking-tight text-white game-font mb-2">
-        100% CUSTODY
-      </h3>
-      <p class="text-sm text-slate-400 mb-6 leading-relaxed">
-        Your money stays yours.
-      </p>
+    <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
+      <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
 
-      <div class="space-y-3">
-        <div class="bg-[#141B25] border border-slate-800 p-3.5 rounded-xl flex items-center gap-3">
-          <span class="text-emerald-400 font-bold text-sm">Permitted:</span>
-          <span class="text-sm text-slate-300">Position routing only.</span>
-        </div>
-        <div class="bg-[#141B25] border border-slate-800 p-3.5 rounded-xl flex items-center gap-3">
-          <span class="text-red-400 font-bold text-sm">Blocked:</span>
-          <span class="text-sm text-slate-300">&#128683; Withdrawals &amp; transfers.</span>
-        </div>
-        <div class="bg-[#141B25] border border-slate-800 p-3.5 rounded-xl flex items-center gap-3">
-          <span class="text-blue-400 font-bold text-sm">Access:</span>
-          <span class="text-sm text-slate-300">Runs natively through your own wallet.</span>
-        </div>
-      </div>
+      <label class="check-group">
+        <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
+        <span class="text-[11px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
+      </label>
+      <label class="check-group">
+        <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
+        <span class="text-[11px] text-slate-500 leading-relaxed">I understand trading involves risk. I will only trade what I can afford to lose.</span>
+      </label>
+      <label class="check-group">
+        <input type="checkbox" id="chk-newsletter" checked>
+        <span class="text-[11px] text-slate-500 leading-relaxed">Send me updates.</span>
+      </label>
+
+      <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-20 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition text-sm" type="submit" id="btn-submit" disabled>
+        Request Access
+      </button>
+    </form>
+
+    <div class="flex items-center gap-3 my-5 text-[10px] text-slate-600 uppercase tracking-wider">
+      <div class="flex-1 h-px bg-slate-800/60"></div>
+      <span>Have an invite code?</span>
+      <div class="flex-1 h-px bg-slate-800/60"></div>
     </div>
-  </div>
 
-  <!-- Q4 — ROOM ENTRY / ACCESS GATE -->
-  <div class="quad animate-float d4">
-    <div>
-      <span class="text-[9px] bg-amber-600/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded uppercase tracking-wider game-font mb-5 inline-block">ROOM ENTRY</span>
-
-      <h3 class="text-lg font-bold text-white game-font mb-1">Private beta. Invite only.</h3>
-      <p class="text-xs text-slate-400 mb-5 max-w-sm leading-relaxed">
-        Join the waitlist or enter your invite code to activate your private predictive trading desk.
-      </p>
-
-      <!-- Waitlist form -->
-      <form id="waitlist-form" onsubmit="return handleWaitlist(event)" class="space-y-3">
-        <div>
-          <label class="block text-[9px] tracking-wider uppercase text-slate-500 mb-1.5 font-bold game-font">Email</label>
-          <input class="form-input" type="email" id="wl-email" placeholder="you@example.com" required>
-        </div>
-        <label class="check-group">
-          <input type="checkbox" id="chk-terms" onchange="updateSubmit()">
-          <span class="text-[10px] text-slate-500 leading-relaxed">I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="/privacy" target="_blank" class="text-blue-400 hover:underline">Privacy Policy</a>.</span>
-        </label>
-        <label class="check-group">
-          <input type="checkbox" id="chk-risk" onchange="updateSubmit()">
-          <span class="text-[10px] text-slate-500 leading-relaxed">I understand trading involves risk of loss and will only trade what I can afford to lose.</span>
-        </label>
-        <label class="check-group">
-          <input type="checkbox" id="chk-newsletter" checked>
-          <span class="text-[10px] text-slate-500 leading-relaxed">Send me updates and the WICK Weekly newsletter.</span>
-        </label>
-        <button class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-25 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition text-xs uppercase tracking-wider game-font shadow-lg shadow-blue-600/10" type="submit" id="btn-submit" disabled>
-          Request Access
-        </button>
-      </form>
-
-      <!-- Invite code divider -->
-      <div class="flex items-center gap-2.5 my-4 text-[9px] text-slate-600 uppercase tracking-wider game-font">
-        <div class="flex-1 h-px bg-slate-800"></div>
-        <span>Have an invite code?</span>
-        <div class="flex-1 h-px bg-slate-800"></div>
-      </div>
-
-      <div id="invite-section" class="space-y-3">
-        <div>
-          <label class="block text-[9px] tracking-wider uppercase text-slate-500 mb-1.5 font-bold game-font">Invite Code</label>
-          <input class="form-input text-center uppercase tracking-widest" type="text" id="invite-code" placeholder="XXXX-XXXX" style="font-family:'Space Grotesk',monospace">
-        </div>
-        <div id="code-error" style="display:none" class="text-[10px] text-red-400 text-center game-font"></div>
-        <button class="w-full bg-[#141B25] hover:bg-[#19222E] border border-slate-800 text-slate-300 font-semibold py-2.5 px-4 rounded-xl transition text-xs game-font" id="btn-verify" onclick="verifyCode()">
-          Verify Code
-        </button>
-      </div>
-
-      <div id="signin-section" style="display:none" class="space-y-3">
-        <div id="code-accepted" class="text-[10px] text-blue-400 text-center game-font"></div>
-        <button class="w-full bg-[#141B25] hover:bg-[#19222E] border border-slate-800 text-slate-300 font-semibold py-3 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2" id="btn-signin">
-          <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
-          Sign in with Google
-        </button>
-      </div>
-
-      <div id="msg"></div>
-      <button class="mt-2.5 bg-transparent border border-slate-800 text-slate-500 text-[10px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-300 hover:border-slate-600 transition game-font" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
+    <div id="invite-section" class="space-y-3">
+      <input class="form-input text-center uppercase tracking-widest" type="text" id="invite-code" placeholder="WICK-XXXXXXXX" style="font-family:monospace">
+      <div id="code-error" style="display:none" class="text-[11px] text-red-400 text-center"></div>
+      <button class="w-full bg-[#111820] hover:bg-[#161E2A] border border-slate-800/40 text-slate-400 font-semibold py-2.5 px-4 rounded-xl transition text-sm" id="btn-verify" onclick="verifyCode()">
+        Verify Code
+      </button>
     </div>
-  </div>
 
-</main>
+    <div id="signin-section" style="display:none" class="space-y-3">
+      <div id="code-accepted" class="text-[11px] text-blue-400 text-center"></div>
+      <button class="w-full bg-[#111820] hover:bg-[#161E2A] border border-slate-800/40 text-slate-300 font-semibold py-3 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
+        <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+        Sign in with Google
+      </button>
+    </div>
+
+    <div id="msg"></div>
+    <button class="mt-3 bg-transparent border border-slate-800/40 text-slate-600 text-[11px] py-1.5 px-3.5 rounded-md cursor-pointer hover:text-slate-400 hover:border-slate-700 transition" id="btn-signout" onclick="signOut(auth)" style="display:none">Sign out</button>
+  </section>
+
+</div>
 
 <!-- ═══ FOOTER ═══ -->
-<footer class="w-full max-w-3xl mx-auto mt-5 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-slate-600 gap-2 px-2">
-  <div class="game-font">&copy; 2026 WICK.NETWORK DIGITAL INTERACTIVE APPARATUS</div>
-  <div class="flex gap-4 game-font">
-    <a href="/terms" class="hover:text-slate-400 transition">TERMS</a>
-    <a href="/privacy" class="hover:text-slate-400 transition">PRIVACY</a>
+<footer class="w-full max-w-xl mx-auto mt-6 pt-4 border-t border-slate-900/50 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-600 gap-2 px-2 pb-6">
+  <div>&copy; 2026 WICK.NETWORK</div>
+  <div class="flex gap-4">
+    <a href="/terms" class="hover:text-slate-400 transition">Terms</a>
+    <a href="/privacy" class="hover:text-slate-400 transition">Privacy</a>
   </div>
 </footer>
-<p class="w-full max-w-3xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-6 px-4 leading-relaxed opacity-50">
+<p class="w-full max-w-xl mx-auto text-center text-[9px] text-slate-700 mb-6 px-4 leading-relaxed opacity-40">
   WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.
 </p>
 
-<!-- ═══ Waitlist / Invite / Auth JS ═══ -->
+<!-- ═══ JS ═══ -->
 <script>
 let verifiedCode = null;
 
@@ -294,7 +218,7 @@ function handleWaitlist(e) {
     .then(() => {
       document.getElementById('waitlist-form').style.display = 'none';
       msg.className = 'success';
-      msg.innerHTML = "You're on the list.<br><span style='color:rgba(148,163,184,.6);font-size:10px'>" + email + "</span><br><span style='color:rgba(148,163,184,.4);font-size:9px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
+      msg.innerHTML = "You're on the list.<br><span style='color:rgba(148,163,184,.5);font-size:12px'>" + email + "</span><br><span style='color:rgba(148,163,184,.3);font-size:11px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
     })
     .catch(() => { msg.className = 'error'; msg.textContent = 'Something went wrong. Try again.'; btn.disabled = false; btn.textContent = 'Request Access'; });
   return false;
@@ -373,7 +297,7 @@ onAuthStateChanged(auth, async user => {
 
     if (r.status === 403) {
       msg.className = 'waitlist';
-      msg.innerHTML = "You're on the waitlist.<br><span style='color:rgba(148,163,184,.6);font-size:10px'>" + user.email + "</span><br><span style='color:rgba(148,163,184,.4);font-size:9px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
+      msg.innerHTML = "You're on the waitlist.<br><span style='color:rgba(148,163,184,.5);font-size:12px'>" + user.email + "</span><br><span style='color:rgba(148,163,184,.3);font-size:11px;margin-top:4px;display:inline-block'>We'll reach out when your access is ready.</span>";
       return;
     }
 

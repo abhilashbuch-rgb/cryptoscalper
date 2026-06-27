@@ -1,5 +1,5 @@
 const { db, FieldValue } = require('../lib/firebase-config');
-const { waitlistNotification } = require('../lib/notify-admin');
+const { waitlistNotification, generateInviteCode, syncResendContact } = require('../lib/notify-admin');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,15 +30,29 @@ module.exports = async (req, res) => {
     await db.collection('newsletter').doc(key).set(data, { merge: true });
 
     if (body.waitlist) {
-      await db.collection('waitlist').doc(key).set({
-        email: email.toLowerCase(),
-        newsletter: !!body.newsletter,
-        agreed_terms: true,
-        agreed_risk: true,
-        agreed_at: body.agreed_at || new Date().toISOString(),
-        joined: FieldValue.serverTimestamp(),
-      }, { merge: true });
-      waitlistNotification(email.toLowerCase(), 'homepage').catch(() => {});
+      const inviteCode = generateInviteCode();
+      const emailLower = email.toLowerCase();
+
+      await Promise.all([
+        db.collection('waitlist').doc(key).set({
+          email: emailLower,
+          newsletter: !!body.newsletter,
+          agreed_terms: true,
+          agreed_risk: true,
+          agreed_at: body.agreed_at || new Date().toISOString(),
+          invite_code: inviteCode,
+          joined: FieldValue.serverTimestamp(),
+        }, { merge: true }),
+        db.collection('invite_codes').doc(inviteCode).set({
+          active: false,
+          used: false,
+          generated_for: emailLower,
+          created: FieldValue.serverTimestamp(),
+        }),
+      ]);
+
+      waitlistNotification(emailLower, 'homepage').catch(() => {});
+      syncResendContact(emailLower, inviteCode).catch(() => {});
     }
 
     return res.json({ ok: true });

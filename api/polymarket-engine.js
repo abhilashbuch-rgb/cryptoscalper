@@ -3,6 +3,7 @@ const { db, FieldValue } = require('../lib/firebase-config');
 const { PolymarketAlphaEngine, PLATFORM_FEE_PCT } = require('../lib/polymarket-alpha');
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
+const { verifyConnection, deriveApiCredentials } = require('../lib/polymarket-clob');
 
 const FLASH_PLAY_TTL_MS = 15 * 1000;
 
@@ -86,6 +87,42 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
 
   const action = req.query?.action;
+
+  // ── Verify Connection: L1/L2 checklist ──
+  if (action === 'verify_connection') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+      const result = await verifyConnection();
+      return res.json(result);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── Derive API Key: generate L2 credentials from L1 wallet ──
+  if (action === 'derive_api_key' && req.method === 'POST') {
+    const decoded = await verifyToken(req);
+    if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+      const creds = await deriveApiCredentials();
+      await db.collection('users').doc(decoded.uid).set({
+        polymarket_l2_derived: true,
+        polymarket_l2_derived_at: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      return res.json({
+        ok: true,
+        apiKey: creds.apiKey,
+        secret: creds.secret,
+        passphrase: creds.passphrase,
+        hint: 'Set these as POLYMARKET_API_KEY, POLYMARKET_API_SECRET, POLYMARKET_PASSPHRASE in your environment',
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
 
   // ── Scan: full multi-agent sweep ──
   if (action === 'scan') {

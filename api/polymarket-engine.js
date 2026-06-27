@@ -312,7 +312,7 @@ module.exports = async (req, res) => {
     return res.json(metrics);
   }
 
-  // ── Flash Scan: on-demand single best play with 60s timer ──
+  // ── Flash Scan: instant anomaly detection, no AI in hot path ──
   if (action === 'flash_scan') {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
@@ -352,36 +352,23 @@ module.exports = async (req, res) => {
       return res.json({ verdict: 'NO_EDGE', scanned: brackets.length });
     }
 
+    candidates.sort((a, b) => b.edge - a.edge);
+    const best = candidates[0];
+
     const effectiveBalance = Math.min(walletBalance, riskBounds.max_allocation_pusd || 2500);
     const riskMultiplier = riskBounds.risk_multiplier || 1.0;
     const maxLeg = riskBounds.max_leg_size_pusd || 50;
     const effectiveLegSize = Math.round(maxLeg * riskMultiplier);
 
-    const verdicts = await Promise.all(
-      candidates.map(async ({ bracket, edge }) => {
-        const payload = buildMarketPayload(bracket, effectiveBalance);
-        const verdict = await evaluateArbitrage(payload);
-        return { bracket, edge, verdict };
-      })
-    );
-
-    const approved = verdicts
-      .filter(v => v.verdict.verdict === 'APPROVED_FOR_EXECUTION')
-      .sort((a, b) => b.edge - a.edge);
-
-    if (approved.length === 0) {
-      return res.json({ verdict: 'NO_EDGE', scanned: brackets.length, filtered: candidates.length });
-    }
-
-    const best = approved[0];
-    const noCost = best.bracket.tokens.reduce((s, t) => s + (1 - t.currentYesPrice), 0);
     const expectedProfit = best.edge * effectiveLegSize;
     const platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
     const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
 
     const confidence = Math.min(99, Math.round(
-      50 + (best.edge * 100) * 5 + (best.bracket.tokens.length >= 3 ? 10 : 0)
-        + (best.verdict.verdict === 'APPROVED_FOR_EXECUTION' ? 15 : 0)
+      50 + (best.edge * 100) * 5
+        + (best.bracket.tokens.length >= 3 ? 10 : 0)
+        + (best.edge >= 0.05 ? 15 : 0)
+        + (best.bracket.totalVolume > 100000 ? 5 : 0)
     ));
 
     const whaleSignal = best.bracket.tokens.length >= 4
@@ -391,7 +378,7 @@ module.exports = async (req, res) => {
     const playId = `flash_${decoded.uid}_${Date.now()}`;
     const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
 
-    await db.collection('flash_plays').doc(playId).set({
+    const playDoc = {
       userId: decoded.uid,
       bracketId: best.bracket.id,
       bracketTitle: best.bracket.title,
@@ -416,9 +403,9 @@ module.exports = async (req, res) => {
       expiresAt,
       status: 'PENDING',
       createdAt: FieldValue.serverTimestamp(),
-    });
+    };
 
-    return res.json({
+    const response = {
       verdict: 'PLAY_FOUND',
       playId,
       expiresAt,
@@ -441,7 +428,12 @@ module.exports = async (req, res) => {
       platformFee,
       userProfit,
       mode,
-    });
+    };
+
+    // Write play doc without blocking the response
+    db.collection('flash_plays').doc(playId).set(playDoc).catch(() => {});
+
+    return res.json(response);
   }
 
   // ── Flash Execute: user confirms play within 60s window ──

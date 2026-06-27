@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
+const { waitlistNotification, inviteRedeemedNotification, newUserLoginNotification, walletConnectedNotification } = require('../lib/notify-admin');
 
 const STRATEGIES = [
   { id: 'negrisk_arb', name: 'NegRisk Arbitrage', description: 'Scans multi-outcome brackets for sum violations. Buys NO across all outcomes for locked mathematical profit. 80%+ win rate.', tier: 'free', risk: 'conservative', winRateGuide: '80–95%', locked: false },
@@ -89,6 +90,7 @@ module.exports = async (req, res) => {
   // ── Login notification ──
   if (action === 'login_notify') {
     await userRef.set({ last_login: FieldValue.serverTimestamp(), email: decoded.email || '' }, { merge: true });
+    newUserLoginNotification(email, uid).catch(() => {});
     return res.json({ ok: true });
   }
 
@@ -109,6 +111,7 @@ module.exports = async (req, res) => {
       db.collection('allowlist').doc(email).set({ uid, email, code: clean, granted: FieldValue.serverTimestamp() }),
       userRef.set({ invited: true, invite_code: clean, updated: FieldValue.serverTimestamp() }, { merge: true }),
     ]);
+    inviteRedeemedNotification(email, clean).catch(() => {});
     return res.json({ ok: true });
   }
 
@@ -118,6 +121,7 @@ module.exports = async (req, res) => {
     await db.collection('waitlist').doc(`${uid}_${platform}`).set({
       uid, platform, email: decoded.email || '', joined: FieldValue.serverTimestamp(),
     });
+    waitlistNotification(email, platform).catch(() => {});
     return res.json({ ok: true });
   }
 
@@ -132,6 +136,7 @@ module.exports = async (req, res) => {
       const addr = '0x' + body.poly_private_key.slice(-40);
       update.wallet_address = addr;
       await userRef.set(update, { merge: true });
+      walletConnectedNotification(email, addr, update.mode).catch(() => {});
       return res.json({ ok: true, address: addr, mode: update.mode });
     }
 

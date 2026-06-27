@@ -29,15 +29,10 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
   from { opacity:0; transform:translateY(14px); }
   to   { opacity:1; transform:translateY(0); }
 }
-@keyframes ticker-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
 .animate-float { animation: float-in .45s ease-out both; }
 .d1 { animation-delay:.08s } .d2 { animation-delay:.16s } .d3 { animation-delay:.24s } .d4 { animation-delay:.32s }
 
 .demo-bar { height:3px; border-radius:2px; animation: countdown-bar 12s linear infinite; }
-.ticker-track { animation: ticker-scroll 30s linear infinite; }
 
 .form-input {
   width:100%; padding:10px 12px;
@@ -54,15 +49,6 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
 #msg.approved { display:block; color:#00E676; background:rgba(0,230,118,.08); border:1px solid rgba(0,230,118,.2); }
 #msg.error { display:block; color:#ff4455; background:rgba(255,68,85,.08); border:1px solid rgba(255,68,85,.2); }
 
-.odds-btn {
-  font-weight:700; font-size:12px; padding:6px 14px; border-radius:8px;
-  transition:all .15s; cursor:default; min-width:52px; text-align:center;
-}
-.odds-yes { background:rgba(0,75,255,.12); border:1px solid rgba(0,75,255,.3); color:#4D8FFF; }
-.odds-yes:hover { background:rgba(0,75,255,.25); }
-.odds-no  { background:rgba(255,68,85,.12); border:1px solid rgba(255,68,85,.3); color:#ff6b7a; }
-.odds-no:hover  { background:rgba(255,68,85,.25); }
-
 .quad {
   background:#0F141C; border:1px solid rgba(148,163,184,.1);
   border-radius:16px; padding:24px; position:relative; overflow:hidden;
@@ -76,7 +62,7 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
 <body class="text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-6 selection:bg-blue-600/30">
 
 <!-- ═══ HEADER ═══ -->
-<header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 px-4 bg-[#0F141C] border border-slate-800/80 p-4 rounded-xl animate-float">
+<header class="w-full max-w-3xl mx-auto flex justify-between items-center mb-4 px-4 bg-[#0F141C] border border-slate-800/80 p-4 rounded-xl animate-float">
   <div class="flex items-center gap-2.5">
     <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center font-black text-xs text-white shadow-md shadow-blue-600/20">W</div>
     <span class="text-md font-bold tracking-tight game-font">WICK<span class="text-blue-500">.NETWORK</span></span>
@@ -91,31 +77,8 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
   </div>
 </header>
 
-<!-- ═══ LIVE TICKER BAR ═══ -->
-<div class="w-full max-w-7xl mx-auto mb-4 bg-[#0F141C] border border-slate-800/60 rounded-xl overflow-hidden">
-  <div class="flex items-center">
-    <div class="bg-blue-600 text-white text-[9px] font-bold px-3 py-2 game-font tracking-wider flex-shrink-0">LIVE ODDS</div>
-    <div class="flex-1 overflow-hidden py-2 px-3">
-      <div class="ticker-track flex gap-8 whitespace-nowrap" style="width:max-content">
-        <span class="text-[11px] text-slate-400 font-mono">BTC &gt;$120K Jul <span class="text-emerald-400 font-bold">72&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">Fed Rate Cut Sep <span class="text-blue-400 font-bold">58&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">ETH &gt;$8K Aug <span class="text-emerald-400 font-bold">41&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">NBA Finals G7 <span class="text-red-400 font-bold">23&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">Trump Pardon Jun <span class="text-blue-400 font-bold">67&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">SOL &gt;$300 <span class="text-emerald-400 font-bold">34&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">AI Regulation EU <span class="text-blue-400 font-bold">81&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">BTC &gt;$120K Jul <span class="text-emerald-400 font-bold">72&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">Fed Rate Cut Sep <span class="text-blue-400 font-bold">58&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">ETH &gt;$8K Aug <span class="text-emerald-400 font-bold">41&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">NBA Finals G7 <span class="text-red-400 font-bold">23&#162;</span></span>
-        <span class="text-[11px] text-slate-400 font-mono">Trump Pardon Jun <span class="text-blue-400 font-bold">67&#162;</span></span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ 4-QUADRANT GRID ═══ -->
-<main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-5 flex-grow">
+<!-- ═══ VERTICAL SECTIONS ═══ -->
+<main class="w-full max-w-3xl mx-auto flex flex-col gap-5 flex-grow">
 
   <!-- Q1 — WICK NETWORK -->
   <div class="quad animate-float d1">
@@ -295,14 +258,14 @@ body { font-family: 'Inter', sans-serif; background: #0B0E14; }
 </main>
 
 <!-- ═══ FOOTER ═══ -->
-<footer class="w-full max-w-7xl mx-auto mt-5 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-slate-600 gap-2 px-2">
+<footer class="w-full max-w-3xl mx-auto mt-5 pt-4 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center text-[10px] font-mono text-slate-600 gap-2 px-2">
   <div class="game-font">&copy; 2026 WICK.NETWORK DIGITAL INTERACTIVE APPARATUS</div>
   <div class="flex gap-4 game-font">
     <a href="/terms" class="hover:text-slate-400 transition">TERMS</a>
     <a href="/privacy" class="hover:text-slate-400 transition">PRIVACY</a>
   </div>
 </footer>
-<p class="w-full max-w-7xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-6 px-4 leading-relaxed opacity-50">
+<p class="w-full max-w-3xl mx-auto text-center text-[9px] text-slate-700 mt-2 mb-6 px-4 leading-relaxed opacity-50">
   WICK is automated trading software, not a financial advisor. Past performance does not guarantee future results. Trades execute through your Polymarket wallet on Polygon. WICK never holds your funds. Only trade what you can afford to lose.
 </p>
 

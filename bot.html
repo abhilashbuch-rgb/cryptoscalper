@@ -86,6 +86,90 @@
 .anom-card .timer-bar.warn { background: #f59e0b; }
 .anom-card .timer-bar.crit { background: #f43f5e; }
 
+/* ── Strike button ── */
+.strike-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px 0; margin-top: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none; border-radius: 8px; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; font-weight: 800;
+  color: #fff; letter-spacing: .08em; text-transform: uppercase;
+  transition: all .15s; position: relative; overflow: hidden;
+}
+.strike-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(16,185,129,.3); }
+.strike-btn:active { transform: scale(.97); }
+.strike-btn.warn-phase {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+.strike-btn.crit-phase {
+  background: linear-gradient(135deg, #f43f5e 0%, #dc2626 100%);
+}
+.strike-btn .strike-flash {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+  animation: strikeShimmer 2s infinite;
+}
+@keyframes strikeShimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── Delta visualizer ── */
+.delta-viz {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; padding: 6px 8px;
+  background: rgba(255,255,255,.02); border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.04);
+}
+.delta-bar-track {
+  flex: 1; height: 20px; background: var(--border);
+  border-radius: 4px; position: relative; overflow: hidden;
+}
+.delta-bar-market {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: rgba(249,115,22,.5); border-radius: 4px 0 0 4px;
+  transition: width .3s;
+}
+.delta-bar-event {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: linear-gradient(90deg, rgba(16,185,129,.6), rgba(16,185,129,.9));
+  border-radius: 4px; transition: width .3s;
+}
+.delta-bar-edge {
+  position: absolute; top: 0; height: 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(16,185,129,.25),
+    rgba(16,185,129,.25) 3px,
+    rgba(16,185,129,.08) 3px,
+    rgba(16,185,129,.08) 6px
+  );
+  border-right: 2px solid #10b981;
+  transition: left .3s, width .3s;
+}
+.delta-label {
+  font-family: var(--mono); font-size: 8px; font-weight: 700;
+  letter-spacing: .06em; min-width: 36px; text-align: center;
+}
+
+/* ── Strike size selector ── */
+.strike-size-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 14px; padding: 8px 10px;
+  background: rgba(16,185,129,.04); border: 1px solid rgba(16,185,129,.1);
+  border-radius: 8px;
+}
+.strike-size-btn {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  padding: 4px 10px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text2); transition: all .15s;
+}
+.strike-size-btn.active {
+  background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.3);
+  color: #10b981;
+}
+
 /* ── PARADIGM 3: TradingView dual-mode — body-level class swap ── */
 body.mode-live {
   --accent: #ef4444;
@@ -1316,14 +1400,25 @@ body::before {
         <span class="tile-badge" id="stream-status-badge" style="background:rgba(16,185,129,.12);color:#10b981">SCANNING</span>
       </div>
 
+      <!-- Strike size selector -->
+      <div class="strike-size-row">
+        <span style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;font-weight:700">STRIKE SIZE</span>
+        <button class="strike-size-btn" onclick="setStrikeSize(25)">$25</button>
+        <button class="strike-size-btn active" onclick="setStrikeSize(50)">$50</button>
+        <button class="strike-size-btn" onclick="setStrikeSize(100)">$100</button>
+        <button class="strike-size-btn" onclick="setStrikeSize(250)">$250</button>
+        <button class="strike-size-btn" onclick="setStrikeSize(500)">$500</button>
+        <span style="font-family:var(--mono);font-size:9px;color:#10b981;font-weight:700;margin-left:auto" id="strike-size-display">$50/leg</span>
+      </div>
+
       <!-- Stream header -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">
           <span id="stream-scan-count">0</span> markets scanned
           <span style="color:var(--border);margin:0 6px">|</span>
-          <span id="stream-grab-count">0</span> grabbed
+          <span id="stream-grab-count">0</span> struck
           <span style="color:var(--border);margin:0 6px">|</span>
-          Act fast = <span style="color:#10b981">20% fee</span> · Timer out = <span style="color:#f59e0b">50% auto-execute</span>
+          <span style="color:#10b981">&#9889;</span> Strike = <span style="color:#10b981">20% fee</span> · Auto = <span style="color:#f59e0b">50%</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span style="width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite"></span>
@@ -1471,6 +1566,16 @@ body::before {
         <label class="form-label">Daily profit goal — <span id="goal-val" style="color:var(--green)">off</span></label>
         <input type="range" id="goal" min="0" max="20" value="0" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('goal-val').textContent=this.value==='0'?'off':'+'+this.value+'%'">
         <div class="form-hint">When your account is up this much for the day, the agent stops opening new trades.</div>
+      </div>
+
+      <!-- Strike Configuration -->
+      <div style="border-top:1px solid var(--border); margin-top:20px; padding-top:20px;">
+        <div class="card-title" style="margin-bottom:16px;">Strike Configuration</div>
+        <div class="form-group">
+          <label class="form-label">Default strike size — <span id="strike-val" style="color:var(--green)">$50</span></label>
+          <input type="range" id="strike-size-setting" min="10" max="500" value="50" step="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('strike-val').textContent='$'+this.value; setStrikeSize(parseInt(this.value))">
+          <div class="form-hint">USD per leg when you hit the Strike button. The anomaly stream selector overrides this per-session.</div>
+        </div>
       </div>
 
       <!-- Trade Controls -->
@@ -2372,7 +2477,8 @@ let _streamGrabCount = 0;
 let _streamScanCount = 0;
 const STREAM_TTL = 15;
 const STREAM_MAX_CARDS = 3;
-const STREAM_POLL_MS = 4000;
+const STREAM_POLL_MS = 2000;
+let _strikeSize = 50;
 
 const WC_KEYWORDS = ['WORLD CUP', 'FIFA', 'WORLD_CUP', 'GROUP STAGE', 'KNOCKOUT', 'SEMI FINAL', 'QUARTER FINAL'];
 function isWorldCupPlay(play) {
@@ -2458,6 +2564,14 @@ async function streamPoll() {
   } catch {}
 }
 
+function setStrikeSize(size) {
+  _strikeSize = size;
+  document.querySelectorAll('.strike-size-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === '$' + size);
+  });
+  document.getElementById('strike-size-display').textContent = '$' + size + '/leg';
+}
+
 function streamAddCard(d) {
   const container = document.getElementById('stream-cards');
   const emptyEl = document.getElementById('stream-empty');
@@ -2493,10 +2607,13 @@ function streamAddCard(d) {
     ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.25);color:#eab308;padding:1px 5px;border-radius:3px;margin-left:4px">&#9917; WC</span>'
     : '';
 
+  const mktPct = Math.round((d.marketPrice || 0.5) * 100);
+  const evtPct = Math.round((d.eventProb || 0.5) * 100);
+  const deltaGap = evtPct - mktPct;
+
   const card = document.createElement('div');
   card.className = 'anom-card';
   card.id = 'anom-' + id;
-  card.onclick = () => streamGrab(id);
   card.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <div style="flex:1;min-width:0">
@@ -2514,6 +2631,19 @@ function streamAddCard(d) {
         <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">SEC</div>
       </div>
     </div>
+
+    <!-- Delta Visualizer: P_market vs P_event -->
+    <div class="delta-viz">
+      <div class="delta-label" style="color:#f97316">${mktPct}%<br><span style="font-size:6px;color:var(--text3)">MARKET</span></div>
+      <div class="delta-bar-track">
+        <div class="delta-bar-market" style="width:${mktPct}%"></div>
+        <div class="delta-bar-edge" style="left:${mktPct}%;width:${Math.max(0, deltaGap)}%"></div>
+        <div class="delta-bar-event" style="width:${evtPct}%;opacity:.3"></div>
+        <div style="position:absolute;top:50%;right:6px;transform:translateY(-50%);font-family:var(--mono);font-size:9px;font-weight:800;color:#10b981">+${deltaGap}%</div>
+      </div>
+      <div class="delta-label" style="color:#10b981">${evtPct}%<br><span style="font-size:6px;color:var(--text3)">TRUE</span></div>
+    </div>
+
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
       <span style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.06em">CONF</span>
       <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
@@ -2521,20 +2651,27 @@ function streamAddCard(d) {
       </div>
       <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${confColor}">${conf}%</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:6px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:6px">
       <div style="background:var(--card);padding:8px 10px">
         <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">EDGE</div>
         <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:#10b981;margin-top:2px">${edgePct}%</div>
       </div>
       <div style="background:var(--card);padding:8px 10px">
-        <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">EST. PROFIT</div>
+        <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">PROFIT</div>
         <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:#10b981;margin-top:2px">${profit}</div>
+      </div>
+      <div style="background:var(--card);padding:8px 10px">
+        <div style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.08em">LIQUIDITY</div>
+        <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text2);margin-top:2px" id="liq-${id}">$${((d.totalDeployed || 50) * 4).toLocaleString()}</div>
       </div>
     </div>
     ${whaleHtml}
-    <div style="text-align:center;margin-top:8px">
-      <div style="font-family:var(--mono);font-size:9px;font-weight:700;color:#10b981;letter-spacing:.06em" id="fee-${id}">TAP TO GRAB — 20% FEE</div>
-    </div>
+
+    <!-- 1-Click Strike Button -->
+    <button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();streamStrike('${id}')">
+      <span class="strike-flash"></span>
+      &#9889; STRIKE $${_strikeSize} — <span id="fee-label-${id}">20% FEE</span>
+    </button>
     <div class="timer-bar" id="bar-${id}" style="width:100%"></div>
   `;
   container.appendChild(card);
@@ -2549,7 +2686,8 @@ function streamAddCard(d) {
       cardData.secs = secs;
       const timerEl = document.getElementById('timer-' + id);
       const barEl = document.getElementById('bar-' + id);
-      const feeEl = document.getElementById('fee-' + id);
+      const strikeBtn = document.getElementById('strike-' + id);
+      const feeLabel = document.getElementById('fee-label-' + id);
       if (!timerEl) { clearInterval(cardData.timer); return; }
 
       timerEl.textContent = secs;
@@ -2558,13 +2696,13 @@ function streamAddCard(d) {
       if (secs <= Math.floor(ttl * 0.33)) {
         timerEl.style.color = '#f43f5e';
         barEl.className = 'timer-bar crit';
-        feeEl.textContent = 'TAP TO GRAB — 50% FEE';
-        feeEl.style.color = '#f43f5e';
+        if (strikeBtn) strikeBtn.className = 'strike-btn crit-phase';
+        if (feeLabel) feeLabel.textContent = '50% FEE';
       } else if (secs <= Math.floor(ttl * 0.66)) {
         timerEl.style.color = '#f59e0b';
         barEl.className = 'timer-bar warn';
-        feeEl.textContent = 'TAP TO GRAB — 35% FEE';
-        feeEl.style.color = '#f59e0b';
+        if (strikeBtn) strikeBtn.className = 'strike-btn warn-phase';
+        if (feeLabel) feeLabel.textContent = '35% FEE';
       }
 
       if (secs <= 0) {
@@ -2576,28 +2714,41 @@ function streamAddCard(d) {
   _streamCards.set(id, cardData);
 }
 
-async function streamGrab(playId) {
+async function streamStrike(playId) {
   const cardData = _streamCards.get(playId);
   if (!cardData) return;
   clearInterval(cardData.timer);
 
+  const strikeBtn = document.getElementById('strike-' + playId);
+  if (strikeBtn) {
+    strikeBtn.disabled = true;
+    strikeBtn.innerHTML = '<span style="animation:pulse 0.5s infinite">&#9889; EXECUTING...</span>';
+  }
+
   const cardEl = document.getElementById('anom-' + playId);
   if (cardEl) cardEl.className = 'anom-card grabbed';
+
+  const feePct = cardData.secs <= Math.floor(STREAM_TTL * 0.33) ? '50%'
+    : cardData.secs <= Math.floor(STREAM_TTL * 0.66) ? '35%' : '20%';
 
   try {
     const r = await apiFetch('/api/polymarket-engine?action=flash_execute', {
       method: 'POST',
-      body: JSON.stringify({ playId, autoExecuted: false }),
+      body: JSON.stringify({ playId, autoExecuted: false, strikeSize: _strikeSize }),
     });
     const d = await r.json();
     _streamGrabCount++;
     document.getElementById('stream-grab-count').textContent = _streamGrabCount;
-    streamLog('GRABBED', cardData.data.bracket, d.userProfit, '20%', '#10b981');
+    streamLog('STRUCK', cardData.data.bracket, d.userProfit, feePct, '#10b981');
   } catch {
     streamLog('FAILED', cardData.data.bracket, 0, '—', '#f43f5e');
   }
 
   setTimeout(() => streamRemoveCard(playId), 500);
+}
+
+async function streamGrab(playId) {
+  return streamStrike(playId);
 }
 
 async function streamAutoExecute(playId) {
@@ -3589,6 +3740,11 @@ window.setRisk = function (level) {
 };
 
 function applySettingsToUI(s = {}) {
+  if (s.strike_size) {
+    setStrikeSize(s.strike_size);
+    const ss = document.getElementById('strike-size-setting');
+    if (ss) { ss.value = s.strike_size; document.getElementById('strike-val').textContent = '$' + s.strike_size; }
+  }
   setRisk(s.risk_level || 'balanced');
   setBotType(s.bot_type || 'crypto');
   const mp = document.getElementById('maxpos');
@@ -3683,6 +3839,7 @@ window.setHours = function (hours) {
 window.saveSettings = async function () {
   const body = {
     risk_level:        window._risk,
+    strike_size:       _strikeSize,
     max_position_pct:  parseInt(document.getElementById('maxpos').value, 10) / 100,
     daily_goal_pct:    parseInt(document.getElementById('goal').value, 10) / 100,
     bot_type:          window._botType,

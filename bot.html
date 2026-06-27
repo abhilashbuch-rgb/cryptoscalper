@@ -2355,6 +2355,15 @@ async function streamPoll() {
     _streamScanCount += d.scanned || 1;
     document.getElementById('stream-scan-count').textContent = _streamScanCount;
 
+    if (d.verdict === 'PLAYS_FOUND' && d.plays) {
+      for (const play of d.plays) {
+        if (_streamCards.size >= STREAM_MAX_CARDS) break;
+        if (_streamCards.has(play.playId)) continue;
+        streamAddCard(play);
+      }
+      return;
+    }
+
     if (d.verdict !== 'PLAY_FOUND') return;
     if (_streamCards.has(d.playId)) return;
     if (_streamCards.size >= STREAM_MAX_CARDS) return;
@@ -2376,6 +2385,18 @@ function streamAddCard(d) {
   const profit = d.userProfit != null ? '+$' + d.userProfit.toFixed(4) : '—';
   const bracket = (d.bracket || 'Unknown Market').slice(0, 45);
   const platform = (d.platform || 'Polymarket').toUpperCase();
+
+  const anomalyType = d.anomalyType || 'NEGRISK_ARB';
+  const typeLabel = anomalyType === 'NEWS_LAG' ? 'NEWS LAG' : 'ARB';
+  const typeColor = anomalyType === 'NEWS_LAG' ? '#f59e0b' : '#4D8FFF';
+  const typeBg = anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.1)' : 'rgba(59,130,246,.1)';
+  const typeBorder = anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.2)' : 'rgba(59,130,246,.2)';
+
+  const signalText = d.signal ? d.signal.slice(0, 60) : '';
+  const signalHtml = signalText
+    ? `<div style="font-family:var(--mono);font-size:8px;color:#94a3b8;line-height:1.3;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${signalText}</div>`
+    : '';
+
   const whaleHtml = d.whaleSignal
     ? `<div style="display:flex;align-items:center;gap:4px;margin-top:6px;font-size:9px;color:#c084fc;font-family:var(--mono)">&#129395; ${d.whaleSignal}</div>`
     : '';
@@ -2391,10 +2412,12 @@ function streamAddCard(d) {
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+          <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:${typeBg};border:1px solid ${typeBorder};color:${typeColor};padding:1px 5px;border-radius:3px">${typeLabel}</span>
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 5px;border-radius:3px">${platform}</span>
           ${whaleBadge}
         </div>
         <div style="font-size:13px;font-weight:800;line-height:1.3;color:var(--text1)">${bracket}</div>
+        ${signalHtml}
       </div>
       <div style="text-align:center;flex-shrink:0;margin-left:8px">
         <div style="font-family:var(--mono);font-size:24px;font-weight:800;color:#10b981" id="timer-${id}">${ttl}</div>
@@ -2402,7 +2425,7 @@ function streamAddCard(d) {
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-      <span style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.06em">AI</span>
+      <span style="font-family:var(--mono);font-size:7px;color:var(--text3);letter-spacing:.06em">CONF</span>
       <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
         <div style="height:100%;background:linear-gradient(90deg,#3b82f6,${confColor});border-radius:2px;width:${conf}%"></div>
       </div>

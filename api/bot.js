@@ -36,23 +36,6 @@ function cors(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Authorization,Content-Type');
 }
 
-async function isAllowed(email, uid) {
-  const envList = process.env.ALLOWED_EMAILS;
-  if (envList) {
-    const emails = envList.split(',').map(e => e.trim().toLowerCase());
-    if (emails.includes(email)) return true;
-  }
-
-  try {
-    const [emailDoc, uidDoc] = await Promise.all([
-      db.collection('allowlist').doc(email).get(),
-      db.collection('allowlist').doc(uid).get(),
-    ]);
-    if (emailDoc.exists || uidDoc.exists) return true;
-  } catch {}
-
-  return false;
-}
 
 module.exports = async (req, res) => {
   cors(res);
@@ -81,11 +64,6 @@ module.exports = async (req, res) => {
   const email = (decoded.email || '').toLowerCase();
   const userRef = db.collection('users').doc(uid);
 
-  // ── Invite-only gate ──
-  const allowed = await isAllowed(email, uid);
-  if (!allowed && action !== 'login_notify' && action !== 'waitlist' && action !== 'redeem_code') {
-    return res.status(403).json({ error: 'invite_only', message: 'WICK is currently invite-only. You have been added to the waitlist.' });
-  }
 
   // ── Login notification ──
   if (action === 'login_notify') {

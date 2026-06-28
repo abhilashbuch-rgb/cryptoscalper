@@ -163,36 +163,7 @@ module.exports = async (req, res) => {
     return res.json({ ok: true });
   }
 
-  // ── Upgrade (Edge $19/mo or Pro $49/mo) ──
-  if (action === 'upgrade' && req.method === 'POST') {
-    const { stripe } = require('../lib/stripe-config');
-    const frontendUrl = process.env.FRONTEND_URL || 'https://wick.network';
-    const plan = (req.body?.plan || 'pro').toLowerCase();
-
-    const plans = {
-      edge: { name: 'WICK Edge — 10s Delay Feed', amount: 1900, tier: 'edge' },
-      pro:  { name: 'WICK Pro — Real-Time + Strike', amount: 4900, tier: 'pro' },
-    };
-    const selected = plans[plan] || plans.pro;
-
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      customer_email: decoded.email,
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          recurring: { interval: 'month' },
-          product_data: { name: selected.name },
-          unit_amount: selected.amount,
-        },
-        quantity: 1,
-      }],
-      metadata: { uid, email, tier: selected.tier },
-      success_url: `${frontendUrl}/bot?upgraded=${selected.tier}`,
-      cancel_url: `${frontendUrl}/bot`,
-    });
-    return res.json({ ok: true, url: session.url });
-  }
+  // ── Upgrade endpoint removed — revenue is % cut on profitable trades, not subscriptions ──
 
   // ── Connect wallet (Polymarket only) ──
   if (action === 'connect' && req.method === 'POST') {
@@ -280,9 +251,7 @@ module.exports = async (req, res) => {
 
   const earnedBadges = data.badges_earned || [];
 
-  const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
-  const tier = (email === adminEmail || data.tier === 'pro') ? 'pro'
-    : data.tier === 'edge' ? 'edge' : 'free';
+  const connected = !!data.wallet_address;
 
   return res.json({
     configured: !!data.configured,
@@ -290,8 +259,7 @@ module.exports = async (req, res) => {
     mode: data.mode || 'sandbox',
     broker: 'polymarket',
     wallet_address: data.wallet_address || null,
-    subscribed: !!data.subscribed,
-    tier,
+    connected,
     balance: data.balance || '10000.00',
     stats: {
       win_rate_pct: closed > 0 ? Math.round((wins / closed) * 100) : 0,

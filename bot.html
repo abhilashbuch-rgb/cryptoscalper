@@ -1000,305 +1000,68 @@ body::before {
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- WIZARD (new users — shown when not yet configured)                        -->
+<!-- WIZARD (new users — single-step quick setup)                              -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <div id="wizard">
   <div class="wizard-shell">
 
-    <!-- Progress bar -->
-    <div class="wizard-progress">
-      <div class="wiz-step-dot active" id="dot-1">1</div>
-      <div class="wiz-step-line" id="line-1"></div>
-      <div class="wiz-step-dot" id="dot-2">2</div>
-      <div class="wiz-step-line" id="line-2"></div>
-      <div class="wiz-step-dot" id="dot-3">3</div>
-    </div>
-    <div class="wiz-step-labels">
-      <div class="wiz-step-label active" id="label-1">Connect</div>
-      <div class="wiz-step-label" id="label-2">Configure</div>
-      <div class="wiz-step-label" id="label-3">Activate</div>
-    </div>
-
-    <!-- ── Step 1: Connect Polymarket ── -->
     <div class="wiz-panel active" id="wiz-step-1">
-      <div class="wiz-title">Connect to Polymarket</div>
-      <div class="wiz-desc">WICK trades prediction markets on Polymarket. Start in sandbox mode with simulated funds, or connect your Polygon wallet for live trading.</div>
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="display:inline-block;background:#2962FF;color:#fff;font-weight:900;font-size:18px;width:44px;height:44px;line-height:44px;border-radius:10px;margin-bottom:12px">W</div>
+        <div class="wiz-title" style="margin-bottom:4px">Connect to Polymarket</div>
+        <div class="wiz-desc">Start in sandbox with $10,000 simulated funds, or connect your wallet for live trading.</div>
+      </div>
 
-      <div id="wiz-broker-section" style="display:none;"><div id="wiz-broker-grid" style="display:none;"></div><div id="wiz-broker-label" style="display:none;"></div></div>
-      <!-- ═══ POLYMARKET TAB — Full Multi-Agent Terminal ═══ -->
-      <div id="wiz-polymarket-form" style="display:block; padding-top:0;">
-        <div style="background:#080b0f;border:1px solid #1a2030;border-radius:14px;overflow:hidden">
+      <div style="background:#080b0f;border:1px solid #1a2030;border-radius:14px;overflow:hidden">
 
-          <!-- ── HEADER: Title + Mode Toggle + Ignition ── -->
-          <div style="padding:18px 20px;border-bottom:1px solid #1a2030">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-              <div>
-                <div style="font-family:var(--mono);font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px">
-                  <span style="color:#1652F0">⚡</span> Polymarket
-                  <span id="pm-status-pill" style="font-size:8px;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.1em;background:rgba(255,255,255,.06);color:#5a6a7a">STANDBY</span>
-                </div>
-                <div style="font-size:10px;color:#4a5568;font-family:var(--mono);margin-top:4px" id="pm-subtitle">4 agent desks · news arbitrage · sports · crypto · geopolitics</div>
-              </div>
-              <!-- Ignition switch -->
-              <div style="display:flex;align-items:center;gap:10px">
-                <span id="pm-switch-label" style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:#4a5568">OFF</span>
-                <div id="pm-ignition" onclick="togglePolyEngine()" style="width:52px;height:26px;border-radius:13px;background:#1a2030;border:1px solid #2a3040;cursor:pointer;position:relative;transition:all .3s">
-                  <div id="pm-ignition-dot" style="width:20px;height:20px;border-radius:50%;background:#3a4a5a;position:absolute;top:2px;left:3px;transition:all .3s"></div>
-                </div>
-              </div>
-            </div>
-            <!-- Mode selector: SANDBOX / LIVE -->
-            <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:fit-content">
-              <button id="pm-mode-sandbox" onclick="pmSetMode('sandbox')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:rgba(41,98,255,.12);color:#4D8FFF;transition:all .2s">SANDBOX</button>
-              <button id="pm-mode-live" onclick="pmSetMode('live')" style="padding:7px 18px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">LIVE TRADING</button>
-            </div>
+        <!-- Mode selector -->
+        <div style="padding:20px;border-bottom:1px solid #1a2030">
+          <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:100%">
+            <button id="pm-mode-sandbox" onclick="pmSetMode('sandbox')" style="flex:1;padding:12px 18px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:rgba(41,98,255,.12);color:#4D8FFF;transition:all .2s">SANDBOX</button>
+            <button id="pm-mode-live" onclick="pmSetMode('live')" style="flex:1;padding:12px 18px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">LIVE TRADING</button>
           </div>
-
-          <!-- ── LIVE MODE: Wallet setup (hidden by default) ── -->
-          <div id="pm-live-setup" style="display:none;padding:16px 20px;border-bottom:1px solid #1a2030;background:rgba(244,63,94,.03)">
-            <div style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700;letter-spacing:.12em;margin-bottom:10px">⚠ LIVE TRADING — REAL CAPITAL AT RISK</div>
-            <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:14px">Connect your Polygon wallet to execute real orders on Polymarket's CLOB. Requires USDC on Polygon network.</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <div style="flex:1;min-width:200px">
-                <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:4px">WALLET PRIVATE KEY</label>
-                <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:12px;background:#0a0f18;border-color:#1a2030">
-              </div>
-              <button onclick="wizConnect()" style="padding:10px 20px;background:#1652F0;color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;border:none;border-radius:8px;cursor:pointer;align-self:flex-end;white-space:nowrap">Connect & Validate</button>
-            </div>
-            <div style="font-size:10px;color:#4a5568;margin-top:8px;line-height:1.5">Keys are AES-256 encrypted. WICK cannot withdraw or transfer funds — trade execution only.</div>
-          </div>
-
-          <!-- ── METRIC TILES ── -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1a2030">
-            <div style="background:#080b0f;padding:14px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Markets Scanned</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;margin-top:4px" id="pm-markets-count">—</div>
-            </div>
-            <div style="background:#080b0f;padding:14px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Last Verdict</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:700;margin-top:4px" id="pm-verdict">—</div>
-            </div>
-            <div style="background:#080b0f;padding:14px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Active Desks</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#4D8FFF;margin-top:4px" id="pm-desks">4</div>
-            </div>
-            <div style="background:#080b0f;padding:14px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase" id="pm-balance-label">Sandbox Balance</div>
-              <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;margin-top:4px" id="pm-balance">$10,000</div>
-            </div>
-          </div>
-
-          <!-- ── PERFORMANCE ANALYTICS ROW ── -->
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#1a2030;border-top:1px solid #1a2030">
-            <div style="background:#080b0f;padding:12px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Predictive Calibration</div>
-              <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
-                <div style="font-family:var(--mono);font-size:20px;font-weight:700" id="pm-brier-score">—</div>
-                <div style="font-family:var(--mono);font-size:9px" id="pm-brier-label">Brier Score</div>
-              </div>
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-brier-n">0 resolved predictions</div>
-            </div>
-            <div style="background:#080b0f;padding:12px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Avg Slippage (Sv)</div>
-              <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
-                <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:#4D8FFF" id="pm-slip-avg">0.000</div>
-                <div style="font-family:var(--mono);font-size:9px;color:#4a5568" id="pm-slip-n">0 trades</div>
-              </div>
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-slip-worst">Worst: 0.000</div>
-            </div>
-            <div style="background:#080b0f;padding:12px 16px">
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;letter-spacing:.12em;text-transform:uppercase">Engine Health</div>
-              <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px">
-                <div style="font-family:var(--mono);font-size:20px;font-weight:700" id="pm-engine-status">ACTIVE</div>
-              </div>
-              <div style="font-family:var(--mono);font-size:8px;color:#4a5568;margin-top:2px" id="pm-engine-detail">0 losses · 31 markets</div>
-            </div>
-          </div>
-
-          <!-- ── DESK STATUS STRIP ── -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1a2030;border-top:1px solid #1a2030">
-            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#4D8FFF" id="pm-desk-research-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#4D8FFF;font-weight:700">RESEARCH</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-research-val">—</span>
-            </div>
-            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#6BA3FF" id="pm-desk-math-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#6BA3FF;font-weight:700">MATH</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-math-val">—</span>
-            </div>
-            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#2962FF" id="pm-desk-exec-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#2962FF;font-weight:700">EXECUTION</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-exec-val">—</span>
-            </div>
-            <div style="background:#080b0f;padding:8px 12px;display:flex;align-items:center;gap:6px">
-              <span style="width:6px;height:6px;border-radius:50%;background:#f43f5e" id="pm-desk-cro-dot"></span>
-              <span style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700">CRO</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;margin-left:auto" id="pm-desk-cro-val">—</span>
-            </div>
-          </div>
-
-          <!-- ── LIVE TERMINAL FEED ── -->
-          <div style="padding:14px 16px;border-top:1px solid #1a2030">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Agent Desk Logs</span>
-              <span style="font-family:var(--mono);font-size:9px;color:#4D8FFF" id="pm-feed-status">Waiting for ignition…</span>
-            </div>
-            <div id="pm-terminal" style="background:#050810;border:1px solid #111820;border-radius:8px;padding:10px;font-family:var(--mono);font-size:11px;height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
-              <div style="color:#2a3545">// flip the switch to begin scanning</div>
-            </div>
-          </div>
-
-          <!-- ── TARGETING & CONFIGURATION ── -->
-          <details style="border-top:1px solid #1a2030" open>
-            <summary style="padding:12px 20px;cursor:pointer;font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;background:rgba(255,255,255,.01)">TARGETING & CONFIGURATION</summary>
-            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:16px">
-
-              <!-- Target vectors -->
-              <div>
-                <div style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:8px">MARKET FOCUS</div>
-                <div style="display:flex;flex-wrap:wrap;gap:6px" id="pm-targets">
-                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" checked style="accent-color:#4D8FFF"> Geopolitics / Macro
-                  </label>
-                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" checked style="accent-color:#2962FF"> Crypto Milestones
-                  </label>
-                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" checked style="accent-color:#2962FF"> Major Sports
-                  </label>
-                  <label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#0c1018;border:1px solid #1a2030;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;color:#c0ccd8;font-weight:600">
-                    <input type="checkbox" style="accent-color:#2962FF"> Pop Culture
-                  </label>
-                </div>
-              </div>
-
-              <!-- Confidence threshold -->
-              <div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                  <span style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700">CONFIDENCE THRESHOLD</span>
-                  <span style="font-family:var(--mono);font-size:12px;color:#4D8FFF;font-weight:700" id="pm-conf-val">75%</span>
-                </div>
-                <input type="range" id="pm-conf-slider" min="50" max="95" value="75" step="5" style="width:100%;accent-color:#2962FF" oninput="document.getElementById('pm-conf-val').textContent=this.value+'%'">
-                <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:#3a4a5a;margin-top:2px">
-                  <span>50% (aggressive)</span><span>95% (ultra-selective)</span>
-                </div>
-              </div>
-
-              <!-- Pipeline explainer -->
-              <div style="background:#0a0f18;border:1px solid #141c28;border-radius:8px;padding:12px 14px">
-                <div style="font-family:var(--mono);font-size:8px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:8px">HOW THE INTELLIGENCE PIPELINE WORKS</div>
-                <div style="font-size:11px;color:#8899aa;line-height:1.7">
-                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#4D8FFF;font-weight:700;flex-shrink:0">1.</span> <strong style="color:#c0ccd8">Research Desk</strong> scrapes Reuters, AP, ESPN, and Reddit in real time. Keywords are matched against 30+ active Polymarket contracts.</div>
-                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#6BA3FF;font-weight:700;flex-shrink:0">2.</span> <strong style="color:#c0ccd8">Math Desk</strong> evaluates implied probability vs order book pricing. Checks ΣPᵢ = 1.00 boundary. Flags sum violations and Kelly edge > 0.5%.</div>
-                  <div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#2962FF;font-weight:700;flex-shrink:0">3.</span> <strong style="color:#c0ccd8">Execution Desk</strong> (Claude AI) reviews all findings. If conviction exceeds your threshold, it calls buy_yes or buy_no with size + price.</div>
-                  <div style="display:flex;gap:8px"><span style="color:#f43f5e;font-weight:700;flex-shrink:0">4.</span> <strong style="color:#c0ccd8">Chief Risk Officer</strong> enforces position limits (10% max), $50 hard cap, and 5% drawdown circuit breaker. Vetoes override everything.</div>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <!-- ── SECURITY & TRUST ── -->
-          <div style="padding:16px 20px;border-top:1px solid #1a2030;background:rgba(255,255,255,.01)">
-            <div style="font-family:var(--mono);font-size:9px;color:#5a6a7a;letter-spacing:.1em;font-weight:700;margin-bottom:10px">SECURITY ARCHITECTURE</div>
-            <div style="font-size:12px;color:#c0ccd8;line-height:1.7">
-              <p style="margin-bottom:8px"><strong>WICK is an agentic bot that only knows how to evaluate and win trades.</strong> It reads market data, analyzes signals across 4 specialized desks, and executes orders when the math confirms an edge.</p>
-              <p style="margin-bottom:8px"><strong>Non-custodial by design.</strong> WICK operates via secure, isolated API keys. Your funds never leave your broker account, and WICK has absolutely zero technical permission or capability to withdraw or transfer your capital. You retain 100% custody at all times.</p>
-              <p style="margin:0;color:#5a6a7a">All credentials are AES-256 encrypted at rest. You can revoke access instantly by deleting your API key from your broker's settings panel.</p>
-            </div>
-          </div>
-
-          <!-- ── KALSHI TEASER ── -->
-          <div style="padding:12px 20px;border-top:1px solid #1a2030;display:flex;align-items:center;justify-content:space-between;opacity:.5">
-            <div>
-              <span style="font-family:var(--mono);font-size:9px;color:#4a5568;font-weight:700;letter-spacing:.08em">KALSHI (CFTC-REGULATED)</span>
-              <span style="font-size:7px;font-family:var(--mono);font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(41,98,255,.1);color:var(--green);letter-spacing:.06em;margin-left:8px">COMING SOON</span>
-            </div>
-            <button id="kalshi-waitlist-btn" onclick="joinWaitlist('kalshi')" style="padding:5px 12px;background:transparent;border:1px solid #1a2030;color:#4a5568;font-family:var(--mono);font-size:9px;font-weight:700;border-radius:5px;cursor:pointer">Notify Me</button>
-            <div id="kalshi-waitlist-success" style="display:none;color:#4D8FFF;font-family:var(--mono);font-size:9px;font-weight:700">Saved ✓</div>
-          </div>
-
         </div>
+
+        <!-- Sandbox info (shown by default) -->
+        <div id="pm-sandbox-info" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(41,98,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+            <div>
+              <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff">Sandbox Mode</div>
+              <div style="font-family:var(--mono);font-size:10px;color:#4a5568">No wallet needed · $10,000 simulated funds</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#8899aa;line-height:1.7">Practice with simulated funds. See live anomalies, test strategies, and learn how WICK works — zero risk. You can connect your wallet later from the dashboard.</div>
+        </div>
+
+        <!-- Live wallet setup (hidden by default) -->
+        <div id="pm-live-setup" style="display:none;padding:20px">
+          <div style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700;letter-spacing:.12em;margin-bottom:12px">⚠ REAL CAPITAL AT RISK</div>
+          <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:16px">Paste your Polygon wallet private key. WICK places trades on Polymarket's CLOB on your behalf — we can never withdraw your funds.</div>
+          <div style="margin-bottom:12px">
+            <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:6px">WALLET PRIVATE KEY</label>
+            <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px">
+          </div>
+          <div style="font-size:10px;color:#4a5568;line-height:1.5">Non-custodial. AES-256 encrypted. Trade execution only — no withdrawal capability. Requires USDC on Polygon.</div>
+        </div>
+
+        <!-- Security note -->
+        <div style="padding:16px 20px;border-top:1px solid #1a2030;background:rgba(255,255,255,.015)">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px">🔒</div>
+            <div style="font-size:11px;color:#5a6a7a;line-height:1.6"><strong style="color:#8899aa">Non-custodial by design.</strong> Your funds stay in your Polymarket wallet. WICK can place trades but has zero capability to withdraw or transfer capital. You retain 100% custody.</div>
+          </div>
+        </div>
+
       </div>
 
       <div id="wiz-connect-error" class="form-error" style="display:none"></div>
       <div id="wiz-connect-success" class="form-success" style="display:none"></div>
 
-      <div class="wiz-nav">
-        <button class="wiz-btn next" id="wiz-btn-connect" onclick="wizConnect()" style="display:none;">Connect & Validate Keys</button>
-      </div>
-    </div>
-
-    <!-- ── Step 2: Configure Strategy ── -->
-    <div class="wiz-panel" id="wiz-step-2">
-      <div class="wiz-title">Configure your strategy</div>
-      <div class="wiz-desc">Choose how the WICK trades. You can change these anytime from the dashboard.</div>
-
-      <div class="form-label" style="margin-bottom:12px;">Strategy</div>
-      <div class="strategy-grid" id="wiz-strategy-grid"></div>
-
-      <div class="form-label">Risk profile</div>
-      <div class="mode-switch" style="margin-top:6px;">
-        <button class="mode-btn" id="wiz-risk-conservative" onclick="wizSetRisk('conservative')">CONSERVATIVE</button>
-        <button class="mode-btn" id="wiz-risk-balanced"     onclick="wizSetRisk('balanced')">BALANCED</button>
-        <button class="mode-btn" id="wiz-risk-aggressive"   onclick="wizSetRisk('aggressive')">AGGRESSIVE</button>
-      </div>
-      <div id="wiz-risk-desc" style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:10px; margin-bottom:20px; line-height:1.6;"></div>
-
-      <div class="form-group">
-        <label class="form-label">Max % of portfolio per trade — <span id="wiz-maxpos-val" style="color:var(--green)">10</span>%</label>
-        <input type="range" id="wiz-maxpos" min="1" max="50" value="10" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('wiz-maxpos-val').textContent=this.value">
-      </div>
-
-      <div class="wiz-nav">
-        <button class="wiz-btn back" onclick="wizGo(1)">Back</button>
-        <button class="wiz-btn next" onclick="wizSaveAndContinue()">Save & Continue</button>
-      </div>
-    </div>
-
-    <!-- ── Step 3: Activate ── -->
-    <div class="wiz-panel" id="wiz-step-3">
-      <div class="wiz-title">Launch WICK</div>
-      <div class="wiz-desc">Review your setup and flip the switch when you're ready. Paper trading uses simulated funds — no real money at risk.</div>
-
-      <div class="launch-summary" id="launch-summary">
-        <div class="launch-row">
-          <span class="launch-key">Platform</span>
-          <span class="launch-val" id="launch-broker">Polymarket</span>
-        </div>
-        <div class="launch-row">
-          <span class="launch-key">Mode</span>
-          <span class="launch-val" id="launch-mode">Sandbox</span>
-        </div>
-        <div class="launch-row">
-          <span class="launch-key">Strategy</span>
-          <span class="launch-val" id="launch-strategy">WICK Scalper</span>
-        </div>
-        <div class="launch-row">
-          <span class="launch-key">Markets</span>
-          <span class="launch-val" id="launch-assets">All categories</span>
-        </div>
-        <div class="launch-row">
-          <span class="launch-key">Risk</span>
-          <span class="launch-val" id="launch-risk">Balanced</span>
-        </div>
-        <div class="launch-row">
-          <span class="launch-key">Max position</span>
-          <span class="launch-val" id="launch-maxpos">10%</span>
-        </div>
-      </div>
-
-      <div class="launch-toggle-area">
-        <div class="launch-toggle-label">Activate the agent</div>
-        <div class="launch-toggle" id="launch-toggle" onclick="wizToggleBot()"></div>
-        <div class="launch-status" id="launch-status">OFF</div>
-      </div>
-
-      <div class="wiz-nav">
-        <button class="wiz-btn back" onclick="wizGo(2)">Back</button>
-        <button class="wiz-btn next" onclick="wizFinish()">Go to Dashboard →</button>
-      </div>
+      <button class="wiz-btn next" id="wiz-btn-start" onclick="wizQuickStart()" style="width:100%;margin-top:16px;padding:16px;font-size:14px">
+        Start Trading
+      </button>
+      <div style="text-align:center;margin-top:10px;font-family:var(--mono);font-size:10px;color:#3a4a5a">Strategy & risk settings available on your dashboard</div>
     </div>
 
   </div>
@@ -2166,10 +1929,10 @@ window.pmSetMode = function(mode) {
   const sb = document.getElementById('pm-mode-sandbox');
   const lv = document.getElementById('pm-mode-live');
   const setup = document.getElementById('pm-live-setup');
+  const sandboxInfo = document.getElementById('pm-sandbox-info');
   const balLabel = document.getElementById('pm-balance-label');
+  const startBtn = document.getElementById('wiz-btn-start');
 
-  // ── PARADIGM 3: TradingView global mode swap ──
-  // Cascade accent color across the ENTIRE page via body class
   if (mode === 'live') {
     document.body.classList.add('mode-live');
     document.body.classList.remove('mode-sandbox');
@@ -2177,9 +1940,11 @@ window.pmSetMode = function(mode) {
     lv.style.background = '#2a1520'; lv.style.color = '#f43f5e';
     lv.style.boxShadow = '0 0 12px rgba(244,63,94,.2)';
     sb.style.boxShadow = 'none';
-    setup.style.display = 'block';
+    if (setup) setup.style.display = 'block';
+    if (sandboxInfo) sandboxInfo.style.display = 'none';
     if (balLabel) balLabel.textContent = 'Live Balance';
-    pmLog('SYSTEM', '⚠️ LIVE MODE — global accent shifted to RED. Real capital at risk. Connect wallet below.', 'LIVE');
+    if (startBtn) startBtn.textContent = 'Connect & Start Trading';
+    pmLog('SYSTEM', '⚠️ LIVE MODE — real capital at risk. Connect wallet below.', 'LIVE');
   } else {
     document.body.classList.remove('mode-live');
     document.body.classList.add('mode-sandbox');
@@ -2187,11 +1952,14 @@ window.pmSetMode = function(mode) {
     sb.style.boxShadow = '0 0 12px rgba(41,98,255,.15)';
     lv.style.background = '#0c1018'; lv.style.color = '#4a5568';
     lv.style.boxShadow = 'none';
-    setup.style.display = 'none';
+    if (setup) setup.style.display = 'none';
+    if (sandboxInfo) sandboxInfo.style.display = 'block';
     if (balLabel) balLabel.textContent = 'Sandbox Balance';
+    if (startBtn) startBtn.textContent = 'Start Trading';
     _pmBalance = 10000;
-    document.getElementById('pm-balance').textContent = '$10,000.00';
-    pmLog('SYSTEM', '🧪 SANDBOX MODE — $10,000 practice capital. Accent: CYAN. No wallet needed.', 'SANDBOX');
+    const pmBal = document.getElementById('pm-balance');
+    if (pmBal) pmBal.textContent = '$10,000.00';
+    pmLog('SYSTEM', '🧪 SANDBOX MODE — $10,000 practice capital. No wallet needed.', 'SANDBOX');
   }
 };
 
@@ -2915,17 +2683,17 @@ window.rhShowManual = function () {
 window.wizGo = function (step) {
   window._wizStep = step;
   for (let i = 1; i <= 3; i++) {
-    document.getElementById('wiz-step-' + i).className = 'wiz-panel' + (i === step ? ' active' : '');
-    const dot   = document.getElementById('dot-' + i);
+    const panel = document.getElementById('wiz-step-' + i);
+    if (panel) panel.className = 'wiz-panel' + (i === step ? ' active' : '');
+    const dot = document.getElementById('dot-' + i);
     const label = document.getElementById('label-' + i);
-    dot.className   = 'wiz-step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
-    dot.textContent = i < step ? '✓' : i;
-    label.className = 'wiz-step-label' + (i <= step ? ' active' : '');
+    if (dot) { dot.className = 'wiz-step-dot' + (i < step ? ' done' : i === step ? ' active' : ''); dot.textContent = i < step ? '✓' : i; }
+    if (label) label.className = 'wiz-step-label' + (i <= step ? ' active' : '');
   }
   for (let i = 1; i <= 2; i++) {
-    document.getElementById('line-' + i).className = 'wiz-step-line' + (i < step ? ' done' : '');
+    const line = document.getElementById('line-' + i);
+    if (line) line.className = 'wiz-step-line' + (i < step ? ' done' : '');
   }
-  if (step === 3) wizPopulateSummary();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -2952,38 +2720,53 @@ async function goLiveAfterConnect() {
   loadStatus();
 }
 
-window.wizConnect = async function () {
+window.wizQuickStart = async function () {
   const errEl = document.getElementById('wiz-connect-error');
   const okEl  = document.getElementById('wiz-connect-success');
-  const btn   = document.getElementById('wiz-btn-connect');
+  const btn   = document.getElementById('wiz-btn-start');
 
   errEl.style.display = 'none';
   okEl.style.display  = 'none';
 
   const privKey = document.getElementById('poly-private-key')?.value?.trim();
-  if (privKey) {
-    if (btn) { btn.disabled = true; btn.textContent = 'Connecting wallet...'; }
-    try {
+
+  btn.disabled = true;
+  btn.textContent = privKey ? 'Connecting wallet...' : 'Setting up...';
+
+  try {
+    if (privKey) {
       const r = await apiFetch('/api/bot?action=connect', {
         method: 'POST',
-        body: JSON.stringify({ poly_private_key: privKey, mode: _pmMode }),
+        body: JSON.stringify({ poly_private_key: privKey, mode: 'live' }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Connection failed');
       okEl.textContent = `Wallet connected: ${d.address?.slice(0,8)}...${d.address?.slice(-4)}`;
       okEl.style.display = 'block';
-      window._configured = true;
-      setTimeout(() => wizGo(2), 1200);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Connect Wallet'; }
+    } else {
+      await apiFetch('/api/bot?action=connect', {
+        method: 'POST',
+        body: JSON.stringify({ mode: 'sandbox' }),
+      });
     }
-  } else {
+
+    await apiFetch('/api/bot?action=settings', {
+      method: 'POST',
+      body: JSON.stringify({ strategy: 'negrisk_arb', risk_level: 'balanced', max_position_pct: 10 }),
+    });
+
     window._configured = true;
-    wizGo(2);
+    btn.textContent = 'Launching dashboard...';
+    setTimeout(() => location.reload(), 800);
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Start Trading';
   }
 };
+
+window.wizConnect = window.wizQuickStart;
 
 // Wizard strategy/risk selectors (mirror dashboard but prefixed wiz-)
 const BOT_TYPE_DESCS = {
@@ -3261,13 +3044,8 @@ window.shareTradeToX = function (symbol, pnl) {
 
 // Initialize wizard step 2 defaults
 function wizInitStep2() {
-  wizSetBotType('crypto');
-  wizSetRisk('balanced');
-  if (window._broker === 'robinhood') {
-    document.getElementById('wiz-type-stocks').style.display = 'none';
-    document.getElementById('wiz-type-both').style.display   = 'none';
-    wizSetBotType('crypto');
-  }
+  try { wizSetBotType('crypto'); } catch {}
+  try { wizSetRisk('balanced'); } catch {}
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

@@ -16,6 +16,10 @@
     {
       "path": "/api/cron/nightly-calibration",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/auto-invite",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

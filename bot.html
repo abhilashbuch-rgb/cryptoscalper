@@ -1283,6 +1283,21 @@ body::before {
       <div class="poly-attr">via polymarket.com</div>
     </div>
 
+    <!-- Open Positions tile -->
+    <div class="tile tile-wide" id="positions-tile" style="display:none">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+        <span>Open Positions</span>
+        <span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0" id="positions-count">0 open</span>
+      </div>
+      <div id="positions-body" style="display:flex;flex-direction:column;gap:8px">
+        <div class="empty-state" style="padding:16px;font-size:12px;color:var(--text3)">No open positions. Trades will appear here when you execute a strike.</div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px" id="positions-actions" hidden>
+        <button class="btn-secondary" onclick="loadPositions()" style="font-size:11px;padding:6px 12px;">Refresh</button>
+        <button class="btn-secondary" onclick="showPanel('history')" style="font-size:11px;padding:6px 12px;">View History</button>
+      </div>
+    </div>
+
     <!-- Referral tile -->
     <!-- Badges & Achievements tile -->
     <div class="tile tile-wide" id="badges-tile" style="display:none;">
@@ -1374,6 +1389,24 @@ body::before {
           <div class="form-hint">Multiplier for ATR-based take-profit and stop-loss. Higher = wider targets, fewer but bigger trades.</div>
         </div>
 
+      </div>
+
+      <!-- Auto-Exit Settings -->
+      <div style="border-top:1px solid var(--border); margin-top:20px; padding-top:20px;">
+        <div class="card-title" style="margin-bottom:16px;">Auto-Exit Rules</div>
+        <div class="form-hint" style="margin-bottom:14px;">WICK monitors your open positions and automatically sells when these targets are hit. This is where the edge lives.</div>
+
+        <div class="form-group">
+          <label class="form-label">Take profit at — <span id="tp-val" style="color:var(--green)">+20%</span></label>
+          <input type="range" id="tp-pct" min="5" max="100" value="20" step="5" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('tp-val').textContent='+'+this.value+'%'">
+          <div class="form-hint">Auto-sell when a position is up this much. Default 20%.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Stop loss at — <span id="sl-val" style="color:#ef4444">off</span></label>
+          <input type="range" id="sl-pct" min="0" max="50" value="0" step="5" style="width:100%; accent-color:#ef4444;" oninput="document.getElementById('sl-val').textContent=this.value==='0'?'off':'-'+this.value+'%'; document.getElementById('sl-pct').style.accentColor=this.value==='0'?'var(--text3)':'#ef4444'">
+          <div class="form-hint">Auto-sell when a position is down this much. 0 = no stop loss (manual only).</div>
+        </div>
       </div>
 
       <!-- Signal Weights -->
@@ -3142,6 +3175,7 @@ onAuthStateChanged(auth, async user => {
       // Returning user → dashboard
       document.getElementById('dashboard').style.display = 'block';
       applyStatusToUI(d);
+      startPositionPolling();
     } else {
       // New user → wizard
       document.getElementById('wizard').style.display = 'block';
@@ -3583,6 +3617,16 @@ function applySettingsToUI(s = {}) {
     if (btn) btn.className = 'mode-btn' + (val === hours ? ' active live' : '');
   });
 
+  // Exit settings
+  const tp = document.getElementById('tp-pct');
+  if (tp) { tp.value = s.take_profit_pct ?? 20; document.getElementById('tp-val').textContent = '+' + tp.value + '%'; }
+  const sl = document.getElementById('sl-pct');
+  if (sl) {
+    sl.value = s.stop_loss_pct ?? 0;
+    document.getElementById('sl-val').textContent = sl.value === '0' || sl.value === 0 ? 'off' : '-' + sl.value + '%';
+    sl.style.accentColor = sl.value === '0' || sl.value === 0 ? 'var(--text3)' : '#ef4444';
+  }
+
   // Signal weights
   const weights = s.signal_weights || {};
   const wDefaults = { tech: 100, reddit: 50, stocktwits: 50, funding: 70, news: 40, poly: 30 };
@@ -3643,6 +3687,8 @@ window.saveSettings = async function () {
     cooldown_minutes:  parseInt(document.getElementById('cooldown').value, 10),
     tpsl_multiplier:   parseFloat(document.getElementById('tpsl-mult').value),
     trading_hours:     window._tradingHours,
+    take_profit_pct: parseInt(document.getElementById('tp-pct').value, 10),
+    stop_loss_pct:   parseInt(document.getElementById('sl-pct').value, 10) || null,
     signal_weights: {
       tech:       parseInt(document.getElementById('w-tech').value, 10),
       reddit:     parseInt(document.getElementById('w-reddit').value, 10),
@@ -3664,6 +3710,79 @@ window.saveSettings = async function () {
     okEl.className = 'form-error'; okEl.textContent = err.message; okEl.style.display = 'block';
   }
 };
+
+// ── Position monitoring ──
+let _positionTimer = null;
+
+async function loadPositions() {
+  try {
+    const r = await apiFetch('/api/position-monitor?action=positions');
+    const d = await r.json();
+    renderPositions(d.positions || []);
+  } catch { renderPositions([]); }
+}
+
+function renderPositions(positions) {
+  const tile = document.getElementById('positions-tile');
+  const body = document.getElementById('positions-body');
+  const count = document.getElementById('positions-count');
+  const actions = document.getElementById('positions-actions');
+  if (!tile || !body) return;
+
+  tile.style.display = '';
+  count.textContent = positions.length + ' open';
+
+  if (positions.length === 0) {
+    body.innerHTML = '<div class="empty-state" style="padding:16px;font-size:12px;color:var(--text3)">No open positions. Trades will appear here when you execute a strike.</div>';
+    actions.hidden = true;
+    return;
+  }
+
+  actions.hidden = false;
+  body.innerHTML = positions.map(p => {
+    const pnlColor = p.pnlPct >= 0 ? 'var(--green)' : '#ef4444';
+    const pnlSign = p.pnlPct >= 0 ? '+' : '';
+    const tpLabel = p.take_profit_pct !== null ? 'TP ' + p.take_profit_pct + '%' : 'No TP';
+    const slLabel = p.stop_loss_pct !== null ? 'SL ' + p.stop_loss_pct + '%' : 'No SL';
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.bracketTitle || 'Position'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono)">${p.side} @ $${p.entryPrice?.toFixed(3)} → $${p.currentPrice?.toFixed(3)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono)">${tpLabel} · ${slLabel}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:12px">
+        <div style="font-size:14px;font-weight:700;color:${pnlColor};font-family:var(--mono)">${pnlSign}${p.pnlPct}%</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">$${p.profit?.toFixed(2)}</div>
+        <button onclick="exitPosition('${p.id}')" style="margin-top:4px;font-size:9px;padding:3px 8px;border:1px solid #ef4444;color:#ef4444;background:transparent;border-radius:4px;cursor:pointer;font-family:var(--mono)">SELL NOW</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function exitPosition(positionId) {
+  if (!confirm('Sell this position now?')) return;
+  try {
+    const r = await apiFetch('/api/position-monitor?action=exit_now', {
+      method: 'POST',
+      body: JSON.stringify({ positionId }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Exit failed');
+    loadPositions();
+  } catch (err) {
+    alert('Exit failed: ' + err.message);
+  }
+}
+
+function startPositionPolling() {
+  if (_positionTimer) return;
+  loadPositions();
+  _positionTimer = setInterval(loadPositions, 30000);
+}
+
+function stopPositionPolling() {
+  if (_positionTimer) { clearInterval(_positionTimer); _positionTimer = null; }
+}
 
 // Dashboard broker connect
 window.connectBroker = function () {

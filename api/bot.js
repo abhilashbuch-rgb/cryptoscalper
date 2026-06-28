@@ -186,6 +186,8 @@ module.exports = async (req, res) => {
       if (body.max_position_pct !== undefined) settings.max_position_pct = body.max_position_pct;
       if (body.daily_goal_pct !== undefined)   settings.daily_goal_pct = body.daily_goal_pct;
       if (body.bot_type !== undefined)         settings.bot_type = body.bot_type;
+      if (body.take_profit_pct !== undefined) settings.take_profit_pct = body.take_profit_pct;
+      if (body.stop_loss_pct !== undefined)   settings.stop_loss_pct = body.stop_loss_pct;
       await userRef.set({ settings, updated: FieldValue.serverTimestamp() }, { merge: true });
       return res.json({ ok: true });
     }

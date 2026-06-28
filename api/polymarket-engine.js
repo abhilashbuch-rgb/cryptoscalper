@@ -359,21 +359,15 @@ module.exports = async (req, res) => {
 
   // ── Flash Scan: multi-source anomaly detection, returns up to 3 plays ──
   // Hybrid mode: checks Firestore live_anomalies first (VPS engine), falls back to on-demand scan
-  // Free users get 30-second delayed data; premium users get real-time
+  // All connected users get real-time data — revenue is % cut on profitable trades
   if (action === 'flash_scan') {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
     const userDoc = await db.collection('users').doc(decoded.uid).get();
     const userData = userDoc.exists ? userDoc.data() : {};
-    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
-    const userEmail = (decoded.email || '').toLowerCase();
-    const userTier = (userEmail === adminEmail || userData.tier === 'pro') ? 'pro'
-      : userData.tier === 'edge' ? 'edge' : 'free';
-    const isPremium = userTier === 'pro';
-    const DELAY_BY_TIER = { pro: 0, edge: 10_000, free: 30_000 };
-    const delayMs = DELAY_BY_TIER[userTier] || 30_000;
-    const cutoff = Date.now() - delayMs;
+    const connected = !!userData.wallet_address;
+    const cutoff = Date.now();
 
     const liveSnap = await db.collection('live_anomalies')
       .where('status', '==', 'LIVE')
@@ -444,9 +438,8 @@ module.exports = async (req, res) => {
           userProfit: a.userProfit,
           mode,
           source: 'vps_engine',
-          delayed: userTier !== 'pro',
-          tier: userTier,
-          delaySeconds: (DELAY_BY_TIER[userTier] || 30000) / 1000,
+          delayed: false,
+          connected,
         };
       });
 
@@ -455,9 +448,8 @@ module.exports = async (req, res) => {
         count: plays.length,
         plays,
         source: 'vps_engine',
-        tier: userTier,
-        delayed: userTier !== 'pro',
-        delaySeconds: (DELAY_BY_TIER[userTier] || 30000) / 1000,
+        connected,
+        delayed: false,
       });
     }
 
@@ -708,8 +700,8 @@ module.exports = async (req, res) => {
       scanned: brackets.length,
       headlinesScanned: headlines.length,
       stripSize: stripData.marketCount,
-      tier: isPremium ? 'premium' : 'free',
-      delayed: !isPremium,
+      connected,
+      delayed: false,
     });
   }
 

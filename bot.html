@@ -998,31 +998,6 @@ body::before {
 })();
 </script>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- INVITE-ONLY GATE (shown when user is not on allowlist)                    -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="invite-gate" style="display:none; min-height:80vh; display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center;">
-  <div style="display:flex;justify-content:center;margin-bottom:12px"><svg viewBox="0 0 800 130" width="200" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0,8)"><path d="M0,0 L45,0 M90,0 L135,0 M180,0 L225,0" stroke="#00f2fe" stroke-width="26" stroke-linecap="round"/><path d="M0,46 L55,46 M100,46 L125,46 M170,46 L225,46" stroke="#0066ff" stroke-width="26" stroke-linecap="round"/><path d="M0,92 L225,92" stroke="#0012e6" stroke-width="26" stroke-linecap="round"/></g><g transform="translate(265,102)" fill="#ffffff"><path d="M0,-88 L18,-88 L36,-28 L54,-88 L72,-88 L90,-28 L108,-88 L126,-88 L100,0 L78,0 L63,-58 L48,0 L26,0 Z"/><path d="M152,-88 L174,-88 L174,0 L152,0 Z"/><circle cx="163" cy="-112" r="11" fill="#00f2fe"/><path d="M262,-16 C254,-4 240,4 223,4 C196,4 176,-15 176,-42 C176,-69 196,-88 223,-88 C240,-88 254,-80 261,-68 L243,-59 C239,-66 233,-70 223,-70 C210,-70 200,-58 200,-42 C200,-26 210,-14 223,-14 C233,-14 239,-18 243,-25 Z"/><path d="M282,-130 L304,-130 L304,-48 L344,-88 L370,-88 L326,-43 L374,0 L348,0 L312,-33 L304,-25 L304,0 L282,0 Z"/></g></svg></div>
-  <div style="font-size:13px; font-family:var(--mono); color:var(--text3); letter-spacing:.2em; text-transform:uppercase; margin-bottom:32px;">Invite Only</div>
-  <div style="max-width:440px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:36px 32px;">
-    <div style="font-size:36px; margin-bottom:16px;">🔒</div>
-    <div style="font-size:18px; font-weight:700; margin-bottom:8px; color:var(--text1);">You're on the waitlist</div>
-    <div style="font-size:14px; color:var(--text2); line-height:1.7; margin-bottom:24px;">WICK is currently in private beta. We'll send you an email when your spot opens up.</div>
-    <div id="invite-email" style="font-family:var(--mono); font-size:12px; color:var(--accent); background:rgba(41,98,255,.08); border:1px solid rgba(41,98,255,.15); border-radius:8px; padding:10px 16px; margin-bottom:20px;"></div>
-    <div style="margin-top:20px">
-      <div style="font-size:12px; color:var(--text2); font-weight:600; margin-bottom:8px;">Have an invite code?</div>
-      <div style="display:flex;gap:8px">
-        <input id="invite-code-input" type="text" placeholder="WICK-XXXXXXXX" spellcheck="false" autocomplete="off"
-          style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:13px;color:var(--text1);letter-spacing:.08em;text-transform:uppercase;outline:none" />
-        <button id="invite-code-btn" onclick="redeemInviteCode()"
-          style="background:#2962FF;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.06em;white-space:nowrap">REDEEM</button>
-      </div>
-      <div id="invite-code-error" style="display:none;font-size:11px;color:#f43f5e;margin-top:8px;font-family:var(--mono)"></div>
-      <div id="invite-code-success" style="display:none;font-size:11px;color:#10b981;margin-top:8px;font-family:var(--mono)"></div>
-    </div>
-  </div>
-  <button onclick="signOut(window._firebaseAuth)" style="margin-top:24px; background:none; border:1px solid var(--border); color:var(--text3); font-family:var(--mono); font-size:12px; padding:8px 20px; border-radius:6px; cursor:pointer;">Sign out</button>
-</div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- WIZARD (new users — shown when not yet configured)                        -->
@@ -1398,7 +1373,7 @@ body::before {
       <div class="tile-title">
         Anomaly Stream
         <span class="tile-badge" id="stream-status-badge" style="background:rgba(16,185,129,.12);color:#10b981">SCANNING</span>
-        <span class="tile-badge" id="tier-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25);margin-left:4px;cursor:pointer" onclick="upgradePrompt()">30s DELAY</span>
+        <span class="tile-badge" id="tier-badge" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25);margin-left:4px">POLYMARKET</span>
       </div>
 
       <!-- Strike size selector -->
@@ -2506,7 +2481,7 @@ const STREAM_TTL = 15;
 const STREAM_MAX_CARDS = 3;
 const STREAM_POLL_MS = 2000;
 let _strikeSize = 50;
-let _userTier = 'free';
+let _connected = false;
 
 const WC_KEYWORDS = ['WORLD CUP', 'FIFA', 'WORLD_CUP', 'GROUP STAGE', 'KNOCKOUT', 'SEMI FINAL', 'QUARTER FINAL'];
 function isWorldCupPlay(play) {
@@ -2648,12 +2623,7 @@ function streamAddCard(d) {
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:${typeBg};border:1px solid ${typeBorder};color:${typeColor};padding:1px 5px;border-radius:3px">${typeLabel}</span>
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 5px;border-radius:3px">${platform}</span>
-          ${_userTier === 'pro'
-            ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#10b981;padding:1px 5px;border-radius:3px">LIVE</span>'
-            : _userTier === 'edge'
-              ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);color:#3b82f6;padding:1px 5px;border-radius:3px">10s DELAY</span>'
-              : '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#f59e0b;padding:1px 5px;border-radius:3px;animation:pulse 2s infinite">30s DELAY</span>'
-          }
+          <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#10b981;padding:1px 5px;border-radius:3px">LIVE</span>
           ${whaleBadge}
           ${wcBadge}
         </div>
@@ -2702,18 +2672,14 @@ function streamAddCard(d) {
     ${whaleHtml}
 
     <!-- 1-Click Strike Button -->
-    ${_userTier === 'pro'
+    ${_connected
       ? `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();streamStrike('${id}')">
           <span class="strike-flash"></span>
           &#9889; STRIKE $${_strikeSize} — <span id="fee-label-${id}">20% FEE</span>
         </button>`
-      : _userTier === 'edge'
-        ? `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();upgradePrompt('pro')" style="background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.06));border-color:rgba(59,130,246,.25)">
-            <span style="color:#3b82f6">&#9889; UPGRADE TO PRO — $49/mo to Strike</span>
-          </button>`
-        : `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();upgradePrompt()" style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.08));border-color:rgba(245,158,11,.3)">
-            <span style="color:#f59e0b">&#128274; UPGRADE — $19/mo Edge · $49/mo Pro</span>
-          </button>`
+      : `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();showPanel('broker')" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06));border-color:rgba(16,185,129,.25)">
+          <span style="color:#10b981">&#128279; Connect Polymarket Wallet to Strike</span>
+        </button>`
     }
     <div class="timer-bar" id="bar-${id}" style="width:100%"></div>
   `;
@@ -2750,18 +2716,15 @@ function streamAddCard(d) {
 
       if (secs <= 0) {
         clearInterval(cardData.timer);
-        if (_userTier === 'pro') {
+        if (_connected) {
           streamAutoExecute(id);
         } else {
           const cardEl = document.getElementById('anom-' + id);
           if (cardEl) cardEl.style.opacity = '0.4';
           const strikeBtn = document.getElementById('strike-' + id);
           if (strikeBtn) {
-            const msg = _userTier === 'edge'
-              ? '<span style="color:#3b82f6">&#9889; Upgrade to Pro for Strike — $49/mo</span>'
-              : '<span style="color:#f59e0b">&#128274; EXPIRED — Upgrade for faster data</span>';
-            strikeBtn.innerHTML = msg;
-            strikeBtn.onclick = () => upgradePrompt(_userTier === 'edge' ? 'pro' : undefined);
+            strikeBtn.innerHTML = '<span style="color:#10b981">&#128279; Connect Polymarket Wallet</span>';
+            strikeBtn.onclick = () => showPanel('broker');
           }
         }
       }
@@ -2770,68 +2733,7 @@ function streamAddCard(d) {
   _streamCards.set(id, cardData);
 }
 
-async function upgradePrompt(plan) {
-  if (_userTier === 'pro') return;
-  if (!plan && _userTier === 'free') {
-    showUpgradeModal();
-    return;
-  }
-  try {
-    const r = await apiFetch('/api/bot?action=upgrade', {
-      method: 'POST',
-      body: JSON.stringify({ plan: plan || 'pro' }),
-    });
-    const d = await r.json();
-    if (d.url) window.location.href = d.url;
-  } catch {
-    alert('Could not start upgrade. Try again.');
-  }
-}
-
-function showUpgradeModal() {
-  let modal = document.getElementById('upgrade-modal');
-  if (modal) { modal.style.display = 'flex'; return; }
-
-  modal = document.createElement('div');
-  modal.id = 'upgrade-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px';
-  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-
-  modal.innerHTML = `
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:420px;width:100%">
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="font-size:22px;font-weight:800;color:var(--text1)">Upgrade Your Feed</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:6px">Faster data = more profit captured</div>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div onclick="upgradePrompt('edge')" style="cursor:pointer;border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:20px;background:rgba(59,130,246,.04);transition:border-color .2s" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='rgba(59,130,246,.25)'">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-family:var(--mono);font-size:14px;font-weight:800;color:#3b82f6">EDGE</span>
-            <span style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--text1)">$19<span style="font-size:11px;color:var(--text3)">/mo</span></span>
-          </div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.5">10-second delay on anomaly feed. See opportunities 20 seconds before free users.</div>
-        </div>
-
-        <div onclick="upgradePrompt('pro')" style="cursor:pointer;border:2px solid rgba(16,185,129,.4);border-radius:12px;padding:20px;background:rgba(16,185,129,.04);transition:border-color .2s" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='rgba(16,185,129,.4)'">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div>
-              <span style="font-family:var(--mono);font-size:14px;font-weight:800;color:#10b981">PRO</span>
-              <span style="font-family:var(--mono);font-size:8px;font-weight:700;background:rgba(16,185,129,.15);color:#10b981;padding:2px 6px;border-radius:4px;margin-left:6px">RECOMMENDED</span>
-            </div>
-            <span style="font-family:var(--mono);font-size:18px;font-weight:800;color:var(--text1)">$49<span style="font-size:11px;color:var(--text3)">/mo</span></span>
-          </div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.5">Real-time feed + 1-Click Strike execution + auto-execute. Zero delay, maximum edge.</div>
-        </div>
-      </div>
-
-      <div style="text-align:center;margin-top:16px">
-        <button onclick="document.getElementById('upgrade-modal').style.display='none'" style="background:none;border:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;padding:8px">Maybe later</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
+// Subscription upgrade removed — revenue is % cut on profitable trades via Polymarket CLOB
 
 async function streamStrike(playId) {
   const cardData = _streamCards.get(playId);
@@ -3405,58 +3307,6 @@ document.getElementById('btn-signin').addEventListener('click', async () => {
 
 getRedirectResult(auth).catch(() => {});
 
-async function redeemInviteCode() {
-  const input = document.getElementById('invite-code-input');
-  const errEl = document.getElementById('invite-code-error');
-  const okEl = document.getElementById('invite-code-success');
-  const btn = document.getElementById('invite-code-btn');
-  const code = (input.value || '').trim().toUpperCase();
-
-  errEl.style.display = 'none';
-  okEl.style.display = 'none';
-
-  if (!code || code.length < 4) {
-    errEl.textContent = 'Enter a valid invite code';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btn.textContent = '...';
-  btn.disabled = true;
-
-  try {
-    const token = await auth.currentUser?.getIdToken();
-    const r = await fetch('/api/bot?action=redeem_code', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-    const d = await r.json();
-
-    if (r.ok) {
-      if (d.referralCodes && d.referralCodes.length > 0) {
-        okEl.innerHTML = '&#10003; Access granted! Your referral codes:<br>' +
-          d.referralCodes.map(c => '<span style="display:inline-block;background:rgba(41,98,255,.1);border:1px solid rgba(41,98,255,.2);border-radius:4px;padding:2px 8px;margin:4px 2px;cursor:pointer;font-weight:700" onclick="navigator.clipboard.writeText(\'' + c + '\');this.style.background=\'rgba(16,185,129,.15)\';this.textContent=\'Copied!\';setTimeout(()=>{this.textContent=\'' + c + '\';this.style.background=\'rgba(41,98,255,.1)\'},1000)">' + c + '</span>').join('');
-        okEl.style.display = 'block';
-        setTimeout(() => location.reload(), 5000);
-      } else {
-        okEl.textContent = 'Access granted! Loading dashboard...';
-        okEl.style.display = 'block';
-        setTimeout(() => location.reload(), 1000);
-      }
-    } else {
-      errEl.textContent = d.error || 'Invalid or expired code';
-      errEl.style.display = 'block';
-    }
-  } catch {
-    errEl.textContent = 'Network error — try again';
-    errEl.style.display = 'block';
-  }
-
-  btn.textContent = 'REDEEM';
-  btn.disabled = false;
-}
-
 document.getElementById('btn-signout').addEventListener('click', () => {
   signOut(auth);
 });
@@ -3464,7 +3314,6 @@ document.getElementById('btn-signout').addEventListener('click', () => {
 onAuthStateChanged(auth, async user => {
   if (!user) {
     document.getElementById('auth-gate').style.display  = 'flex';
-    document.getElementById('invite-gate').style.display = 'none';
     document.getElementById('wizard').style.display     = 'none';
     document.getElementById('dashboard').style.display  = 'none';
     document.getElementById('btn-signout').style.display = 'none';
@@ -3494,7 +3343,8 @@ onAuthStateChanged(auth, async user => {
     body: JSON.stringify({ first: !window._hasLoggedBefore }),
   }).then(() => { window._hasLoggedBefore = true; }).catch(() => {});
 
-  if (new URLSearchParams(window.location.search).get('upgraded') === 'true') {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('upgraded') || urlParams.has('subscribed')) {
     window.history.replaceState({}, '', '/bot');
   }
 
@@ -3502,16 +3352,6 @@ onAuthStateChanged(auth, async user => {
   try {
     const r = await apiFetch('/api/bot');
     if (r.status === 401) return;
-    if (r.status === 403) {
-      // Invite-only — show waitlist screen
-      document.getElementById('invite-gate').style.display = 'flex';
-      document.getElementById('wizard').style.display      = 'none';
-      document.getElementById('dashboard').style.display   = 'none';
-      document.getElementById('invite-email').textContent  = user.email;
-      // Auto-join waitlist
-      apiFetch('/api/bot?action=waitlist', { method: 'POST', body: JSON.stringify({ platform: 'wick' }) }).catch(() => {});
-      return;
-    }
     const d = await r.json();
 
     if (d.configured) {
@@ -3562,20 +3402,23 @@ function applyStatusToUI(d) {
   window._hasFuel      = d.fuel && d.fuel.balance > 0;
   window._selectedMode = d.mode;
   window._broker       = d.broker || 'alpaca';
-  _userTier            = d.tier || 'free';
+  _connected           = !!d.connected;
 
   const tierBadge = document.getElementById('tier-badge');
   if (tierBadge) {
-    const tierConfig = {
-      pro:  { text: 'PRO',        bg: 'rgba(16,185,129,.12)', color: '#10b981', border: 'rgba(16,185,129,.25)' },
-      edge: { text: '10s DELAY',  bg: 'rgba(59,130,246,.12)', color: '#3b82f6', border: 'rgba(59,130,246,.25)' },
-      free: { text: '30s DELAY',  bg: 'rgba(245,158,11,.12)', color: '#f59e0b', border: 'rgba(245,158,11,.25)' },
-    };
-    const tc = tierConfig[_userTier] || tierConfig.free;
-    tierBadge.textContent = tc.text;
-    tierBadge.style.background = tc.bg;
-    tierBadge.style.color = tc.color;
-    tierBadge.style.borderColor = tc.border;
+    if (_connected) {
+      tierBadge.textContent = 'CONNECTED';
+      tierBadge.style.background = 'rgba(16,185,129,.12)';
+      tierBadge.style.color = '#10b981';
+      tierBadge.style.borderColor = 'rgba(16,185,129,.25)';
+    } else {
+      tierBadge.textContent = 'CONNECT WALLET';
+      tierBadge.style.background = 'rgba(245,158,11,.12)';
+      tierBadge.style.color = '#f59e0b';
+      tierBadge.style.borderColor = 'rgba(245,158,11,.25)';
+      tierBadge.style.cursor = 'pointer';
+      tierBadge.onclick = () => showPanel('broker');
+    }
   }
 
   // Highlight the active broker tab
@@ -3828,9 +3671,9 @@ window.toggleBot = async function () {
 };
 
 window.setMode = function (mode) {
-  if (mode === 'live' && !window._hasFuel && !window._subscribed) {
-    alert('Live trading requires fuel credits. Buy fuel from the dashboard to get started.');
-    document.getElementById('fuel-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (mode === 'live' && !_connected) {
+    alert('Connect your Polymarket wallet first to enable live trading.');
+    showPanel('broker');
     return;
   }
   window._selectedMode = mode;
@@ -4178,7 +4021,8 @@ async function loadPolymarket() {
 loadPolymarket();
 setInterval(loadPolymarket, 5 * 60_000);
 
-if (location.search.includes('subscribed=1')) {
+// Clean up any legacy query params
+if (location.search.includes('subscribed=1') || location.search.includes('upgraded=')) {
   history.replaceState({}, '', '/bot');
 }
 </script>

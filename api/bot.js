@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
-const { waitlistNotification, inviteRedeemedNotification, newUserLoginNotification, walletConnectedNotification } = require('../lib/notify-admin');
+const { waitlistNotification, inviteRedeemedNotification, newUserLoginNotification, walletConnectedNotification, sendWelcomeEmail, syncResendContact } = require('../lib/notify-admin');
 
 const STRATEGIES = [
   { id: 'negrisk_arb', name: 'NegRisk Arbitrage', description: 'Scans multi-outcome brackets for sum violations. Buys NO across all outcomes for locked mathematical profit. 80%+ win rate.', tier: 'free', risk: 'conservative', winRateGuide: '80–95%', locked: false },
@@ -67,8 +67,22 @@ module.exports = async (req, res) => {
 
   // ── Login notification ──
   if (action === 'login_notify') {
-    await userRef.set({ last_login: FieldValue.serverTimestamp(), email: decoded.email || '' }, { merge: true });
+    const existingDoc = await userRef.get();
+    const isFirstLogin = !existingDoc.exists || !existingDoc.data().first_login;
+
+    await userRef.set({
+      last_login: FieldValue.serverTimestamp(),
+      email: decoded.email || '',
+      ...(isFirstLogin ? { first_login: FieldValue.serverTimestamp() } : {}),
+    }, { merge: true });
+
     newUserLoginNotification(email, uid).catch(() => {});
+
+    if (isFirstLogin && email) {
+      sendWelcomeEmail(email).catch(() => {});
+      syncResendContact(email).catch(() => {});
+    }
+
     return res.json({ ok: true });
   }
 

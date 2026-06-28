@@ -272,7 +272,8 @@ module.exports = async (req, res) => {
 
   const earnedBadges = data.badges_earned || [];
 
-  const tier = data.premium ? 'premium' : 'free';
+  const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
+  const tier = (data.premium || email === adminEmail) ? 'premium' : 'free';
 
   return res.json({
     configured: !!data.configured,

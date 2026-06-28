@@ -1242,8 +1242,34 @@ body::before {
 
         <!-- Live wallet setup (hidden by default) -->
         <div id="pm-live-setup" style="display:none;padding:20px">
-          <div style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700;letter-spacing:.12em;margin-bottom:12px">⚠ REAL CAPITAL AT RISK</div>
-          <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:16px">Paste your Polygon wallet private key. WICK places trades on Polymarket's CLOB on your behalf — we can never withdraw your funds.</div>
+          <div style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700;letter-spacing:.12em;margin-bottom:16px">⚠ REAL CAPITAL AT RISK</div>
+
+          <!-- Wallet source selector -->
+          <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:100%;margin-bottom:16px">
+            <button id="wallet-src-polymarket" onclick="setWalletSource('polymarket')" style="flex:1;padding:10px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;border:none;cursor:pointer;background:rgba(130,71,229,.12);color:#8247e5;transition:all .2s">POLYMARKET</button>
+            <button id="wallet-src-coinbase" onclick="setWalletSource('coinbase')" style="flex:1;padding:10px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">COINBASE WALLET</button>
+          </div>
+
+          <!-- Polymarket wallet instructions -->
+          <div id="wallet-info-polymarket">
+            <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:16px">Paste your Polygon wallet private key. WICK places trades on Polymarket's CLOB on your behalf — we can never withdraw your funds.</div>
+          </div>
+
+          <!-- Coinbase wallet instructions -->
+          <div id="wallet-info-coinbase" style="display:none">
+            <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:12px">Export your private key from Coinbase Wallet and paste it below. WICK uses the same key to trade on Polymarket's CLOB.</div>
+            <div style="background:rgba(0,82,255,.06);border:1px solid rgba(0,82,255,.15);border-radius:8px;padding:12px;margin-bottom:16px">
+              <div style="font-family:var(--mono);font-size:9px;color:#0052FF;font-weight:700;letter-spacing:.08em;margin-bottom:8px">HOW TO EXPORT</div>
+              <ol style="margin:0;padding:0 0 0 16px;font-size:11px;color:#8899aa;line-height:1.8">
+                <li>Open <strong style="color:#c0ccd8">Coinbase Wallet</strong> app or extension</li>
+                <li>Go to <strong style="color:#c0ccd8">Settings</strong> &rarr; <strong style="color:#c0ccd8">Developer Settings</strong></li>
+                <li>Tap <strong style="color:#c0ccd8">Show Private Key</strong></li>
+                <li>Verify with your password or biometrics</li>
+                <li>Copy the key and paste it below</li>
+              </ol>
+            </div>
+          </div>
+
           <div style="margin-bottom:12px">
             <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:6px">WALLET PRIVATE KEY</label>
             <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px">
@@ -2292,6 +2318,24 @@ window.pmSetMode = function(mode) {
     const pmBal = document.getElementById('pm-balance');
     if (pmBal) pmBal.textContent = '$10,000.00';
     pmLog('SYSTEM', '🧪 SANDBOX MODE — $10,000 practice capital. No wallet needed.', 'SANDBOX');
+  }
+};
+
+window.setWalletSource = function(source) {
+  const poly = document.getElementById('wallet-src-polymarket');
+  const cb = document.getElementById('wallet-src-coinbase');
+  const infoPoly = document.getElementById('wallet-info-polymarket');
+  const infoCb = document.getElementById('wallet-info-coinbase');
+  if (source === 'coinbase') {
+    if (poly) { poly.style.background = '#0c1018'; poly.style.color = '#4a5568'; }
+    if (cb) { cb.style.background = 'rgba(0,82,255,.12)'; cb.style.color = '#0052FF'; }
+    if (infoPoly) infoPoly.style.display = 'none';
+    if (infoCb) infoCb.style.display = 'block';
+  } else {
+    if (poly) { poly.style.background = 'rgba(130,71,229,.12)'; poly.style.color = '#8247e5'; }
+    if (cb) { cb.style.background = '#0c1018'; cb.style.color = '#4a5568'; }
+    if (infoPoly) infoPoly.style.display = 'block';
+    if (infoCb) infoCb.style.display = 'none';
   }
 };
 

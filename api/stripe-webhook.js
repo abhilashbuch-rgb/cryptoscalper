@@ -64,16 +64,18 @@ async function handleCheckoutCompleted(session) {
   if (session.mode !== 'subscription') return;
   const uid = session.metadata?.uid;
   const email = session.metadata?.email || session.customer_email;
+  const tier = session.metadata?.tier || 'pro';
   if (!uid) return;
 
   await db.collection('users').doc(uid).set({
     premium: true,
+    tier,
     premium_since: FieldValue.serverTimestamp(),
     stripe_customer_id: session.customer,
     stripe_subscription_id: session.subscription,
   }, { merge: true });
 
-  console.log(`[STRIPE WEBHOOK] Premium activated for ${email} (${uid})`);
+  console.log(`[STRIPE WEBHOOK] ${tier.toUpperCase()} activated for ${email} (${uid})`);
 }
 
 async function handleSubscriptionDeleted(subscription) {
@@ -84,8 +86,12 @@ async function handleSubscriptionDeleted(subscription) {
 
   if (snap.empty) return;
   const userDoc = snap.docs[0];
-  await userDoc.ref.set({ premium: false, premium_ended: FieldValue.serverTimestamp() }, { merge: true });
-  console.log(`[STRIPE WEBHOOK] Premium cancelled for ${userDoc.id}`);
+  await userDoc.ref.set({
+    premium: false,
+    tier: 'free',
+    premium_ended: FieldValue.serverTimestamp(),
+  }, { merge: true });
+  console.log(`[STRIPE WEBHOOK] Subscription cancelled for ${userDoc.id}`);
 }
 
 const EVENT_HANDLERS = {

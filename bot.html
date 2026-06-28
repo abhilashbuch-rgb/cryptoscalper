@@ -1398,6 +1398,7 @@ body::before {
       <div class="tile-title">
         Anomaly Stream
         <span class="tile-badge" id="stream-status-badge" style="background:rgba(16,185,129,.12);color:#10b981">SCANNING</span>
+        <span class="tile-badge" id="tier-badge" style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25);margin-left:4px;cursor:pointer" onclick="upgradePrompt()">30s DELAY</span>
       </div>
 
       <!-- Strike size selector -->
@@ -2480,6 +2481,7 @@ const STREAM_TTL = 15;
 const STREAM_MAX_CARDS = 3;
 const STREAM_POLL_MS = 2000;
 let _strikeSize = 50;
+let _userTier = 'free';
 
 const WC_KEYWORDS = ['WORLD CUP', 'FIFA', 'WORLD_CUP', 'GROUP STAGE', 'KNOCKOUT', 'SEMI FINAL', 'QUARTER FINAL'];
 function isWorldCupPlay(play) {
@@ -2621,6 +2623,7 @@ function streamAddCard(d) {
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:${typeBg};border:1px solid ${typeBorder};color:${typeColor};padding:1px 5px;border-radius:3px">${typeLabel}</span>
           <span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#4D8FFF;padding:1px 5px;border-radius:3px">${platform}</span>
+          ${_userTier !== 'premium' ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#f59e0b;padding:1px 5px;border-radius:3px;animation:pulse 2s infinite">DELAYED</span>' : '<span style="font-family:var(--mono);font-size:7px;font-weight:700;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#10b981;padding:1px 5px;border-radius:3px">LIVE</span>'}
           ${whaleBadge}
           ${wcBadge}
         </div>
@@ -2669,10 +2672,15 @@ function streamAddCard(d) {
     ${whaleHtml}
 
     <!-- 1-Click Strike Button -->
-    <button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();streamStrike('${id}')">
-      <span class="strike-flash"></span>
-      &#9889; STRIKE $${_strikeSize} — <span id="fee-label-${id}">20% FEE</span>
-    </button>
+    ${_userTier === 'premium'
+      ? `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();streamStrike('${id}')">
+          <span class="strike-flash"></span>
+          &#9889; STRIKE $${_strikeSize} — <span id="fee-label-${id}">20% FEE</span>
+        </button>`
+      : `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();upgradePrompt()" style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.08));border-color:rgba(245,158,11,.3)">
+          <span style="color:#f59e0b">&#128274; UPGRADE TO STRIKE — $99/mo</span>
+        </button>`
+    }
     <div class="timer-bar" id="bar-${id}" style="width:100%"></div>
   `;
   container.appendChild(card);
@@ -2708,11 +2716,29 @@ function streamAddCard(d) {
 
       if (secs <= 0) {
         clearInterval(cardData.timer);
-        streamAutoExecute(id);
+        if (_userTier === 'premium') {
+          streamAutoExecute(id);
+        } else {
+          const cardEl = document.getElementById('anom-' + id);
+          if (cardEl) cardEl.style.opacity = '0.4';
+          const strikeBtn = document.getElementById('strike-' + id);
+          if (strikeBtn) strikeBtn.innerHTML = '<span style="color:#f59e0b">&#128274; EXPIRED — Upgrade for real-time</span>';
+        }
       }
     }, 1000),
   };
   _streamCards.set(id, cardData);
+}
+
+async function upgradePrompt() {
+  if (_userTier === 'premium') return;
+  try {
+    const r = await apiFetch('/api/bot?action=upgrade', { method: 'POST' });
+    const d = await r.json();
+    if (d.url) window.location.href = d.url;
+  } catch {
+    alert('Could not start upgrade. Try again.');
+  }
 }
 
 async function streamStrike(playId) {
@@ -3376,6 +3402,10 @@ onAuthStateChanged(auth, async user => {
     body: JSON.stringify({ first: !window._hasLoggedBefore }),
   }).then(() => { window._hasLoggedBefore = true; }).catch(() => {});
 
+  if (new URLSearchParams(window.location.search).get('upgraded') === 'true') {
+    window.history.replaceState({}, '', '/bot');
+  }
+
   // Fetch status to decide: invite gate, wizard, or dashboard
   try {
     const r = await apiFetch('/api/bot');
@@ -3440,6 +3470,22 @@ function applyStatusToUI(d) {
   window._hasFuel      = d.fuel && d.fuel.balance > 0;
   window._selectedMode = d.mode;
   window._broker       = d.broker || 'alpaca';
+  _userTier            = d.tier || 'free';
+
+  const tierBadge = document.getElementById('tier-badge');
+  if (tierBadge) {
+    if (_userTier === 'premium') {
+      tierBadge.textContent = 'PREMIUM';
+      tierBadge.style.background = 'rgba(16,185,129,.12)';
+      tierBadge.style.color = '#10b981';
+      tierBadge.style.borderColor = 'rgba(16,185,129,.25)';
+    } else {
+      tierBadge.textContent = '30s DELAY';
+      tierBadge.style.background = 'rgba(245,158,11,.12)';
+      tierBadge.style.color = '#f59e0b';
+      tierBadge.style.borderColor = 'rgba(245,158,11,.25)';
+    }
+  }
 
   // Highlight the active broker tab
   document.querySelectorAll('#dash-broker-tabs .dash-nav-btn').forEach(b => {

@@ -359,20 +359,25 @@ module.exports = async (req, res) => {
 
   // ── Flash Scan: multi-source anomaly detection, returns up to 3 plays ──
   // Hybrid mode: checks Firestore live_anomalies first (VPS engine), falls back to on-demand scan
+  // Free users get 30-second delayed data; premium users get real-time
   if (action === 'flash_scan') {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const isPremium = !!userData.premium;
+    const DELAY_MS = 30_000;
+    const cutoff = isPremium ? Date.now() : Date.now() - DELAY_MS;
+
     const liveSnap = await db.collection('live_anomalies')
       .where('status', '==', 'LIVE')
-      .where('expiresAt', '>', Date.now())
+      .where('expiresAt', '>', cutoff)
       .orderBy('expiresAt', 'desc')
       .limit(6)
       .get();
 
     if (!liveSnap.empty) {
-      const userDoc = await db.collection('users').doc(decoded.uid).get();
-      const userData = userDoc.exists ? userDoc.data() : {};
       const mode = userData.mode || 'sandbox';
       const riskBounds = await getRiskBoundaries();
       const effectiveLegSize = Math.round((riskBounds.max_leg_size_pusd || 50) * (riskBounds.risk_multiplier || 1.0));
@@ -434,6 +439,8 @@ module.exports = async (req, res) => {
           userProfit: a.userProfit,
           mode,
           source: 'vps_engine',
+          delayed: !isPremium,
+          tier: isPremium ? 'premium' : 'free',
         };
       });
 
@@ -442,17 +449,17 @@ module.exports = async (req, res) => {
         count: plays.length,
         plays,
         source: 'vps_engine',
+        tier: isPremium ? 'premium' : 'free',
+        delayed: !isPremium,
       });
     }
 
     // Fallback: on-demand scan when VPS engine isn't running
-    const [userDoc, riskBounds, headlines, stripData] = await Promise.all([
-      db.collection('users').doc(decoded.uid).get(),
+    const [riskBounds, headlines, stripData] = await Promise.all([
       getRiskBoundaries(),
       scanAllSources(),
       getStrip(),
     ]);
-    const userData = userDoc.exists ? userDoc.data() : {};
     const walletBalance = userData.walletBalance || 0;
     const mode = userData.mode || 'sandbox';
     const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
@@ -694,6 +701,8 @@ module.exports = async (req, res) => {
       scanned: brackets.length,
       headlinesScanned: headlines.length,
       stripSize: stripData.marketCount,
+      tier: isPremium ? 'premium' : 'free',
+      delayed: !isPremium,
     });
   }
 

@@ -1285,10 +1285,26 @@ body::before {
 
     <!-- Open Positions tile -->
     <div class="tile tile-wide" id="positions-tile" style="display:none">
-      <div class="card-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
-        <span>Open Positions</span>
-        <span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0" id="positions-count">0 open</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0;display:flex;align-items:center;gap:8px">
+          <span>Open Positions</span>
+          <span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0" id="positions-count">0 open</span>
+        </div>
       </div>
+
+      <!-- Auto-Exit Toggle -->
+      <div style="background:linear-gradient(135deg, rgba(16,185,129,.06), rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXIT</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px" id="auto-exit-desc">WICK monitors and sells when targets are hit</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="auto-exit-label">OFF</span>
+          <div class="toggle" id="auto-exit-toggle" onclick="toggleAutoExit()" style="flex-shrink:0"></div>
+        </div>
+      </div>
+      <div id="auto-exit-status" style="display:none;font-size:10px;color:var(--green);font-family:var(--mono);margin-bottom:10px;padding:6px 10px;background:rgba(16,185,129,.08);border-radius:6px;text-align:center"></div>
+
       <div id="positions-body" style="display:flex;flex-direction:column;gap:8px">
         <div class="empty-state" style="padding:16px;font-size:12px;color:var(--text3)">No open positions. Trades will appear here when you execute a strike.</div>
       </div>
@@ -3617,6 +3633,10 @@ function applySettingsToUI(s = {}) {
     if (btn) btn.className = 'mode-btn' + (val === hours ? ' active live' : '');
   });
 
+  // Auto-exit toggle
+  _autoExitEnabled = !!s.auto_exit_enabled;
+  updateAutoExitUI();
+
   // Exit settings
   const tp = document.getElementById('tp-pct');
   if (tp) { tp.value = s.take_profit_pct ?? 20; document.getElementById('tp-val').textContent = '+' + tp.value + '%'; }
@@ -3689,6 +3709,7 @@ window.saveSettings = async function () {
     trading_hours:     window._tradingHours,
     take_profit_pct: parseInt(document.getElementById('tp-pct').value, 10),
     stop_loss_pct:   parseInt(document.getElementById('sl-pct').value, 10) || null,
+    auto_exit_enabled: _autoExitEnabled,
     signal_weights: {
       tech:       parseInt(document.getElementById('w-tech').value, 10),
       reddit:     parseInt(document.getElementById('w-reddit').value, 10),
@@ -3711,15 +3732,69 @@ window.saveSettings = async function () {
   }
 };
 
-// ── Position monitoring ──
+// ── Position monitoring with auto-exit ──
 let _positionTimer = null;
+let _autoExitEnabled = false;
+let _autoExitPending = new Set();
 
 async function loadPositions() {
   try {
     const r = await apiFetch('/api/position-monitor?action=positions');
     const d = await r.json();
-    renderPositions(d.positions || []);
+    const positions = d.positions || [];
+    renderPositions(positions);
+    if (_autoExitEnabled) autoExitCheck(positions);
   } catch { renderPositions([]); }
+}
+
+function autoExitCheck(positions) {
+  const statusEl = document.getElementById('auto-exit-status');
+  if (!positions.length) {
+    if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Watching — no open positions'; }
+    return;
+  }
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Scanning ' + positions.length + ' position' + (positions.length > 1 ? 's' : '') + '…'; }
+
+  for (const p of positions) {
+    if (_autoExitPending.has(p.id)) continue;
+    const tp = p.take_profit_pct;
+    const sl = p.stop_loss_pct;
+    let shouldExit = false;
+    let reason = '';
+
+    if (tp !== null && p.pnlPct >= tp) {
+      shouldExit = true;
+      reason = 'TP hit (' + p.pnlPct + '% >= ' + tp + '%)';
+    } else if (sl !== null && p.pnlPct <= -sl) {
+      shouldExit = true;
+      reason = 'SL hit (' + p.pnlPct + '% <= -' + sl + '%)';
+    }
+
+    if (shouldExit) {
+      _autoExitPending.add(p.id);
+      if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Executing exit — ' + reason; statusEl.style.color = '#ef4444'; }
+      autoExitPosition(p.id, reason);
+    }
+  }
+}
+
+async function autoExitPosition(positionId, reason) {
+  try {
+    const r = await apiFetch('/api/position-monitor?action=exit_now', {
+      method: 'POST',
+      body: JSON.stringify({ positionId }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Exit failed');
+    const statusEl = document.getElementById('auto-exit-status');
+    if (statusEl) { statusEl.textContent = 'Closed — ' + reason + ' → P&L ' + (d.pnlPct >= 0 ? '+' : '') + d.pnlPct + '%'; statusEl.style.color = d.pnlPct >= 0 ? 'var(--green)' : '#ef4444'; }
+    loadPositions();
+  } catch (err) {
+    const statusEl = document.getElementById('auto-exit-status');
+    if (statusEl) { statusEl.textContent = 'Exit failed: ' + err.message; statusEl.style.color = '#ef4444'; }
+  } finally {
+    _autoExitPending.delete(positionId);
+  }
 }
 
 function renderPositions(positions) {
@@ -3744,11 +3819,14 @@ function renderPositions(positions) {
     const pnlSign = p.pnlPct >= 0 ? '+' : '';
     const tpLabel = p.take_profit_pct !== null ? 'TP ' + p.take_profit_pct + '%' : 'No TP';
     const slLabel = p.stop_loss_pct !== null ? 'SL ' + p.stop_loss_pct + '%' : 'No SL';
+    const tpProgress = p.take_profit_pct !== null ? Math.min(100, Math.max(0, (p.pnlPct / p.take_profit_pct) * 100)) : 0;
+    const barColor = p.pnlPct >= 0 ? 'var(--green)' : '#ef4444';
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.bracketTitle || 'Position'}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono)">${p.side} @ $${p.entryPrice?.toFixed(3)} → $${p.currentPrice?.toFixed(3)}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono)">${tpLabel} · ${slLabel}</div>
+        ${p.take_profit_pct !== null ? `<div style="margin-top:4px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:${tpProgress}%;background:${barColor};border-radius:2px;transition:width .3s"></div></div>` : ''}
       </div>
       <div style="text-align:right;flex-shrink:0;margin-left:12px">
         <div style="font-size:14px;font-weight:700;color:${pnlColor};font-family:var(--mono)">${pnlSign}${p.pnlPct}%</div>
@@ -3774,14 +3852,42 @@ async function exitPosition(positionId) {
   }
 }
 
+function toggleAutoExit() {
+  _autoExitEnabled = !_autoExitEnabled;
+  updateAutoExitUI();
+  restartPositionPolling();
+  apiFetch('/api/bot?action=settings', {
+    method: 'POST',
+    body: JSON.stringify({ auto_exit_enabled: _autoExitEnabled }),
+  }).catch(() => {});
+}
+
+function updateAutoExitUI() {
+  const toggle = document.getElementById('auto-exit-toggle');
+  const label = document.getElementById('auto-exit-label');
+  const desc = document.getElementById('auto-exit-desc');
+  const status = document.getElementById('auto-exit-status');
+  if (toggle) toggle.className = 'toggle' + (_autoExitEnabled ? ' on' : '');
+  if (label) label.textContent = _autoExitEnabled ? 'LIVE' : 'OFF';
+  if (label) label.style.color = _autoExitEnabled ? 'var(--green)' : 'var(--text3)';
+  if (desc) desc.textContent = _autoExitEnabled ? 'Actively monitoring — sells instantly when targets are hit' : 'WICK monitors and sells when targets are hit';
+  if (status && !_autoExitEnabled) status.style.display = 'none';
+}
+
 function startPositionPolling() {
   if (_positionTimer) return;
   loadPositions();
-  _positionTimer = setInterval(loadPositions, 30000);
+  const interval = _autoExitEnabled ? 10000 : 30000;
+  _positionTimer = setInterval(loadPositions, interval);
 }
 
 function stopPositionPolling() {
   if (_positionTimer) { clearInterval(_positionTimer); _positionTimer = null; }
+}
+
+function restartPositionPolling() {
+  stopPositionPolling();
+  startPositionPolling();
 }
 
 // Dashboard broker connect

@@ -366,7 +366,9 @@ module.exports = async (req, res) => {
 
     const userDoc = await db.collection('users').doc(decoded.uid).get();
     const userData = userDoc.exists ? userDoc.data() : {};
-    const isPremium = !!userData.premium;
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
+    const userEmail = (decoded.email || '').toLowerCase();
+    const isPremium = !!userData.premium || userEmail === adminEmail;
     const DELAY_MS = 30_000;
     const cutoff = isPremium ? Date.now() : Date.now() - DELAY_MS;
 

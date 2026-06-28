@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WICK — Agentic Trading</title>
+<title>WICK.Network — Dashboard</title>
+<meta name="description" content="Your Polymarket trading dashboard. Live anomaly detection, one-click execution, non-custodial.">
+<meta property="og:title" content="WICK.Network — Dashboard">
+<meta property="og:description" content="Your Polymarket trading dashboard. Live anomaly detection, one-click execution, non-custodial.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="WICK.Network — Dashboard">
+<meta name="twitter:description" content="Your Polymarket trading dashboard. Live anomaly detection, one-click execution, non-custodial.">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1220,7 +1226,7 @@ body::before {
           <div class="bot-name" id="bot-name">WICK</div>
           <span class="bot-mode paper" id="mode-badge">PAPER</span>
         </div>
-        <div class="bot-sub" id="bot-sub-text">Watching BTC/USD · ETH/USD · SOL/USD every 2 minutes</div>
+        <div class="bot-sub" id="bot-sub-text">Scanning Polymarket for mispricings</div>
 
         <div class="mode-switch" id="mode-switch">
           <button class="mode-btn active paper" id="btn-paper" onclick="setMode('paper')">PAPER</button>
@@ -1589,7 +1595,7 @@ window._botMode    = 'paper';
 window._configured = false;
 window._botType    = 'crypto';
 window._strategy   = 'brilliant';
-window._broker     = 'alpaca';
+window._broker     = 'polymarket';
 window._risk       = 'balanced';
 window._wizStep    = 1;
 window._wizBotOn   = false;

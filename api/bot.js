@@ -157,6 +157,7 @@ module.exports = async (req, res) => {
     const { platform } = req.body || {};
     await db.collection('waitlist').doc(`${uid}_${platform}`).set({
       uid, platform, email: decoded.email || '', joined: FieldValue.serverTimestamp(),
+      joined_ms: Date.now(), auto_invited: false,
     });
     waitlistNotification(email, platform).catch(() => {});
     return res.json({ ok: true });

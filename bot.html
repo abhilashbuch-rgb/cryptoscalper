@@ -463,6 +463,92 @@ body::before {
 }
 .btn-google:hover { opacity: .9; }
 
+/* ── Welcome screen ── */
+#welcome-screen { display: none; }
+.welcome-shell {
+  max-width: 720px; margin: 0 auto; padding: 48px 20px 80px;
+  animation: wiz-in .4s ease;
+}
+.welcome-hero {
+  text-align: center; margin-bottom: 40px;
+}
+.welcome-hero h1 {
+  font-size: 32px; font-weight: 900; margin: 0 0 8px; letter-spacing: -.02em;
+}
+.welcome-hero h1 span { color: var(--green); }
+.welcome-hero p {
+  font-size: 15px; color: var(--text2); line-height: 1.7; max-width: 520px; margin: 0 auto;
+}
+.welcome-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;
+}
+.welcome-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; transition: border-color .2s;
+}
+.welcome-card:hover { border-color: rgba(41,98,255,.3); }
+.welcome-card-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 12px;
+}
+.welcome-card h3 {
+  font-size: 13px; font-weight: 700; margin: 0 0 6px; color: var(--text1);
+  font-family: var(--mono); letter-spacing: .02em;
+}
+.welcome-card p {
+  font-size: 12px; color: var(--text3); line-height: 1.6; margin: 0;
+}
+.welcome-how {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; margin-bottom: 32px;
+}
+.welcome-how h2 {
+  font-size: 14px; font-weight: 800; font-family: var(--mono);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--text1);
+  margin: 0 0 20px;
+}
+.welcome-step {
+  display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px;
+}
+.welcome-step:last-child { margin-bottom: 0; }
+.welcome-step-num {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(41,98,255,.1); border: 1px solid rgba(41,98,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 800; color: #4D8FFF;
+}
+.welcome-step-text h4 {
+  font-size: 12px; font-weight: 700; margin: 0 0 2px; color: var(--text1);
+}
+.welcome-step-text p {
+  font-size: 11px; color: var(--text3); line-height: 1.5; margin: 0;
+}
+.welcome-revenue {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(16,185,129,.04); border: 1px solid rgba(16,185,129,.15);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 32px;
+}
+.welcome-revenue-icon {
+  font-size: 20px; flex-shrink: 0;
+}
+.welcome-revenue-text {
+  font-size: 12px; color: var(--text2); line-height: 1.5;
+}
+.welcome-revenue-text strong { color: var(--green); }
+.welcome-cta {
+  width: 100%; padding: 16px; border: none; border-radius: 10px;
+  background: var(--green); color: #000; font-family: var(--mono);
+  font-size: 14px; font-weight: 800; letter-spacing: .04em;
+  cursor: pointer; transition: opacity .15s;
+}
+.welcome-cta:hover { opacity: .9; }
+@media (max-width: 600px) {
+  .welcome-grid { grid-template-columns: 1fr; }
+  .welcome-hero h1 { font-size: 24px; }
+  .welcome-shell { padding: 32px 16px 60px; }
+}
+
 /* ── Wizard ── */
 #wizard { display: none; }
 
@@ -1040,6 +1126,84 @@ body::before {
 })();
 </script>
 
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- WELCOME SCREEN (new users — shown after first sign-in)                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<div id="welcome-screen">
+  <div class="welcome-shell">
+    <div class="welcome-hero">
+      <div style="display:inline-block;background:#2962FF;color:#fff;font-weight:900;font-size:22px;width:52px;height:52px;line-height:52px;border-radius:14px;margin-bottom:16px">W</div>
+      <h1>Welcome to <span>WICK</span></h1>
+      <p>WICK is your trading overlay for Polymarket. It scans prediction markets for mathematical mispricings and executes trades on your behalf — you keep playing, we handle the exits.</p>
+    </div>
+
+    <div class="welcome-grid">
+      <div class="welcome-card">
+        <div class="welcome-card-icon" style="background:rgba(16,185,129,.1)">&#128270;</div>
+        <h3>Anomaly Detection</h3>
+        <p>Continuously scans multi-outcome brackets for sum violations. When total implied probability exceeds 100%, there's guaranteed profit.</p>
+      </div>
+      <div class="welcome-card">
+        <div class="welcome-card-icon" style="background:rgba(41,98,255,.1)">&#9889;</div>
+        <h3>Instant Execution</h3>
+        <p>One-click trading on Polymarket's CLOB. See an anomaly, hit the button, and WICK places the order in milliseconds.</p>
+      </div>
+      <div class="welcome-card">
+        <div class="welcome-card-icon" style="background:rgba(234,179,8,.1)">&#127919;</div>
+        <h3>Auto-Exit at +20%</h3>
+        <p>WICK monitors your positions and automatically closes them when they hit your profit target. You keep playing while profits lock in.</p>
+      </div>
+      <div class="welcome-card">
+        <div class="welcome-card-icon" style="background:rgba(239,68,68,.1)">&#128274;</div>
+        <h3>Non-Custodial</h3>
+        <p>Your funds stay in your Polymarket wallet. WICK can place trades but has zero capability to withdraw or transfer your capital.</p>
+      </div>
+    </div>
+
+    <div class="welcome-how">
+      <h2>How it works</h2>
+      <div class="welcome-step">
+        <div class="welcome-step-num">1</div>
+        <div class="welcome-step-text">
+          <h4>WICK scans Polymarket</h4>
+          <p>Every few seconds, WICK checks multi-outcome markets (elections, sports, crypto) for mispriced odds where the math guarantees an edge.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="welcome-step-num">2</div>
+        <div class="welcome-step-text">
+          <h4>You pick your trades</h4>
+          <p>Anomalies stream into your feed in real time. Choose your strike size ($25–$250) and hit BUY on the ones you like. Or let WICK handle it.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="welcome-step-num">3</div>
+        <div class="welcome-step-text">
+          <h4>Auto-exit locks in profits</h4>
+          <p>Once a position hits your target (default +20%), WICK sells automatically. No watching charts, no manual closes. You get notified when it's done.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="welcome-step-num">4</div>
+        <div class="welcome-step-text">
+          <h4>We take 20% of your wins</h4>
+          <p>WICK only makes money when you make money. If a trade loses, you owe nothing. Profitable trade? We take a 20% cut, you keep the rest.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome-revenue">
+      <div class="welcome-revenue-icon">&#128176;</div>
+      <div class="welcome-revenue-text">
+        <strong>Zero upfront cost.</strong> Start with $10,000 sandbox funds for free. When you're ready for live trading, connect your Polymarket wallet. WICK only earns when you profit.
+      </div>
+    </div>
+
+    <button class="welcome-cta" onclick="welcomeContinue()">Continue to Setup</button>
+    <div style="text-align:center;margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--text3)">Takes about 30 seconds</div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- WIZARD (new users — single-step quick setup)                              -->
@@ -3243,6 +3407,16 @@ window.shareTradeToX = function (symbol, pnl) {
   window.open(`https://x.com/intent/tweet?text=${text}`, '_blank', 'width=550,height=420');
 };
 
+// Welcome → Wizard transition
+function welcomeContinue() {
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('wizard').style.display = 'block';
+  wizGo(1);
+  wizInitStep2();
+  const d = window._pendingStatus;
+  if (d && d.available_strategies) wizRenderStrategies(d.available_strategies, d.selected_strategy);
+}
+
 // Initialize wizard step 2 defaults
 function wizInitStep2() {
   try { wizSetBotType('crypto'); } catch {}
@@ -3293,6 +3467,7 @@ document.getElementById('btn-signout').addEventListener('click', () => {
 onAuthStateChanged(auth, async user => {
   if (!user) {
     document.getElementById('auth-gate').style.display  = 'flex';
+    document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('wizard').style.display     = 'none';
     document.getElementById('dashboard').style.display  = 'none';
     document.getElementById('btn-signout').style.display = 'none';
@@ -3339,17 +3514,13 @@ onAuthStateChanged(auth, async user => {
       applyStatusToUI(d);
       startPositionPolling();
     } else {
-      // New user → wizard
-      document.getElementById('wizard').style.display = 'block';
-      wizGo(1);
-      wizInitStep2();
-      if (d.available_strategies) wizRenderStrategies(d.available_strategies, d.selected_strategy);
+      // New user → welcome screen
+      document.getElementById('welcome-screen').style.display = 'block';
+      window._pendingStatus = d;
     }
   } catch (err) {
-    // Fallback: show wizard
-    document.getElementById('wizard').style.display = 'block';
-    wizGo(1);
-    wizInitStep2();
+    // Fallback: show welcome
+    document.getElementById('welcome-screen').style.display = 'block';
   }
 });
 

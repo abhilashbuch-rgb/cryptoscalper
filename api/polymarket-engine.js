@@ -368,9 +368,12 @@ module.exports = async (req, res) => {
     const userData = userDoc.exists ? userDoc.data() : {};
     const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase();
     const userEmail = (decoded.email || '').toLowerCase();
-    const isPremium = !!userData.premium || userEmail === adminEmail;
-    const DELAY_MS = 30_000;
-    const cutoff = isPremium ? Date.now() : Date.now() - DELAY_MS;
+    const userTier = (userEmail === adminEmail || userData.tier === 'pro') ? 'pro'
+      : userData.tier === 'edge' ? 'edge' : 'free';
+    const isPremium = userTier === 'pro';
+    const DELAY_BY_TIER = { pro: 0, edge: 10_000, free: 30_000 };
+    const delayMs = DELAY_BY_TIER[userTier] || 30_000;
+    const cutoff = Date.now() - delayMs;
 
     const liveSnap = await db.collection('live_anomalies')
       .where('status', '==', 'LIVE')
@@ -441,8 +444,9 @@ module.exports = async (req, res) => {
           userProfit: a.userProfit,
           mode,
           source: 'vps_engine',
-          delayed: !isPremium,
-          tier: isPremium ? 'premium' : 'free',
+          delayed: userTier !== 'pro',
+          tier: userTier,
+          delaySeconds: (DELAY_BY_TIER[userTier] || 30000) / 1000,
         };
       });
 
@@ -451,8 +455,9 @@ module.exports = async (req, res) => {
         count: plays.length,
         plays,
         source: 'vps_engine',
-        tier: isPremium ? 'premium' : 'free',
-        delayed: !isPremium,
+        tier: userTier,
+        delayed: userTier !== 'pro',
+        delaySeconds: (DELAY_BY_TIER[userTier] || 30000) / 1000,
       });
     }
 

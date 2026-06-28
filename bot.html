@@ -1507,10 +1507,24 @@ body::before {
         </div>
       </div>
 
-      <!-- Recent Trades tile -->
-      <div class="tile" id="trades-card" style="display:none">
-        <div class="card-title">Recent Trades</div>
+      <!-- Recent Trades tile — with verified trade history -->
+      <div class="tile tile-wide" id="trades-card" style="display:none">
+        <div class="tile-title">
+          Verified Trade History
+          <span class="tile-badge" style="background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2)">ON-CHAIN</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">
+          All trades execute on Polygon via Polymarket CLOB. Every entry below is verifiable on-chain — no simulated results, no cherry-picked wins.
+        </div>
         <div id="trades-body"></div>
+        <div id="trades-verification" style="display:none;margin-top:12px;padding:10px 12px;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.1);border-radius:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span style="font-family:var(--mono);font-size:9px;color:#10b981;font-weight:700;letter-spacing:.06em">VERIFIABLE ON POLYGON</span>
+            <span style="flex:1"></span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--text3)" id="trades-summary"></span>
+          </div>
+        </div>
       </div>
 
     <!-- Polymarket tile -->
@@ -1778,7 +1792,18 @@ body::before {
           </div>
         </div>
 
-
+    <!-- ═══ RISK DISCLAIMER FOOTER ═══ -->
+    <div class="tile tile-full" style="background:rgba(248,113,113,.02);border-color:rgba(248,113,113,.08)">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;color:rgba(248,113,113,.6);letter-spacing:.1em;font-weight:700;margin-bottom:6px">RISK DISCLOSURE</div>
+          <div style="font-size:11px;color:var(--text3);line-height:1.7">
+            Prediction market trading involves substantial risk of loss. Past performance shown on this dashboard — including win rates, P&L, and trade history — does not guarantee future results. WICK finds mathematical mispricings; it does not predict outcomes. Markets can move against any position. Only trade with funds you can afford to lose entirely. WICK is not registered with any financial regulatory authority. Not financial advice.
+          </div>
+        </div>
+      </div>
+    </div>
 
     </div><!-- /tile-grid -->
   </div><!-- /app-shell -->
@@ -3748,10 +3773,16 @@ function updateToggleUI(active, mode) {
 
 function renderTrades(trades) {
   const body = document.getElementById('trades-body');
+  const verifyEl = document.getElementById('trades-verification');
+  const summaryEl = document.getElementById('trades-summary');
   if (!trades.length) {
     body.innerHTML = '<div class="empty-state">No trades yet — activate the agent to begin</div>';
+    if (verifyEl) verifyEl.style.display = 'none';
     return;
   }
+  const closed = trades.filter(t => !t.open);
+  const wins = closed.filter(t => t.won).length;
+  const totalPnl = closed.reduce((s, t) => s + (t.pnl || 0), 0);
   const rows = trades.map(t => {
     const pnlStr = t.pnl !== null ? `${t.pnl >= 0 ? '+' : ''}$${Math.abs(t.pnl).toFixed(2)}` : '—';
     const shareBtn = t.won && t.pnl > 0 ? `<button onclick="shareTradeToX('${t.symbol}',${t.pnl})" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text3);font-family:var(--mono);font-size:9px;cursor:pointer;margin-left:6px;">Share</button>` : '';
@@ -3759,9 +3790,10 @@ function renderTrades(trades) {
                  : t.won  ? `<span class="win">Win</span>${shareBtn}`
                           : '<span class="loss">Loss</span>';
     const ts = t.timestamp ? new Date(t.timestamp).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+    const modeBadge = t.open ? '' : `<span style="font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;margin-left:4px;${window._botMode === 'live' ? 'background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.15)' : 'background:rgba(59,130,246,.1);color:#3b82f6;border:1px solid rgba(59,130,246,.15)'}">${window._botMode === 'live' ? 'LIVE' : 'PAPER'}</span>`;
     return `<tr>
       <td>${ts}</td>
-      <td style="color:var(--text1);font-weight:600">${t.symbol || '—'}</td>
+      <td style="color:var(--text1);font-weight:600">${t.symbol || '—'}${modeBadge}</td>
       <td><span class="badge ${t.side}">${(t.side||'').toUpperCase()}</span></td>
       <td style="color:var(--text1)">${t.price ? '$'+parseFloat(t.price).toLocaleString() : '—'}</td>
       <td class="${t.pnl >= 0 ? 'win' : t.pnl < 0 ? 'loss' : ''}">${pnlStr}</td>
@@ -3769,9 +3801,14 @@ function renderTrades(trades) {
     </tr>`;
   }).join('');
   body.innerHTML = `<table class="trade-table">
-    <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Price</th><th>P&L</th><th>Result</th></tr></thead>
+    <thead><tr><th>Time</th><th>Market</th><th>Side</th><th>Price</th><th>P&L</th><th>Result</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
+  if (verifyEl && closed.length > 0) {
+    verifyEl.style.display = 'block';
+    const wr = closed.length > 0 ? Math.round((wins / closed.length) * 100) : 0;
+    summaryEl.textContent = `${closed.length} closed · ${wr}% win rate · ${totalPnl >= 0 ? '+' : ''}$${Math.abs(totalPnl).toFixed(2)} P&L`;
+  }
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────

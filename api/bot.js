@@ -163,6 +163,29 @@ module.exports = async (req, res) => {
     return res.json({ ok: true });
   }
 
+  // ── Upgrade to Premium ($99/mo) ──
+  if (action === 'upgrade' && req.method === 'POST') {
+    const { stripe } = require('../lib/stripe-config');
+    const frontendUrl = process.env.FRONTEND_URL || 'https://wick.network';
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer_email: decoded.email,
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          recurring: { interval: 'month' },
+          product_data: { name: 'WICK Premium — Real-Time Anomaly Feed' },
+          unit_amount: 9900,
+        },
+        quantity: 1,
+      }],
+      metadata: { uid, email },
+      success_url: `${frontendUrl}/bot?upgraded=true`,
+      cancel_url: `${frontendUrl}/bot`,
+    });
+    return res.json({ ok: true, url: session.url });
+  }
+
   // ── Connect wallet (Polymarket only) ──
   if (action === 'connect' && req.method === 'POST') {
     const body = req.body || {};
@@ -249,6 +272,8 @@ module.exports = async (req, res) => {
 
   const earnedBadges = data.badges_earned || [];
 
+  const tier = data.premium ? 'premium' : 'free';
+
   return res.json({
     configured: !!data.configured,
     bot_active: !!data.bot_active,
@@ -256,6 +281,7 @@ module.exports = async (req, res) => {
     broker: 'polymarket',
     wallet_address: data.wallet_address || null,
     subscribed: !!data.subscribed,
+    tier,
     balance: data.balance || '10000.00',
     stats: {
       win_rate_pct: closed > 0 ? Math.round((wins / closed) * 100) : 0,

@@ -1903,7 +1903,7 @@ import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, Google
 
 const FIREBASE_CONFIG = {
   apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
-  authDomain:    'wicknetwork.firebaseapp.com',
+  authDomain:    'wick.network',
   projectId:     'wicknetwork',
   storageBucket: 'wicknetwork.firebasestorage.app',
 };
@@ -3442,7 +3442,10 @@ onAuthStateChanged(auth, async user => {
   // Fetch status to decide: invite gate, wizard, or dashboard
   try {
     const r = await apiFetch('/api/bot');
-    if (r.status === 401) return;
+    if (r.status === 401) {
+      document.getElementById('welcome-screen').style.display = 'block';
+      return;
+    }
     const d = await r.json();
 
     if (d.configured) {

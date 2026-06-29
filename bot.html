@@ -1898,12 +1898,12 @@ body::before {
 <!-- Firebase -->
 <script type="module">
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const FIREBASE_CONFIG = {
   apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
-  authDomain:    'wick.network',
+  authDomain:    'wicknetwork.firebaseapp.com',
   projectId:     'wicknetwork',
   storageBucket: 'wicknetwork.firebasestorage.app',
 };
@@ -3375,27 +3375,14 @@ window.setBroker = function (broker) {
 };
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-// Detect in-app browsers (Claude, Twitter, Instagram, etc.) that block popups
-function isInAppBrowser() {
-  const ua = navigator.userAgent || '';
-  return /FBAN|FBAV|Instagram|Twitter|Claude|Line|WeChat|Snapchat|WebView|wv\)/i.test(ua)
-    || (window.navigator.standalone === undefined && !window.matchMedia('(display-mode: browser)').matches && /Mobile/i.test(ua));
-}
-
 document.getElementById('btn-signin').addEventListener('click', async () => {
-  if (isInAppBrowser()) {
-    signInWithRedirect(auth, provider);
-    return;
-  }
   try {
     await signInWithPopup(auth, provider);
   } catch (err) {
-    console.error('Sign-in error:', err.code);
-    signInWithRedirect(auth, provider);
+    console.error('Sign-in error:', err.code, err.message);
+    alert('Sign-in failed: ' + (err.message || 'Unknown error. Please allow popups for this site.'));
   }
 });
-
-getRedirectResult(auth).catch(() => {});
 
 document.getElementById('btn-signout').addEventListener('click', () => {
   signOut(auth);

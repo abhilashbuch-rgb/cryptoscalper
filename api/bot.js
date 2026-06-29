@@ -44,6 +44,16 @@ module.exports = async (req, res) => {
   try {
   const action = req.query?.action;
 
+  // Public diagnostic endpoint
+  if (action === 'health') {
+    try {
+      const testDoc = await db.collection('_health').doc('ping').get();
+      return res.json({ ok: true, firebase: 'connected', exists: testDoc.exists });
+    } catch (err) {
+      return res.json({ ok: false, firebase: 'error', error: err.message });
+    }
+  }
+
   // Public endpoint — no auth required
   if (action === 'live_feed') {
     try {

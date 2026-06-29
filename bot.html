@@ -1898,7 +1898,7 @@ body::before {
 <!-- Firebase -->
 <script type="module">
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const FIREBASE_CONFIG = {
@@ -3375,29 +3375,31 @@ window.setBroker = function (broker) {
 };
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-const authStatus = document.getElementById('auth-desc') || document.querySelector('.auth-desc');
-
-document.getElementById('btn-signin').addEventListener('click', async () => {
-  if (authStatus) authStatus.textContent = 'Opening sign-in...';
-  try {
-    await signInWithPopup(auth, provider);
-    if (authStatus) authStatus.textContent = 'Signed in!';
-  } catch (err) {
-    console.error('Sign-in error:', err.code, err.message);
-    if (authStatus) authStatus.textContent = 'Error: ' + (err.code || '') + ' — ' + (err.message || 'Unknown error');
-  }
-});
-
-document.getElementById('btn-signout').addEventListener('click', () => {
-  signOut(auth);
-});
-
 // Debug bar (temporary — remove after auth works)
 const _dbg = document.createElement('div');
 _dbg.id = 'auth-debug';
 _dbg.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:8px 12px;z-index:99999;max-height:120px;overflow-y:auto;';
 document.body.appendChild(_dbg);
-function dbg(msg) { _dbg.textContent = msg; console.log('[AUTH]', msg); }
+const _dbgLines = [];
+function dbg(msg) { _dbgLines.push(msg); _dbg.textContent = _dbgLines.slice(-5).join(' | '); console.log('[AUTH]', msg); }
+
+// Handle redirect result on page load (user returning from Google)
+dbg('Checking redirect result...');
+getRedirectResult(auth).then(result => {
+  if (result?.user) dbg('Redirect sign-in success: ' + result.user.email);
+  else dbg('No redirect result');
+}).catch(err => {
+  dbg('Redirect error: ' + err.code + ' ' + err.message);
+});
+
+document.getElementById('btn-signin').addEventListener('click', () => {
+  dbg('Redirecting to Google...');
+  signInWithRedirect(auth, provider);
+});
+
+document.getElementById('btn-signout').addEventListener('click', () => {
+  signOut(auth);
+});
 
 let _authFireCount = 0;
 onAuthStateChanged(auth, async user => {

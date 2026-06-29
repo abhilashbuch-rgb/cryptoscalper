@@ -3131,20 +3131,31 @@ window.wizQuickStart = async function () {
       okEl.textContent = `Wallet connected: ${d.address?.slice(0,8)}...${d.address?.slice(-4)}`;
       okEl.style.display = 'block';
     } else {
-      await apiFetch('/api/bot?action=connect', {
+      const r = await apiFetch('/api/bot?action=connect', {
         method: 'POST',
         body: JSON.stringify({ mode: 'sandbox' }),
       });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        throw new Error(d.error || 'Setup failed — server error');
+      }
     }
 
-    await apiFetch('/api/bot?action=settings', {
+    const sr = await apiFetch('/api/bot?action=settings', {
       method: 'POST',
       body: JSON.stringify({ strategy: 'negrisk_arb', risk_level: 'balanced', max_position_pct: 10 }),
     });
+    if (!sr.ok) {
+      const d = await sr.json().catch(() => ({}));
+      throw new Error(d.error || 'Failed to save settings');
+    }
 
     window._configured = true;
     btn.textContent = 'Launching dashboard...';
-    setTimeout(() => location.reload(), 800);
+    document.getElementById('wizard').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    showPanel('home');
+    loadStatus();
   } catch (err) {
     errEl.textContent = err.message;
     errEl.style.display = 'block';

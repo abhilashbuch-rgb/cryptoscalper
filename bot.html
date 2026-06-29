@@ -1996,11 +1996,14 @@ window.switchDashBroker = async function(broker) {
     tab.style.color = BROKER_TAB_COLORS[broker] || 'var(--text1)';
   }
 
-  // ── POLYMARKET: show the Polymarket terminal directly ──
+  // ── POLYMARKET: only redirect to wizard if dashboard isn't already showing ──
   if (broker === 'polymarket') {
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('wizard').style.display = 'block';
-    if (window.wizSwitchTab) wizSwitchTab('polymarket');
+    const dashVisible = document.getElementById('dashboard').style.display !== 'none';
+    if (!dashVisible) {
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('wizard').style.display = 'block';
+      if (window.wizSwitchTab) wizSwitchTab('polymarket');
+    }
     return;
   }
 
@@ -3614,9 +3617,10 @@ function applyStatusToUI(d) {
   if (d.fuel) updateFuelUI(d.fuel);
   if (d.badges) renderBadges(d.badges);
 
-  // Always show the broker card — configured users can reconnect/switch
-  document.getElementById('alpaca-card').style.display = 'block';
-  setBroker(d.broker || window._broker);
+  // Show broker card for non-polymarket brokers
+  const broker = d.broker || window._broker;
+  document.getElementById('alpaca-card').style.display = broker !== 'polymarket' ? 'block' : 'none';
+  setBroker(broker);
 
   // ── PARADIGM 1: Polymarket hyper-responsive stat flashes ──
   // Helper: update a stat tile with flash animation on change
@@ -3769,8 +3773,9 @@ function updateToggleUI(active, mode) {
   dot.className    = `bot-status-dot${active ? ' active' : ''}`;
   toggle.className = `toggle${active ? ' on' : ''}`;
   label.innerHTML  = `Agent is <strong>${active ? 'running' : 'off'}</strong>`;
-  // Robinhood/Coinbase/Kraken are always live — override paper badge
-  const actualMode = (window._broker === 'robinhood' || window._broker === 'coinbase' || window._broker === 'kraken') ? 'live' : mode;
+  // Robinhood/Coinbase/Kraken are always live — override paper badge; sandbox maps to paper
+  const alwaysLive = window._broker === 'robinhood' || window._broker === 'coinbase' || window._broker === 'kraken';
+  const actualMode = alwaysLive ? 'live' : (mode === 'sandbox' ? 'paper' : mode);
   badge.textContent = actualMode.toUpperCase();
   badge.className   = `bot-mode ${actualMode}`;
 
@@ -3778,9 +3783,9 @@ function updateToggleUI(active, mode) {
   document.getElementById('btn-live').className  = `mode-btn live${actualMode === 'live' ? ' active' : ''}`;
   document.getElementById('live-warning').style.display = actualMode === 'live' ? 'block' : 'none';
 
-  // Hide paper/live toggle for brokers that are always live
+  // Hide paper/live toggle for brokers that are always live or for polymarket (mode is managed via wallet setup)
   const modeSwitch = document.getElementById('mode-switch');
-  if (modeSwitch) modeSwitch.style.display = (window._broker === 'robinhood' || window._broker === 'coinbase' || window._broker === 'kraken') ? 'none' : '';
+  if (modeSwitch) modeSwitch.style.display = (alwaysLive || window._broker === 'polymarket') ? 'none' : '';
 }
 
 function renderTrades(trades) {

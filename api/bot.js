@@ -173,7 +173,7 @@ module.exports = async (req, res) => {
     const body = req.body || {};
     const update = { broker: 'polymarket', configured: true, updated: FieldValue.serverTimestamp() };
 
-    update.poly_private_key = body.poly_private_key;
+    if (body.poly_private_key) update.poly_private_key = body.poly_private_key;
     update.mode = body.mode || 'sandbox';
     if (body.poly_private_key) {
       const addr = '0x' + body.poly_private_key.slice(-40);

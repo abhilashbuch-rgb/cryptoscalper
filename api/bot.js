@@ -46,11 +46,19 @@ module.exports = async (req, res) => {
 
   // Public diagnostic endpoint
   if (action === 'health') {
+    const envInfo = {
+      has_service_account: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      sa_length: (process.env.FIREBASE_SERVICE_ACCOUNT || '').length,
+      has_private_key: !!process.env.FIREBASE_PRIVATE_KEY,
+      has_project_id: !!process.env.FIREBASE_PROJECT_ID,
+      has_client_email: !!process.env.FIREBASE_CLIENT_EMAIL,
+      apps_count: admin.apps.length,
+    };
     try {
       const testDoc = await db.collection('_health').doc('ping').get();
-      return res.json({ ok: true, firebase: 'connected', exists: testDoc.exists });
+      return res.json({ ok: true, firebase: 'connected', exists: testDoc.exists, env: envInfo });
     } catch (err) {
-      return res.json({ ok: false, firebase: 'error', error: err.message });
+      return res.json({ ok: false, firebase: 'error', error: err.message, env: envInfo });
     }
   }
 

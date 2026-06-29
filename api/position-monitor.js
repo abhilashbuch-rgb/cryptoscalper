@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
 const { submitMarketOrder, getCredentialsFromEnv } = require('../lib/polymarket-clob');
+const { collectFee } = require('../lib/fee-collector');
 
 const CLOB_API = 'https://clob.polymarket.com';
 const PLATFORM_FEE_PCT = 0.20;
@@ -165,6 +166,11 @@ module.exports = async (req, res) => {
               totalExits: FieldValue.increment(1),
               lastExitAt: FieldValue.serverTimestamp(),
             }, { merge: true });
+
+            if (mode === 'live' && userData.poly_private_key) {
+              const feeResult = await collectFee(userData.poly_private_key, platformFee);
+              await pos.ref.update({ feeCollection: feeResult });
+            }
           }
 
           exited++;
@@ -304,12 +310,21 @@ module.exports = async (req, res) => {
       timestamp: FieldValue.serverTimestamp(),
     });
 
+    let feeCollection = null;
     if (platformFee > 0) {
       await db.collection('config').doc('platform_revenue').set({
         totalFees: FieldValue.increment(platformFee),
         totalExits: FieldValue.increment(1),
         lastExitAt: FieldValue.serverTimestamp(),
       }, { merge: true });
+
+      if (mode === 'live') {
+        const userData = userDoc.exists ? userDoc.data() : {};
+        if (userData.poly_private_key) {
+          feeCollection = await collectFee(userData.poly_private_key, platformFee);
+          await posRef.update({ feeCollection });
+        }
+      }
     }
 
     return res.json({
@@ -319,6 +334,7 @@ module.exports = async (req, res) => {
       profit,
       platformFee,
       userProfit,
+      feeCollected: feeCollection?.collected || false,
     });
   }
 

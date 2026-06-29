@@ -3573,6 +3573,18 @@ function applyStatusToUI(d) {
   window._broker       = d.broker || 'alpaca';
   _connected           = !!d.connected;
 
+  // Update wallet status display
+  const walletStatusEl = document.getElementById('poly-wallet-status');
+  if (walletStatusEl) {
+    if (d.wallet_address) {
+      walletStatusEl.textContent = d.wallet_address.slice(0, 8) + '...' + d.wallet_address.slice(-4);
+      walletStatusEl.style.color = 'var(--green)';
+    } else if (d.configured && d.mode === 'sandbox') {
+      walletStatusEl.textContent = 'Sandbox mode ($10,000 simulated)';
+      walletStatusEl.style.color = '#4D8FFF';
+    }
+  }
+
   const tierBadge = document.getElementById('tier-badge');
   if (tierBadge) {
     if (_connected) {
@@ -3580,6 +3592,13 @@ function applyStatusToUI(d) {
       tierBadge.style.background = 'rgba(16,185,129,.12)';
       tierBadge.style.color = '#10b981';
       tierBadge.style.borderColor = 'rgba(16,185,129,.25)';
+    } else if (d.configured && d.mode === 'sandbox') {
+      tierBadge.textContent = 'SANDBOX';
+      tierBadge.style.background = 'rgba(41,98,255,.12)';
+      tierBadge.style.color = '#4D8FFF';
+      tierBadge.style.borderColor = 'rgba(41,98,255,.25)';
+      tierBadge.style.cursor = 'default';
+      tierBadge.onclick = null;
     } else {
       tierBadge.textContent = 'CONNECT WALLET';
       tierBadge.style.background = 'rgba(245,158,11,.12)';

@@ -41,6 +41,7 @@ module.exports = async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
 
+  try {
   const action = req.query?.action;
 
   // Public endpoint — no auth required
@@ -269,4 +270,9 @@ module.exports = async (req, res) => {
     available_strategies: STRATEGIES,
     selected_strategy: data.settings?.strategy || 'negrisk_arb',
   });
+
+  } catch (err) {
+    console.error('[BOT API] Unhandled error:', err);
+    return res.status(500).json({ error: err.message, stack: err.stack?.split('\n').slice(0, 3) });
+  }
 };

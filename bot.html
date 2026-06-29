@@ -3375,12 +3375,16 @@ window.setBroker = function (broker) {
 };
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+const authStatus = document.getElementById('auth-desc') || document.querySelector('.auth-desc');
+
 document.getElementById('btn-signin').addEventListener('click', async () => {
+  if (authStatus) authStatus.textContent = 'Opening sign-in...';
   try {
     await signInWithPopup(auth, provider);
+    if (authStatus) authStatus.textContent = 'Signed in!';
   } catch (err) {
     console.error('Sign-in error:', err.code, err.message);
-    alert('Sign-in failed: ' + (err.message || 'Unknown error. Please allow popups for this site.'));
+    if (authStatus) authStatus.textContent = 'Error: ' + (err.code || '') + ' — ' + (err.message || 'Unknown error');
   }
 });
 
@@ -3388,8 +3392,18 @@ document.getElementById('btn-signout').addEventListener('click', () => {
   signOut(auth);
 });
 
+// Debug bar (temporary — remove after auth works)
+const _dbg = document.createElement('div');
+_dbg.id = 'auth-debug';
+_dbg.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:8px 12px;z-index:99999;max-height:120px;overflow-y:auto;';
+document.body.appendChild(_dbg);
+function dbg(msg) { _dbg.textContent = msg; console.log('[AUTH]', msg); }
+
+let _authFireCount = 0;
 onAuthStateChanged(auth, async user => {
+  _authFireCount++;
   if (!user) {
+    dbg(`onAuthStateChanged #${_authFireCount}: NO USER`);
     document.getElementById('auth-gate').style.display  = 'flex';
     document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('wizard').style.display     = 'none';
@@ -3400,6 +3414,7 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
+  dbg(`onAuthStateChanged #${_authFireCount}: user=${user.email} — getting token...`);
   idToken = await user.getIdToken();
   _sessionLocked = false;
   document.getElementById('auth-gate').style.display  = 'none';
@@ -3416,6 +3431,7 @@ onAuthStateChanged(auth, async user => {
   if (window._autoLogout) resetInactivityTimer();
 
   // Send login notification (fire-and-forget)
+  dbg(`Calling /api/bot?action=login_notify...`);
   apiFetch('/api/bot?action=login_notify', {
     method: 'POST',
     body: JSON.stringify({ first: !window._hasLoggedBefore }),
@@ -3428,25 +3444,29 @@ onAuthStateChanged(auth, async user => {
 
   // Fetch status to decide: invite gate, wizard, or dashboard
   try {
+    dbg(`Fetching /api/bot status...`);
     const r = await apiFetch('/api/bot');
+    dbg(`/api/bot responded: status=${r.status}`);
     if (r.status === 401) {
+      dbg('API returned 401 — showing welcome screen');
       document.getElementById('welcome-screen').style.display = 'block';
       return;
     }
     const d = await r.json();
+    dbg(`configured=${d.configured}, mode=${d.mode}`);
 
     if (d.configured) {
-      // Returning user → dashboard
       document.getElementById('dashboard').style.display = 'block';
       applyStatusToUI(d);
       startPositionPolling();
+      dbg('Dashboard loaded');
     } else {
-      // New user → welcome screen
       document.getElementById('welcome-screen').style.display = 'block';
       window._pendingStatus = d;
+      dbg('Welcome screen shown (new user)');
     }
   } catch (err) {
-    // Fallback: show welcome
+    dbg(`API error: ${err.message} — showing welcome`);
     document.getElementById('welcome-screen').style.display = 'block';
   }
 });

@@ -214,12 +214,12 @@ body { font-family: 'Inter', sans-serif; background: #090C10; }
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
-  authDomain: 'wick.network',
+  authDomain: 'wicknetwork.firebaseapp.com',
   projectId: 'wicknetwork',
   storageBucket: 'wicknetwork.firebasestorage.app',
 });
@@ -234,7 +234,7 @@ const signoutBtn = document.getElementById('btn-signout');
 
 signinBtn.addEventListener('click', async () => {
   try { await signInWithPopup(auth, provider); }
-  catch { signInWithRedirect(auth, provider); }
+  catch (err) { console.error('Sign-in error:', err); }
 });
 
 getRedirectResult(auth).catch(() => {});

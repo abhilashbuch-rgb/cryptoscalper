@@ -3487,7 +3487,10 @@ onAuthStateChanged(auth, async user => {
   apiFetch('/api/bot?action=login_notify', {
     method: 'POST',
     body: JSON.stringify({ first: !window._hasLoggedBefore }),
-  }).then(() => { window._hasLoggedBefore = true; }).catch(() => {});
+  }).then(async (r) => {
+    if (!r.ok) { const e = await r.json().catch(() => ({})); dbg(`login_notify error: ${e.error || r.status}`); }
+    window._hasLoggedBefore = true;
+  }).catch(() => {});
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has('upgraded') || urlParams.has('subscribed')) {
@@ -3505,6 +3508,11 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     const d = await r.json();
+    if (d.error) {
+      dbg(`SERVER ERROR: ${d.error}`);
+      document.getElementById('welcome-screen').style.display = 'block';
+      return;
+    }
     dbg(`configured=${d.configured}, mode=${d.mode}`);
 
     if (d.configured) {

@@ -1817,27 +1817,18 @@ body::before {
 
         <div class="tile" id="fuel-card" style="background:linear-gradient(135deg, rgba(41,98,255,.04), rgba(77,143,255,.04)); border-color:rgba(41,98,255,.2);">
           <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>Balance</span>
+            <span>Performance</span>
             <span id="fuel-tier" style="font-size:10px; color:var(--green); text-transform:none; letter-spacing:0;"></span>
           </div>
           <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
             <span style="font-size:28px; font-weight:800; font-family:var(--mono); color:var(--green);" id="fuel-balance">$0</span>
             <span style="font-size:12px; color:var(--text3); font-family:var(--mono);" id="fuel-fee-rate"></span>
           </div>
-          <div style="display:flex; gap:16px; font-size:11px; font-family:var(--mono); color:var(--text3); margin-bottom:16px; flex-wrap:wrap;">
-            <span>HWM: $<span id="fuel-hwm">0</span></span>
+          <div style="display:flex; gap:16px; font-size:11px; font-family:var(--mono); color:var(--text3); margin-bottom:8px; flex-wrap:wrap;">
             <span>Fees paid: $<span id="fuel-fees-paid">0</span></span>
             <span>Total profit: $<span id="fuel-cum-profit">0</span></span>
           </div>
-          <div id="fuel-empty-warning" style="display:none; font-size:12px; color:var(--red); font-family:var(--mono); margin-bottom:12px; padding:10px; background:rgba(255,68,85,.08); border:1px solid rgba(255,68,85,.2); border-radius:6px;">
-            Fuel depleted -- agent paused. Buy fuel to resume live trading.
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="nav-btn" onclick="openFuelModal()" style="flex:1; min-width:150px; font-size:12px; border-color:rgba(41,98,255,.3); color:var(--green); padding:10px 16px;">
-              Buy Fuel (USDC)
-            </button>
-          </div>
-          <div class="form-hint" style="margin-top:8px;">Powered by Stripe. No platform deposit fee.</div>
+          <div class="form-hint" style="margin-top:4px;">20% performance fee on profitable trades only. Collected on-chain via USDC.</div>
         </div>
 
         <div class="card">
@@ -1903,23 +1894,6 @@ body::before {
 
     </div><!-- /tile-grid -->
   </div><!-- /app-shell -->
-</div>
-
-<!-- Fuel Modal (Stripe Crypto Onramp) -->
-<div id="fuel-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.7); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
-  <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; width:min(440px,92vw); max-height:90vh; overflow-y:auto; position:relative;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <span style="font-size:16px; font-weight:700; color:var(--text1);">Buy Fuel (USDC)</span>
-      <button onclick="closeFuelModal()" style="background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer; padding:4px 8px;">&times;</button>
-    </div>
-    <div id="fuel-modal-status" style="font-size:12px; font-family:var(--mono); color:var(--text2); margin-bottom:12px;">
-      Initializing Stripe Onramp...
-    </div>
-    <div id="stripe-onramp-container" style="min-height:300px; border-radius:8px; overflow:hidden;"></div>
-    <div style="font-size:11px; color:var(--text3); margin-top:12px; line-height:1.5;">
-      Fiat &rarr; USDC on Polygon via Stripe. No platform fee on deposits. Your balance updates automatically when the purchase completes.
-    </div>
-  </div>
 </div>
 
 <!-- Firebase -->
@@ -3296,86 +3270,6 @@ window.wizFinish = function () {
   document.getElementById('wizard').style.display    = 'none';
   document.getElementById('dashboard').style.display = 'block';
   loadStatus();
-};
-
-// ── Fuel: Stripe Crypto Onramp ───────────────────────────────────────────────
-window.openFuelModal = function () {
-  const user = window._firebaseAuth?.currentUser;
-  if (!user) { alert('Sign in first'); return; }
-
-  const modal = document.getElementById('fuel-modal');
-  const status = document.getElementById('fuel-modal-status');
-  const container = document.getElementById('stripe-onramp-container');
-  modal.style.display = 'flex';
-  status.textContent = 'Creating onramp session...';
-  status.style.color = 'var(--text2)';
-  container.innerHTML = '';
-
-  user.getIdToken().then(token => {
-    return fetch('/api/stripe-onramp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({})
-    });
-  }).then(r => {
-    if (!r.ok) throw new Error('Failed to create session');
-    return r.json();
-  }).then(data => {
-    status.textContent = 'Loading Stripe widget...';
-    loadStripeOnramp(data.publishableKey, data.clientSecret, container, status);
-  }).catch(err => {
-    console.error('[FUEL]', err);
-    status.textContent = 'Error: ' + err.message;
-    status.style.color = 'var(--red)';
-  });
-};
-
-function loadStripeOnramp(pk, clientSecret, container, status) {
-  if (window._stripeOnrampLoaded) {
-    mountOnramp(pk, clientSecret, container, status);
-    return;
-  }
-  const script = document.createElement('script');
-  script.src = 'https://js.stripe.com/v3/';
-  script.onload = function () {
-    window._stripeOnrampLoaded = true;
-    mountOnramp(pk, clientSecret, container, status);
-  };
-  script.onerror = function () {
-    status.textContent = 'Failed to load Stripe. Check your network.';
-    status.style.color = 'var(--red)';
-  };
-  document.head.appendChild(script);
-}
-
-function mountOnramp(pk, clientSecret, container, status) {
-  try {
-    const stripe = Stripe(pk);
-    const onramp = stripe.createCryptoOnrampSession({ clientSecret });
-    onramp.mount(container);
-    status.textContent = '';
-
-    onramp.addEventListener('onramp_session_updated', (e) => {
-      const state = e.payload?.session?.status;
-      if (state === 'fulfillment_complete') {
-        status.textContent = 'Deposit complete! Balance updating...';
-        status.style.color = 'var(--green)';
-        setTimeout(() => { closeFuelModal(); loadStatus(); }, 3000);
-      } else if (state === 'rejected') {
-        status.textContent = 'Transaction was rejected.';
-        status.style.color = 'var(--red)';
-      }
-    });
-  } catch (err) {
-    console.error('[STRIPE MOUNT]', err);
-    status.textContent = 'Failed to mount Stripe widget.';
-    status.style.color = 'var(--red)';
-  }
-}
-
-window.closeFuelModal = function () {
-  document.getElementById('fuel-modal').style.display = 'none';
-  document.getElementById('stripe-onramp-container').innerHTML = '';
 };
 
 // ── Badge rendering ───────────────────────────────────────────────────────────

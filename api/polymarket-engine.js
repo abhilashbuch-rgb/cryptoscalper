@@ -5,6 +5,7 @@ const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk'
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 const { verifyConnection, deriveApiCredentials } = require('../lib/polymarket-clob');
 const { getStrip, matchHeadline, ENTITY_ALIASES } = require('../lib/market-strip');
+const { parseJsonArray } = require('../lib/gamma-utils');
 
 const ALIAS_INDEX = new Map();
 for (const [category, aliases] of Object.entries(ENTITY_ALIASES)) {
@@ -154,12 +155,13 @@ module.exports = async (req, res) => {
         const keywords = q.split(/\s+/).filter(w => w.length > 4);
         const matched = keywords.filter(w => hlLower.includes(w));
         if (matched.length >= 2) {
-          catalysts.push({ question: mkt.question, yesPrice: parseFloat(mkt.outcomePrices?.[0] || 0.5), newsMatch: hl });
+          const outcomePrices = parseJsonArray(mkt.outcomePrices);
+          catalysts.push({ question: mkt.question, yesPrice: parseFloat(outcomePrices[0] || 0.5), newsMatch: hl });
         }
       }
 
       // Check for sum violations (basic arbitrage detection)
-      const prices = (mkt.outcomePrices || []).map(Number);
+      const prices = parseJsonArray(mkt.outcomePrices).map(Number);
       const sum = prices.reduce((a, b) => a + b, 0);
       if (Math.abs(sum - 1) > 0.03 && prices.length >= 2) {
         const edge = Math.abs(sum - 1) * 100;
@@ -242,13 +244,13 @@ module.exports = async (req, res) => {
 
     const catalysts = markets.slice(0, 5).map(m => ({
       question: m.question || '',
-      yesPrice: parseFloat(m.outcomePrices?.[0] || 0.5),
+      yesPrice: parseFloat(parseJsonArray(m.outcomePrices)[0] || 0.5),
       newsMatch: null,
     }));
 
     const arbitrage = [];
     for (const mkt of markets) {
-      const prices = (mkt.outcomePrices || []).map(Number);
+      const prices = parseJsonArray(mkt.outcomePrices).map(Number);
       const sum = prices.reduce((a, b) => a + b, 0);
       if (Math.abs(sum - 1) > 0.03) {
         arbitrage.push({

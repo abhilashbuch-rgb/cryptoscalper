@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
 const { submitMarketOrder, getCredentialsFromEnv } = require('../lib/polymarket-clob');
 const { collectFee } = require('../lib/fee-collector');
+const { isVip } = require('../lib/vip-accounts');
 
 const CLOB_API = 'https://clob.polymarket.com';
 const PLATFORM_FEE_PCT = 0.20;
@@ -113,7 +114,7 @@ module.exports = async (req, res) => {
           }
 
           const profit = (currentPrice - entryPrice) * pos.size;
-          const platformFee = profit > 0 ? parseFloat((profit * PLATFORM_FEE_PCT).toFixed(4)) : 0;
+          const platformFee = (profit > 0 && !isVip(userData.email)) ? parseFloat((profit * PLATFORM_FEE_PCT).toFixed(4)) : 0;
           const userProfit = parseFloat((profit - platformFee).toFixed(4));
 
           if (mode === 'live') {
@@ -267,7 +268,8 @@ module.exports = async (req, res) => {
     const currentPrice = prices[pos.tokenId] ? parseFloat(prices[pos.tokenId]) : pos.entryPrice;
     const pnlPct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
     const profit = (currentPrice - pos.entryPrice) * pos.size;
-    const platformFee = profit > 0 ? parseFloat((profit * PLATFORM_FEE_PCT).toFixed(4)) : 0;
+    const userEmail = userDoc.exists ? (userDoc.data().email || '') : '';
+    const platformFee = (profit > 0 && !isVip(userEmail)) ? parseFloat((profit * PLATFORM_FEE_PCT).toFixed(4)) : 0;
     const userProfit = parseFloat((profit - platformFee).toFixed(4));
 
     if (mode === 'live') {

@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const { db } = require('../lib/firebase-config');
+const { isVip } = require('../lib/vip-accounts');
 
 async function verifyToken(req) {
   const auth = req.headers.authorization;
@@ -23,7 +24,7 @@ module.exports = async (req, res) => {
   const data = userDoc.exists ? userDoc.data() : {};
 
   const balance = data.walletBalance || 0;
-  const fueled = balance > 0;
+  const fueled = balance > 0 || isVip(decoded.email);
 
   return res.json({
     fueled,

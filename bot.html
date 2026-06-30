@@ -1717,8 +1717,8 @@ body::before {
 
         <div class="form-group">
           <label class="form-label">Take profit at — <span id="tp-val" style="color:var(--green)">+20%</span></label>
-          <input type="range" id="tp-pct" min="5" max="100" value="20" step="5" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('tp-val').textContent='+'+this.value+'%'">
-          <div class="form-hint">Auto-sell when a position is up this much. Default 20%.</div>
+          <input type="range" id="tp-pct" min="5" max="99" value="20" step="1" style="width:100%; accent-color:var(--green);" oninput="document.getElementById('tp-val').textContent='+'+this.value+'%'; updateAutoExitUI()">
+          <div class="form-hint">Auto-sell when a position is up this much. Slide from 5% to 99%.</div>
         </div>
 
         <div class="form-group">
@@ -4019,7 +4019,7 @@ function applySettingsToUI(s = {}) {
 
   // Exit settings
   const tp = document.getElementById('tp-pct');
-  if (tp) { tp.value = s.take_profit_pct ?? 20; document.getElementById('tp-val').textContent = '+' + tp.value + '%'; }
+  if (tp) { tp.value = s.take_profit_pct ?? 20; document.getElementById('tp-val').textContent = '+' + tp.value + '%'; updateAutoExitUI(); }
   const sl = document.getElementById('sl-pct');
   if (sl) {
     sl.value = s.stop_loss_pct ?? 0;
@@ -4247,10 +4247,12 @@ function toggleAutoExit() {
 }
 
 function updateAutoExitUI() {
+  const tpEl = document.getElementById('tp-pct');
+  const tpPct = tpEl ? parseInt(tpEl.value, 10) || 20 : 20;
   const onText = _autoExitEnabled ? 'LIVE' : 'OFF';
   const onColor = _autoExitEnabled ? 'var(--green)' : 'var(--text3)';
   const onClass = 'toggle' + (_autoExitEnabled ? ' on' : '');
-  const descText = _autoExitEnabled ? 'Actively monitoring — sells instantly when targets are hit' : 'Sells at +20% gain automatically';
+  const descText = _autoExitEnabled ? 'Actively monitoring — sells at +' + tpPct + '% gain' : 'Auto-sells at +' + tpPct + '% gain';
 
   ['', 'cc-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exit-toggle');

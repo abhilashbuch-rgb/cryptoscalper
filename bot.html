@@ -1885,7 +1885,7 @@ body::before {
 <!-- Firebase -->
 <script type="module">
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const FIREBASE_CONFIG = {
@@ -1899,6 +1899,9 @@ const app      = initializeApp(FIREBASE_CONFIG);
 const auth     = getAuth(app);
 window._firebaseAuth = auth;
 let   idToken  = null;
+
+// Process any pending redirect result — triggers onAuthStateChanged automatically
+getRedirectResult(auth).catch(() => {});
 
 // ── Global state ──────────────────────────────────────────────────────────────
 window._botActive  = false;
@@ -3377,13 +3380,9 @@ function dbg(msg) { console.log('[WICK]', msg); }
 
 const provider = new GoogleAuthProvider();
 
-document.getElementById('btn-signin').addEventListener('click', async () => {
-  try {
-    await signInWithPopup(auth, provider);
-    dbg('Firebase sign-in success!');
-  } catch (err) {
-    dbg('Firebase error: ' + err.code + ' ' + err.message);
-  }
+document.getElementById('btn-signin').addEventListener('click', () => {
+  dbg('Redirecting to Google sign-in…');
+  signInWithRedirect(auth, provider);
 });
 
 document.getElementById('btn-signout').addEventListener('click', () => {

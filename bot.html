@@ -2072,7 +2072,7 @@ body::before {
 <!-- Firebase -->
 <script type="module">
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence }
                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const FIREBASE_CONFIG = {
@@ -2086,6 +2086,9 @@ const app      = initializeApp(FIREBASE_CONFIG);
 const auth     = getAuth(app);
 window._firebaseAuth = auth;
 let   idToken  = null;
+
+// Ensure auth state persists across redirects on mobile browsers
+setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 // Process any pending redirect result — triggers onAuthStateChanged automatically
 getRedirectResult(auth).catch(err => {
@@ -3582,7 +3585,14 @@ const provider = new GoogleAuthProvider();
 
 document.getElementById('btn-signin').addEventListener('click', () => {
   dbg('Redirecting to Google sign-in…');
-  signInWithRedirect(auth, provider);
+  const btn = document.getElementById('btn-signin');
+  const desc = document.querySelector('.auth-desc');
+  if (btn) btn.disabled = true;
+  signInWithRedirect(auth, provider).catch(err => {
+    console.error('[WICK] signInWithRedirect error:', err.code, err.message);
+    if (btn) btn.disabled = false;
+    if (desc) desc.textContent = 'Sign-in error: ' + (err.code || err.message) + '. Check your network and try again.';
+  });
 });
 
 document.getElementById('btn-signout').addEventListener('click', () => {

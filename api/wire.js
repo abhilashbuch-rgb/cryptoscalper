@@ -6,7 +6,7 @@ const { submitMarketOrder, getCredentialsFromEnv } = require('../lib/polymarket-
 const WIRE_SECRET = process.env.WIRE_WEBHOOK_SECRET;
 const WIRE_LEG_SIZE = parseInt(process.env.WIRE_LEG_SIZE || '25', 10);
 const WIRE_MIN_SCORE = parseInt(process.env.WIRE_MIN_SCORE || '3', 10);
-const PLATFORM_FEE_PCT = 0.20;
+const PLATFORM_FEE_PCT = 0.10;
 
 function verifySignature(req) {
   if (!WIRE_SECRET) return true;

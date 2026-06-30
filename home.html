@@ -237,7 +237,7 @@ setInterval(refreshRecentCatches, 4000);
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
@@ -253,20 +253,14 @@ const msg = document.getElementById('msg');
 const signinBtn = document.getElementById('btn-signin');
 const signoutBtn = document.getElementById('btn-signout');
 
-let _justSignedIn = false;
+// Process any pending redirect result on page load (fires onAuthStateChanged automatically)
+getRedirectResult(auth).catch(() => {});
 
-async function doSignIn() {
-  try {
-    _justSignedIn = true;
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    _justSignedIn = false;
-    console.error('Sign-in error:', err);
-    if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-      msg.textContent = 'Sign-in failed. Please try again.';
-      msg.className = 'error';
-    }
-  }
+function doSignIn() {
+  sessionStorage.setItem('_wick_justSignedIn', '1');
+  msg.textContent = 'Redirecting to Google…';
+  msg.className = 'approved';
+  signInWithRedirect(auth, provider);
 }
 
 signinBtn.addEventListener('click', doSignIn);
@@ -284,9 +278,10 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  if (_justSignedIn) {
-    // Fresh sign-in this session — redirect to dashboard
-    _justSignedIn = false;
+  const justSignedIn = sessionStorage.getItem('_wick_justSignedIn') === '1';
+  if (justSignedIn) {
+    // Fresh sign-in — redirect to dashboard
+    sessionStorage.removeItem('_wick_justSignedIn');
     msg.className = 'approved';
     msg.textContent = 'Signed in. Redirecting…';
     try {
@@ -298,11 +293,8 @@ onAuthStateChanged(auth, async user => {
     } catch {}
     window.location.replace('/bot');
   } else {
-    // Returning user with cached session — show the page, offer dashboard link
-    document.getElementById('signin-state').style.display = 'none';
-    document.getElementById('signedin-state').style.display = '';
-    const emailEl = document.getElementById('signedin-email');
-    if (emailEl) emailEl.textContent = user.email;
+    // Returning user with cached session — redirect straight to dashboard
+    window.location.replace('/bot');
   }
 });
 </script>

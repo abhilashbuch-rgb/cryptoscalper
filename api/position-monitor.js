@@ -5,7 +5,7 @@ const { collectFee } = require('../lib/fee-collector');
 const { isVip } = require('../lib/vip-accounts');
 
 const CLOB_API = 'https://clob.polymarket.com';
-const PLATFORM_FEE_PCT = 0.20;
+const PLATFORM_FEE_PCT = 0.10;
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

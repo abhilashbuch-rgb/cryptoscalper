@@ -22,6 +22,8 @@ function extractHeadline(body) {
     try { body = JSON.parse(body); } catch { return body.slice(0, 500); }
   }
 
+  if (!body || typeof body !== 'object') return null;
+
   return body.headline
     || body.title
     || body.text

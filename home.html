@@ -139,45 +139,16 @@ body { font-family: 'Inter', sans-serif; background: #090C10; }
     </div>
   </section>
 
-  <!-- ═══ RECENT CATCHES (expired anomalies — proof, not alpha) ═══ -->
+  <!-- ═══ RECENT CATCHES (live feed from the detection engine) ═══ -->
   <section class="section fade-up d3" style="border-color:rgba(41,98,255,.08)">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-bold text-white">Recent catches</h2>
-      <span class="text-[9px] text-slate-600 font-mono tracking-wider">EXPIRED — NOT TRADEABLE</span>
+      <span id="catches-status" class="text-[9px] text-slate-600 font-mono tracking-wider">SCANNING…</span>
     </div>
     <div id="recent-catches" class="space-y-2">
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
-        <div>
-          <div class="text-[11px] text-slate-400 font-medium">NegRisk Arb — basket sum 1.07</div>
-          <div class="text-[9px] text-slate-600 font-mono">Caught 14s before market repriced</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-emerald-400 font-bold font-mono">+$38/leg</div>
-          <div class="text-[9px] text-slate-600">expired</div>
-        </div>
-      </div>
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
-        <div>
-          <div class="text-[11px] text-slate-400 font-medium">News-lag — ESPN goal, odds stale</div>
-          <div class="text-[9px] text-slate-600 font-mono">Caught 8s before market repriced</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-emerald-400 font-bold font-mono">+$52/leg</div>
-          <div class="text-[9px] text-slate-600">expired</div>
-        </div>
-      </div>
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
-        <div>
-          <div class="text-[11px] text-slate-400 font-medium">Catalyst — SEC filing, market lagging</div>
-          <div class="text-[9px] text-slate-600 font-mono">Caught 22s before market repriced</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-emerald-400 font-bold font-mono">+$19/leg</div>
-          <div class="text-[9px] text-slate-600">expired</div>
-        </div>
-      </div>
+      <div class="text-[11px] text-slate-600 text-center py-3">Scanning Polymarket for mispricings…</div>
     </div>
-    <p class="text-[10px] text-slate-700 mt-3">These anomalies already expired. Connect your Polymarket wallet to catch the next one live.</p>
+    <p class="text-[10px] text-slate-700 mt-3">This feed updates live. Connect your Polymarket wallet to catch the next one.</p>
   </section>
 
   <!-- ═══ CONNECT ═══ -->
@@ -218,6 +189,51 @@ body { font-family: 'Inter', sans-serif; background: #090C10; }
 </p>
 
 <!-- ═══ JS ═══ -->
+
+<script>
+const ANOMALY_TYPE_LABELS = { NEGRISK_ARB: 'NegRisk Arb', NEWS_LAG: 'News-lag', CATALYST: 'Catalyst' };
+
+async function refreshRecentCatches() {
+  const list = document.getElementById('recent-catches');
+  const status = document.getElementById('catches-status');
+  try {
+    const res = await fetch('/api/bot?action=live_feed');
+    const data = await res.json();
+    const catches = data.catches || [];
+
+    if (catches.length === 0) {
+      list.innerHTML = '<div class="text-[11px] text-slate-600 text-center py-3">Scanning Polymarket for mispricings…</div>';
+      status.textContent = 'SCANNING…';
+      return;
+    }
+
+    const anyLive = catches.some(c => c.live);
+    status.textContent = anyLive ? 'LIVE' : 'RECENT';
+    status.style.color = anyLive ? '#4ade80' : '';
+
+    list.innerHTML = catches.map(c => {
+      const typeLabel = ANOMALY_TYPE_LABELS[c.anomalyType] || c.anomalyType;
+      const agoText = c.agoSeconds < 1 ? 'just now' : c.agoSeconds + 's ago';
+      return `
+        <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
+          <div>
+            <div class="text-[11px] text-slate-400 font-medium">${typeLabel} — ${c.bracket}</div>
+            <div class="text-[9px] text-slate-600 font-mono">Caught ${agoText} · ${c.edgePct}% edge</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[11px] text-emerald-400 font-bold font-mono">+$${Number(c.expectedProfit).toFixed(2)}/leg</div>
+            <div class="text-[9px]" style="color:${c.live ? '#4ade80' : '#475569'}">${c.live ? 'live' : 'expired'}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch {
+    status.textContent = 'OFFLINE';
+  }
+}
+refreshRecentCatches();
+setInterval(refreshRecentCatches, 4000);
+</script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';

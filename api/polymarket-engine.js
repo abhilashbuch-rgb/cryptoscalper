@@ -467,7 +467,7 @@ module.exports = async (req, res) => {
       return res.json({ verdict: 'RISK_HALT', reason: riskBounds.reasoning_brief });
     }
 
-    if (walletBalance < 500) {
+    if (walletBalance < 500 && mode !== 'sandbox') {
       return res.json({ verdict: 'CRITICAL_STANDBY', walletBalance });
     }
 

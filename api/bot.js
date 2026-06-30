@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const { db, FieldValue } = require('../lib/firebase-config');
+const { db, FieldValue, _initError } = require('../lib/firebase-config');
 const { waitlistNotification, inviteRedeemedNotification, newUserLoginNotification, walletConnectedNotification, sendWelcomeEmail, syncResendContact } = require('../lib/notify-admin');
 
 const STRATEGIES = [
@@ -46,11 +46,25 @@ module.exports = async (req, res) => {
 
   // Public diagnostic endpoint
   if (action === 'health') {
+    const pk = process.env.FIREBASE_PRIVATE_KEY || '';
+    const envInfo = {
+      has_service_account: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      has_private_key: !!pk,
+      pk_length: pk.length,
+      pk_has_begin: pk.includes('-----BEGIN'),
+      pk_has_real_newlines: pk.includes('\n'),
+      pk_has_escaped_newlines: pk.includes('\\n'),
+      pk_first_30: pk.slice(0, 30),
+      has_project_id: !!process.env.FIREBASE_PROJECT_ID,
+      has_client_email: !!process.env.FIREBASE_CLIENT_EMAIL,
+      apps_count: admin.apps.length,
+      init_error: _initError,
+    };
     try {
       const testDoc = await db.collection('_health').doc('ping').get();
-      return res.json({ ok: true, firebase: 'connected', exists: testDoc.exists });
+      return res.json({ ok: true, firebase: 'connected', exists: testDoc.exists, env: envInfo });
     } catch (err) {
-      return res.json({ ok: false, firebase: 'error', error: err.message });
+      return res.json({ ok: false, firebase: 'error', error: err.message, env: envInfo });
     }
   }
 
@@ -185,7 +199,7 @@ module.exports = async (req, res) => {
     const body = req.body || {};
     const update = { broker: 'polymarket', configured: true, updated: FieldValue.serverTimestamp() };
 
-    update.poly_private_key = body.poly_private_key;
+    if (body.poly_private_key) update.poly_private_key = body.poly_private_key;
     update.mode = body.mode || 'sandbox';
     if (body.poly_private_key) {
       const addr = '0x' + body.poly_private_key.slice(-40);
@@ -260,7 +274,7 @@ module.exports = async (req, res) => {
   const totalPnl = recentTrades.reduce((s, t) => s + (t.pnl || 0), 0);
 
   const fuel = data.fuel || {
-    balance: 0, tier_label: 'Free', fee_pct: 20,
+    balance: 0, tier_label: 'Free', fee_pct: 10,
     high_water_mark: 0, total_fees_paid: 0,
     cumulative_profit: 0, referral_code: uid.slice(0, 8),
     paused_reason: null,

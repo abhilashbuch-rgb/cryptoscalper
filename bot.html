@@ -1782,6 +1782,18 @@ body::before {
       </div>
       <div id="auto-exit-status" style="display:none;font-size:10px;color:var(--green);font-family:var(--mono);margin-bottom:10px;padding:6px 10px;background:rgba(16,185,129,.08);border-radius:6px;text-align:center"></div>
 
+      <!-- Auto-Execute Toggle -->
+      <div style="background:linear-gradient(135deg, rgba(245,158,11,.06), rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXECUTE <span style="font-size:9px;color:#f59e0b;font-weight:400">(50% FEE)</span></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px" id="auto-exec-desc">When a play expires unacted, WICK trades it — 50% fee applies</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="auto-exec-label">OFF</span>
+          <div class="toggle" id="auto-exec-toggle" onclick="toggleAutoExecute()" style="flex-shrink:0"></div>
+        </div>
+      </div>
+
       <div id="positions-body" style="display:flex;flex-direction:column;gap:8px">
         <div class="empty-state" style="padding:16px;font-size:12px;color:var(--text3)">No open positions. Trades will appear here when you execute a strike.</div>
       </div>
@@ -2076,7 +2088,13 @@ window._firebaseAuth = auth;
 let   idToken  = null;
 
 // Process any pending redirect result — triggers onAuthStateChanged automatically
-getRedirectResult(auth).catch(() => {});
+getRedirectResult(auth).catch(err => {
+  if (err && err.code) {
+    console.error('[WICK] Sign-in error:', err.code, err.message);
+    const desc = document.querySelector('.auth-desc');
+    if (desc) desc.textContent = 'Sign-in failed (' + err.code + '). Please try again.';
+  }
+});
 
 // ── Global state ──────────────────────────────────────────────────────────────
 window._botActive  = false;
@@ -2974,6 +2992,10 @@ function streamAddCard(d) {
         </button>`
     }
     <div class="timer-bar" id="bar-${id}" style="width:100%"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span id="fee-label-${id}" style="font-family:var(--mono);font-size:7px;color:#475569;letter-spacing:.06em">10% FEE</span>
+      <span id="auto-exec-badge-${id}" style="display:none;font-family:var(--mono);font-size:7px;font-weight:700;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:1px 5px;border-radius:3px">AUTO-EXECUTE ON</span>
+    </div>
   `;
   container.appendChild(card);
 
@@ -3001,21 +3023,24 @@ function streamAddCard(d) {
       timerEl.textContent = secs;
       barEl.style.width = ((secs / ttl) * 100) + '%';
 
+      const autoExecBadge = document.getElementById('auto-exec-badge-' + id);
+      if (autoExecBadge) autoExecBadge.style.display = _autoExecuteEnabled ? '' : 'none';
+
       if (secs <= Math.floor(ttl * 0.33)) {
         timerEl.style.color = '#f43f5e';
         barEl.className = 'timer-bar crit';
         if (strikeBtn) strikeBtn.className = 'strike-btn crit-phase';
-        if (feeLabel) feeLabel.textContent = '50% FEE';
+        if (feeLabel) { feeLabel.textContent = _autoExecuteEnabled ? '50% FEE (AUTO)' : '10% FEE'; feeLabel.style.color = _autoExecuteEnabled ? '#f43f5e' : '#475569'; }
       } else if (secs <= Math.floor(ttl * 0.66)) {
         timerEl.style.color = '#f59e0b';
         barEl.className = 'timer-bar warn';
         if (strikeBtn) strikeBtn.className = 'strike-btn warn-phase';
-        if (feeLabel) feeLabel.textContent = '35% FEE';
+        if (feeLabel) { feeLabel.textContent = '10% FEE'; feeLabel.style.color = '#475569'; }
       }
 
       if (secs <= 0) {
         clearInterval(cardData.timer);
-        if (_connected) {
+        if (_connected && _autoExecuteEnabled) {
           streamAutoExecute(id);
         } else {
           const cardEl = document.getElementById('anom-' + id);
@@ -3569,7 +3594,7 @@ onAuthStateChanged(auth, async user => {
   _authFireCount++;
   if (!user) {
     dbg(`onAuthStateChanged #${_authFireCount}: NO USER`);
-    document.getElementById('auth-gate').style.display  = 'flex';
+    document.getElementById('auth-gate').style.display  = 'block';
     document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('wizard').style.display     = 'none';
     document.getElementById('dashboard').style.display  = 'none';
@@ -4122,6 +4147,10 @@ function applySettingsToUI(s = {}) {
   _autoExitEnabled = !!s.auto_exit_enabled;
   updateAutoExitUI();
 
+  // Auto-execute toggle
+  _autoExecuteEnabled = !!s.auto_execute_enabled;
+  updateAutoExecuteUI();
+
   // Exit settings
   const tp = document.getElementById('tp-pct');
   if (tp) { tp.value = s.take_profit_pct ?? 20; document.getElementById('tp-val').textContent = '+' + tp.value + '%'; updateAutoExitUI(); }
@@ -4195,6 +4224,7 @@ window.saveSettings = async function () {
     take_profit_pct: parseInt(document.getElementById('tp-pct').value, 10),
     stop_loss_pct:   parseInt(document.getElementById('sl-pct').value, 10) || null,
     auto_exit_enabled: _autoExitEnabled,
+    auto_execute_enabled: _autoExecuteEnabled,
     signal_weights: {
       tech:       parseInt(document.getElementById('w-tech').value, 10),
       reddit:     parseInt(document.getElementById('w-reddit').value, 10),
@@ -4220,6 +4250,7 @@ window.saveSettings = async function () {
 // ── Position monitoring with auto-exit ──
 let _positionTimer = null;
 let _autoExitEnabled = false;
+let _autoExecuteEnabled = false;
 let _autoExitPending = new Set();
 
 async function loadPositions() {
@@ -4385,6 +4416,30 @@ function stopPositionPolling() {
 function restartPositionPolling() {
   stopPositionPolling();
   startPositionPolling();
+}
+
+window.toggleAutoExecute = function() {
+  _autoExecuteEnabled = !_autoExecuteEnabled;
+  updateAutoExecuteUI();
+  apiFetch('/api/bot?action=settings', {
+    method: 'POST',
+    body: JSON.stringify({ auto_execute_enabled: _autoExecuteEnabled }),
+  }).catch(() => {});
+};
+
+function updateAutoExecuteUI() {
+  const onText = _autoExecuteEnabled ? 'ON' : 'OFF';
+  const onColor = _autoExecuteEnabled ? '#f59e0b' : 'var(--text3)';
+  const onClass = 'toggle' + (_autoExecuteEnabled ? ' on' : '');
+  const descText = _autoExecuteEnabled
+    ? 'ACTIVE — expired plays execute automatically at 50% fee'
+    : 'When a play expires unacted, WICK trades it — 50% fee applies';
+  const toggle = document.getElementById('auto-exec-toggle');
+  const label = document.getElementById('auto-exec-label');
+  const desc = document.getElementById('auto-exec-desc');
+  if (toggle) toggle.className = onClass;
+  if (label) { label.textContent = onText; label.style.color = onColor; }
+  if (desc) desc.textContent = descText;
 }
 
 // Dashboard broker connect

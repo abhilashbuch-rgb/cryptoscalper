@@ -391,6 +391,11 @@ body::before {
 
 /* ── Auth gate ── */
 #auth-gate {
+  display: block;
+  position: relative;
+  background: #090C10;
+}
+.auth-hero {
   display: flex; align-items: center; justify-content: center;
   min-height: 100vh; position: relative; overflow: hidden;
 }
@@ -462,6 +467,45 @@ body::before {
   transition: opacity .15s;
 }
 .btn-google:hover { opacity: .9; }
+
+/* ── Auth-gate marketing sections ── */
+.auth-sections {
+  max-width: 680px; margin: 0 auto; padding: 0 20px 60px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.auth-section {
+  background: #0D1117; border: 1px solid rgba(148,163,184,.06);
+  border-radius: 16px; padding: 28px;
+}
+.auth-section-title { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 10px; }
+.auth-section p { font-size: 13px; color: #64748b; line-height: 1.65; }
+.auth-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.auth-chip {
+  font-size: 10px; color: #475569; border: 1px solid rgba(148,163,184,.1);
+  border-radius: 6px; padding: 3px 8px; font-family: var(--mono);
+}
+.auth-chip.amber { color: rgba(251,191,36,.6); border-color: rgba(245,158,11,.15); }
+.auth-chip.green { color: rgba(52,211,153,.7); border-color: rgba(16,185,129,.15); }
+.auth-how-step { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: #64748b; margin-bottom: 10px; }
+.auth-how-step span:first-child { color: #3b82f6; flex-shrink: 0; }
+.auth-catches-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.auth-catch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.04);
+}
+.auth-catch-label { font-size: 11px; color: #94a3b8; font-weight: 500; }
+.auth-catch-meta { font-size: 9px; color: #475569; font-family: var(--mono); margin-top: 2px; }
+.auth-catch-profit { font-size: 11px; color: #34d399; font-weight: 700; font-family: var(--mono); }
+.auth-catch-status { font-size: 9px; }
+.auth-gate-footer {
+  max-width: 680px; margin: 0 auto; padding: 16px 20px 32px;
+  border-top: 1px solid rgba(148,163,184,.06);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; color: #334155;
+}
+.auth-gate-footer a { color: #475569; text-decoration: none; }
+.auth-gate-footer a:hover { color: #94a3b8; }
 
 /* ── Welcome screen ── */
 #welcome-screen { display: none; }
@@ -1034,6 +1078,7 @@ body::before {
 
 <!-- Auth gate -->
 <div id="auth-gate">
+  <div class="auth-hero">
   <!-- Animated mosaic background -->
   <div id="auth-mosaic"></div>
 
@@ -1095,6 +1140,104 @@ body::before {
       </div>
     </div>
   </div>
+  </div><!-- end .auth-hero -->
+
+  <!-- ═══ Marketing sections (from landing page) ═══ -->
+  <div class="auth-sections">
+
+    <!-- Hero copy + data sources -->
+    <div class="auth-section">
+      <div class="auth-section-title">Your Polymarket edge. WICK finds mispricings. You strike in one click.</div>
+      <p>Connect your Polymarket wallet. Same markets, same funds — WICK just shows you where the odds are wrong before everyone else sees it.</p>
+      <div class="auth-chips">
+        <span class="auth-chip">REUTERS</span>
+        <span class="auth-chip">ESPN</span>
+        <span class="auth-chip">AP NEWS</span>
+        <span class="auth-chip">SEC EDGAR</span>
+        <span class="auth-chip">GOOGLE NEWS</span>
+        <span class="auth-chip">REDDIT</span>
+        <span class="auth-chip">FIFA</span>
+      </div>
+    </div>
+
+    <!-- World Cup -->
+    <div class="auth-section" style="border-color:rgba(234,179,8,.12);background:linear-gradient(135deg,#0D1117 0%,#111a2e 100%)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span style="font-size:32px">🏆</span>
+        <div>
+          <div class="auth-section-title" style="margin-bottom:2px">FIFA World Cup 2026</div>
+          <div style="font-size:11px;color:rgba(251,191,36,.7)">Live anomaly detection — active now</div>
+        </div>
+      </div>
+      <p>Goals, red cards, upsets — WICK scans ESPN and match feeds in real-time. When a result happens and Polymarket odds haven't caught up, you see it first.</p>
+      <div class="auth-chips">
+        <span class="auth-chip amber">32 TEAMS</span>
+        <span class="auth-chip amber">LIVE SCORES</span>
+        <span class="auth-chip amber">MATCH ODDS</span>
+        <span class="auth-chip amber">GROUP STAGE</span>
+      </div>
+    </div>
+
+    <!-- Your edge -->
+    <div class="auth-section" style="border-color:rgba(16,185,129,.1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div class="auth-section-title" style="margin-bottom:0">Your edge on Polymarket</div>
+      </div>
+      <p>WICK is a trading overlay for Polymarket. Connect your existing wallet and keep trading the same markets — WICK just shows you where the odds are wrong before everyone else sees it.</p>
+      <div class="auth-chips">
+        <span class="auth-chip green">SAME WALLET</span>
+        <span class="auth-chip green">SAME FUNDS</span>
+        <span class="auth-chip green">SAME MARKETS</span>
+        <span class="auth-chip green">NON-CUSTODIAL</span>
+      </div>
+      <p style="font-size:11px;color:#334155;margin-top:10px">Your Polymarket wallet connects directly. WICK places trades on the Polymarket CLOB on your behalf — we can never withdraw your funds.</p>
+    </div>
+
+    <!-- Math not hype -->
+    <div class="auth-section" style="border-color:rgba(59,130,246,.08)">
+      <div class="auth-section-title">Math, not hype</div>
+      <p>WICK doesn't predict the future. It finds mathematical mispricings in prediction markets — when the sum of all outcomes costs more or less than it should, that's an arbitrage, not a guess.</p>
+      <div style="margin-top:14px">
+        <div class="auth-how-step"><span>1.</span><span>Breaking news hits — a goal, an indictment, an earnings miss</span></div>
+        <div class="auth-how-step"><span>2.</span><span>WICK scans Polymarket odds against real-world events in real-time</span></div>
+        <div class="auth-how-step"><span>3.</span><span>When odds lag behind reality, WICK surfaces the anomaly with a probability delta</span></div>
+        <div class="auth-how-step" style="margin-bottom:0"><span>4.</span><span>You confirm or skip — WICK never trades without your approval</span></div>
+      </div>
+    </div>
+
+    <!-- Recent catches -->
+    <div class="auth-section" style="border-color:rgba(41,98,255,.08)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="auth-section-title" style="margin-bottom:0">Recent catches</div>
+        <span id="ag-catches-status" style="font-size:9px;color:#334155;font-family:var(--mono);letter-spacing:.1em">SCANNING…</span>
+      </div>
+      <div id="ag-catches-list" class="auth-catches-list">
+        <div style="font-size:11px;color:#334155;text-align:center;padding:12px 0">Scanning Polymarket for mispricings…</div>
+      </div>
+      <p style="font-size:10px;color:#334155;margin-top:10px">This feed updates live. Sign in to catch the next one.</p>
+    </div>
+
+    <!-- Risk disclosure -->
+    <div class="auth-section" style="border-color:rgba(248,113,113,.08)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div style="font-size:13px;font-weight:700;color:rgba(248,113,113,.8)">Risk disclosure</div>
+      </div>
+      <p style="font-size:11px">Prediction market trading involves substantial risk of loss. Past performance does not guarantee future results. WICK is automated trading software, not a financial advisor. We do not guarantee profits, returns, or win rates. Only trade with funds you can afford to lose entirely.</p>
+    </div>
+
+  </div><!-- end .auth-sections -->
+
+  <!-- Footer -->
+  <div class="auth-gate-footer">
+    <span>© 2026 WICK.NETWORK</span>
+    <div style="display:flex;gap:16px">
+      <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1123,6 +1266,38 @@ body::before {
     if (warn) warn.style.display = 'block';
     if (normal) normal.style.display = 'none';
   }
+})();
+
+// Recent catches feed (auth-gate only)
+(function() {
+  const LABELS = { NEGRISK_ARB: 'NegRisk Arb', NEWS_LAG: 'News-lag', CATALYST: 'Catalyst' };
+  async function refreshCatches() {
+    const list = document.getElementById('ag-catches-list');
+    const status = document.getElementById('ag-catches-status');
+    if (!list) return;
+    try {
+      const res = await fetch('/api/bot?action=live_feed');
+      const data = await res.json();
+      const catches = data.catches || [];
+      if (!catches.length) { status.textContent = 'SCANNING…'; return; }
+      const anyLive = catches.some(c => c.live);
+      status.textContent = anyLive ? 'LIVE' : 'RECENT';
+      status.style.color = anyLive ? '#4ade80' : '';
+      list.innerHTML = catches.map(c => `
+        <div class="auth-catch-row">
+          <div>
+            <div class="auth-catch-label">${LABELS[c.anomalyType] || c.anomalyType} — ${c.bracket}</div>
+            <div class="auth-catch-meta">Caught ${c.agoSeconds < 1 ? 'just now' : c.agoSeconds + 's ago'} · ${c.edgePct}% edge</div>
+          </div>
+          <div style="text-align:right">
+            <div class="auth-catch-profit">+$${Number(c.expectedProfit).toFixed(2)}/leg</div>
+            <div class="auth-catch-status" style="color:${c.live ? '#4ade80' : '#475569'}">${c.live ? 'live' : 'expired'}</div>
+          </div>
+        </div>`).join('');
+    } catch { if (status) status.textContent = 'OFFLINE'; }
+  }
+  refreshCatches();
+  setInterval(refreshCatches, 4000);
 })();
 </script>
 

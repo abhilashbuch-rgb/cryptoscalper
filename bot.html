@@ -1084,7 +1084,6 @@ body::before {
         <div id="normal-signin">
           <div class="auth-title">Get started</div>
           <div class="auth-desc">Sign in with Google to create your account.</div>
-          <div id="google-btn-container" style="display:flex;justify-content:center;margin-bottom:8px;"></div>
           <button class="btn-google" id="btn-signin">
             <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
             Continue with Google
@@ -1883,16 +1882,11 @@ body::before {
   </div><!-- /app-shell -->
 </div>
 
-<!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
 <!-- Firebase -->
 <script type="module">
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-
-const GOOGLE_CLIENT_ID = '32158118227-laakojkl9m3li4sp1u2clt3g9l47brsv.apps.googleusercontent.com';
 
 const FIREBASE_CONFIG = {
   apiKey:        'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
@@ -3378,70 +3372,22 @@ window.setBroker = function (broker) {
   document.getElementById('connect-success').style.display = 'none';
 };
 
-// ── Auth (Google Identity Services → Firebase) ──────────────────────────────
+// ── Auth (Firebase signInWithPopup) ──────────────────────────────
 function dbg(msg) { console.log('[WICK]', msg); }
 
-// Google credential → Firebase sign-in
-window._handleGoogleCredential = async function(response) {
-  dbg('Got Google credential, signing into Firebase...');
+const provider = new GoogleAuthProvider();
+
+document.getElementById('btn-signin').addEventListener('click', async () => {
   try {
-    const credential = GoogleAuthProvider.credential(response.credential);
-    await signInWithCredential(auth, credential);
+    await signInWithPopup(auth, provider);
     dbg('Firebase sign-in success!');
   } catch (err) {
     dbg('Firebase error: ' + err.code + ' ' + err.message);
-  }
-};
-
-// Initialize Google Identity Services
-function initGIS() {
-  if (!window.google?.accounts?.id) {
-    setTimeout(initGIS, 200);
-    return;
-  }
-  dbg('GIS loaded');
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: window._handleGoogleCredential,
-    auto_select: true,
-  });
-}
-initGIS();
-
-// Replace the custom button with Google's rendered button
-function renderGoogleButton() {
-  if (!window.google?.accounts?.id) {
-    setTimeout(renderGoogleButton, 200);
-    return;
-  }
-  const container = document.getElementById('google-btn-container');
-  if (container) {
-    google.accounts.id.renderButton(container, {
-      type: 'standard',
-      theme: 'outline',
-      size: 'large',
-      text: 'continue_with',
-      shape: 'rectangular',
-      width: 320,
-    });
-    // GIS rendered its own button — hide the fallback
-    const fallback = document.getElementById('btn-signin');
-    if (fallback) fallback.style.display = 'none';
-    dbg('Google button rendered');
-  }
-}
-renderGoogleButton();
-
-// Fallback: manual button triggers One Tap prompt (shown when GIS hasn't rendered yet)
-document.getElementById('btn-signin').addEventListener('click', () => {
-  if (window.google?.accounts?.id) {
-    google.accounts.id.prompt();
   }
 });
 
 document.getElementById('btn-signout').addEventListener('click', () => {
   signOut(auth);
-  if (window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
 });
 
 let _authFireCount = 0;

@@ -139,45 +139,16 @@ body { font-family: 'Inter', sans-serif; background: #090C10; }
     </div>
   </section>
 
-  <!-- ═══ RECENT CATCHES (expired anomalies — proof, not alpha) ═══ -->
+  <!-- ═══ RECENT CATCHES (live feed from the detection engine) ═══ -->
   <section class="section fade-up d3" style="border-color:rgba(41,98,255,.08)">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-bold text-white">Recent catches</h2>
-      <span class="text-[9px] text-slate-600 font-mono tracking-wider">EXPIRED — NOT TRADEABLE</span>
+      <span id="catches-status" class="text-[9px] text-slate-600 font-mono tracking-wider">SCANNING…</span>
     </div>
     <div id="recent-catches" class="space-y-2">
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
-        <div>
-          <div class="text-[11px] text-slate-400 font-medium">NegRisk Arb — basket sum 1.07</div>
-          <div class="text-[9px] text-slate-600 font-mono">Caught 14s before market repriced</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-emerald-400 font-bold font-mono">+$38/leg</div>
-          <div class="text-[9px] text-slate-600">expired</div>
-        </div>
-      </div>
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
-        <div>
-          <div class="text-[11px] text-slate-400 font-medium">News-lag — ESPN goal, odds stale</div>
-          <div class="text-[9px] text-slate-600 font-mono">Caught 8s before market repriced</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-emerald-400 font-bold font-mono">+$52/leg</div>
-          <div class="text-[9px] text-slate-600">expired</div>
-        </div>
-      </div>
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
-        <div>
-          <div class="text-[11px] text-slate-400 font-medium">Catalyst — SEC filing, market lagging</div>
-          <div class="text-[9px] text-slate-600 font-mono">Caught 22s before market repriced</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[11px] text-emerald-400 font-bold font-mono">+$19/leg</div>
-          <div class="text-[9px] text-slate-600">expired</div>
-        </div>
-      </div>
+      <div class="text-[11px] text-slate-600 text-center py-3">Scanning Polymarket for mispricings…</div>
     </div>
-    <p class="text-[10px] text-slate-700 mt-3">These anomalies already expired. Connect your Polymarket wallet to catch the next one live.</p>
+    <p class="text-[10px] text-slate-700 mt-3">This feed updates live. Connect your Polymarket wallet to catch the next one.</p>
   </section>
 
   <!-- ═══ CONNECT ═══ -->
@@ -186,7 +157,6 @@ body { font-family: 'Inter', sans-serif; background: #090C10; }
     <div id="signin-state">
       <h2 class="text-lg font-bold text-white mb-1">Connect Polymarket</h2>
       <p class="text-xs text-slate-500 mb-5">Sign in to connect your Polymarket wallet and start catching mispricings live.</p>
-      <div id="google-btn-container" style="display:flex;justify-content:center;margin-bottom:8px;min-height:44px;"></div>
       <button class="w-full bg-[#111820] hover:bg-[#161E2A] border border-slate-800/40 text-slate-300 font-semibold py-3 px-4 rounded-xl transition text-sm flex items-center justify-center gap-2" id="btn-signin">
         <svg width="14" height="14" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
         Sign in with Google
@@ -219,14 +189,56 @@ body { font-family: 'Inter', sans-serif; background: #090C10; }
 </p>
 
 <!-- ═══ JS ═══ -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+const ANOMALY_TYPE_LABELS = { NEGRISK_ARB: 'NegRisk Arb', NEWS_LAG: 'News-lag', CATALYST: 'Catalyst' };
+
+async function refreshRecentCatches() {
+  const list = document.getElementById('recent-catches');
+  const status = document.getElementById('catches-status');
+  try {
+    const res = await fetch('/api/bot?action=live_feed');
+    const data = await res.json();
+    const catches = data.catches || [];
+
+    if (catches.length === 0) {
+      list.innerHTML = '<div class="text-[11px] text-slate-600 text-center py-3">Scanning Polymarket for mispricings…</div>';
+      status.textContent = 'SCANNING…';
+      return;
+    }
+
+    const anyLive = catches.some(c => c.live);
+    status.textContent = anyLive ? 'LIVE' : 'RECENT';
+    status.style.color = anyLive ? '#4ade80' : '';
+
+    list.innerHTML = catches.map(c => {
+      const typeLabel = ANOMALY_TYPE_LABELS[c.anomalyType] || c.anomalyType;
+      const agoText = c.agoSeconds < 1 ? 'just now' : c.agoSeconds + 's ago';
+      return `
+        <div class="flex items-center justify-between py-2 px-3 rounded-lg" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">
+          <div>
+            <div class="text-[11px] text-slate-400 font-medium">${typeLabel} — ${c.bracket}</div>
+            <div class="text-[9px] text-slate-600 font-mono">Caught ${agoText} · ${c.edgePct}% edge</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[11px] text-emerald-400 font-bold font-mono">+$${Number(c.expectedProfit).toFixed(2)}/leg</div>
+            <div class="text-[9px]" style="color:${c.live ? '#4ade80' : '#475569'}">${c.live ? 'live' : 'expired'}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch {
+    status.textContent = 'OFFLINE';
+  }
+}
+refreshRecentCatches();
+setInterval(refreshRecentCatches, 4000);
+</script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut }
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-
-const GOOGLE_CLIENT_ID = '32158118227-laakojkl9m3li4sp1u2clt3g9l47brsv.apps.googleusercontent.com';
 
 const app = initializeApp({
   apiKey: 'AIzaSyCTvN8lVj2OlFbpiZZOtz4szRPoHzZ6OMg',
@@ -236,47 +248,31 @@ const app = initializeApp({
 });
 const auth = getAuth(app);
 window.auth = auth;
+const provider = new GoogleAuthProvider();
 const msg = document.getElementById('msg');
 const signinBtn = document.getElementById('btn-signin');
 const signoutBtn = document.getElementById('btn-signout');
 
 let _justSignedIn = false;
 
-window._handleGoogleCredential = async function(response) {
+async function doSignIn() {
   try {
     _justSignedIn = true;
-    const credential = GoogleAuthProvider.credential(response.credential);
-    await signInWithCredential(auth, credential);
+    await signInWithPopup(auth, provider);
   } catch (err) {
     _justSignedIn = false;
     console.error('Sign-in error:', err);
-    msg.textContent = 'Sign-in failed. Please try again.';
-    msg.className = 'error';
+    if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+      msg.textContent = 'Sign-in failed. Please try again.';
+      msg.className = 'error';
+    }
   }
-};
-
-function initGIS() {
-  if (!window.google?.accounts?.id) { setTimeout(initGIS, 100); return; }
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: window._handleGoogleCredential,
-  });
-  const container = document.getElementById('google-btn-container');
-  if (container) {
-    google.accounts.id.renderButton(container, { theme: 'filled_black', size: 'large', width: 280 });
-    signinBtn.style.display = 'none';
-  }
-  // No prompt() here — let user click; avoid auto-sign-in bypassing the page
 }
-initGIS();
 
-signinBtn.addEventListener('click', () => {
-  if (window.google?.accounts?.id) google.accounts.id.prompt();
-});
+signinBtn.addEventListener('click', doSignIn);
 
 signoutBtn.addEventListener('click', () => {
   signOut(auth);
-  if (window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
   document.getElementById('signedin-state').style.display = 'none';
   document.getElementById('signin-state').style.display = '';
 });

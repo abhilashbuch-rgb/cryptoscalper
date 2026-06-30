@@ -68,18 +68,30 @@ module.exports = async (req, res) => {
     }
   }
 
-  // Public endpoint — no auth required
+  // Public endpoint — no auth required. Powers the "Recent catches" feed on the splash page.
   if (action === 'live_feed') {
     try {
-      const snap = await db.collection('live_trades').orderBy('timestamp', 'desc').limit(15).get();
-      const trades = snap.docs.map(d => {
-        const t = d.data();
-        const ago = Math.floor((Date.now() - (t.timestamp?.toMillis?.() || Date.now())) / 1000);
-        return { symbol: t.symbol, pnl: t.pnl || 0, ago };
+      const snap = await db.collection('live_anomalies')
+        .orderBy('detectedAt', 'desc')
+        .limit(10)
+        .get();
+
+      const now = Date.now();
+      const catches = snap.docs.map(d => {
+        const a = d.data();
+        const detectedMs = a.detectedAt?.toMillis?.() || now;
+        return {
+          bracket: a.bracket || 'Unknown market',
+          anomalyType: a.anomalyType || 'NEGRISK_ARB',
+          edgePct: a.edgePct || '0.00',
+          expectedProfit: a.expectedProfit || 0,
+          agoSeconds: Math.max(0, Math.floor((now - detectedMs) / 1000)),
+          live: (a.expiresAt || 0) > now,
+        };
       });
-      return res.json({ trades });
+      return res.json({ catches });
     } catch {
-      return res.json({ trades: [] });
+      return res.json({ catches: [] });
     }
   }
 

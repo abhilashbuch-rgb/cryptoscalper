@@ -262,7 +262,7 @@ module.exports = async (req, res) => {
   const totalPnl = recentTrades.reduce((s, t) => s + (t.pnl || 0), 0);
 
   const fuel = data.fuel || {
-    balance: 0, tier_label: 'Free', fee_pct: 20,
+    balance: 0, tier_label: 'Free', fee_pct: 10,
     high_water_mark: 0, total_fees_paid: 0,
     cumulative_profit: 0, referral_code: uid.slice(0, 8),
     paused_reason: null,

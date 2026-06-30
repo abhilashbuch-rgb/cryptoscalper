@@ -6,6 +6,7 @@ const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 const { verifyConnection, deriveApiCredentials } = require('../lib/polymarket-clob');
 const { getStrip, matchHeadline, ENTITY_ALIASES } = require('../lib/market-strip');
 const { parseJsonArray } = require('../lib/gamma-utils');
+const { isVip } = require('../lib/vip-accounts');
 
 const ALIAS_INDEX = new Map();
 for (const [category, aliases] of Object.entries(ENTITY_ALIASES)) {
@@ -273,7 +274,7 @@ module.exports = async (req, res) => {
     const mode = userData.mode || 'sandbox';
     const hurdleRate = userData.settings?.hurdleRate || 1.03;
 
-    const engine = new PolymarketAlphaEngine(decoded.uid, { mode, hurdleRate });
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode, hurdleRate, email: decoded.email });
     const result = await engine.runArbitrageScan();
 
     return res.json(result);
@@ -291,7 +292,7 @@ module.exports = async (req, res) => {
     const userData = userDoc.exists ? userDoc.data() : {};
     const mode = userData.mode || 'sandbox';
 
-    const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode, email: decoded.email });
     const brackets = await engine.fetchActiveNegRiskBrackets();
     const target = brackets.find(b => b.id === bracketId);
 
@@ -370,6 +371,7 @@ module.exports = async (req, res) => {
     const userData = userDoc.exists ? userDoc.data() : {};
     const connected = !!userData.wallet_address;
     const cutoff = Date.now();
+    const vip = isVip(decoded.email);
 
     const liveSnap = await db.collection('live_anomalies')
       .where('status', '==', 'LIVE')
@@ -387,6 +389,8 @@ module.exports = async (req, res) => {
         const a = doc.data();
         const playId = `flash_${decoded.uid}_${Date.now()}_${i}`;
         const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
+        const displayPlatformFee = vip ? 0 : a.platformFee;
+        const displayUserProfit = vip ? a.expectedProfit : a.userProfit;
 
         db.collection('flash_plays').doc(playId).set({
           userId: decoded.uid,
@@ -398,8 +402,8 @@ module.exports = async (req, res) => {
           legSize: effectiveLegSize,
           totalDeployed: a.totalDeployed || effectiveLegSize,
           expectedProfit: a.expectedProfit,
-          platformFee: a.platformFee,
-          userProfit: a.userProfit,
+          platformFee: displayPlatformFee,
+          userProfit: displayUserProfit,
           confidence: a.confidence,
           anomalyType: a.anomalyType,
           signal: a.signal,
@@ -436,8 +440,8 @@ module.exports = async (req, res) => {
           })),
           totalDeployed: a.totalDeployed || effectiveLegSize,
           expectedProfit: a.expectedProfit,
-          platformFee: a.platformFee,
-          userProfit: a.userProfit,
+          platformFee: displayPlatformFee,
+          userProfit: displayUserProfit,
           mode,
           source: 'vps_engine',
           delayed: false,
@@ -463,13 +467,13 @@ module.exports = async (req, res) => {
     ]);
     const walletBalance = userData.walletBalance || 0;
     const mode = userData.mode || 'sandbox';
-    const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode, email: decoded.email });
 
     if (riskBounds.system_level === 'HALT') {
       return res.json({ verdict: 'RISK_HALT', reason: riskBounds.reasoning_brief });
     }
 
-    if (walletBalance < 500 && mode !== 'sandbox') {
+    if (walletBalance < 500 && mode !== 'sandbox' && !vip) {
       return res.json({ verdict: 'CRITICAL_STANDBY', walletBalance });
     }
 
@@ -493,7 +497,7 @@ module.exports = async (req, res) => {
       const edge = basketSum - 1.00;
       if (edge >= 0.03) {
         const expectedProfit = edge * effectiveLegSize;
-        const platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
+        const platformFee = vip ? 0 : parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
         const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
         const confidence = Math.min(99, Math.round(
           50 + (edge * 100) * 5
@@ -571,7 +575,7 @@ module.exports = async (req, res) => {
       }
 
       expectedProfit = parseFloat((edge * effectiveLegSize).toFixed(4));
-      platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
+      platformFee = vip ? 0 : parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
       userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
 
       const alreadyCovered = anomalies.some(a =>
@@ -737,13 +741,13 @@ module.exports = async (req, res) => {
     }
 
     const AUTO_EXECUTE_FEE_PCT = 0.50;
-    const effectiveFeePct = autoExecuted ? AUTO_EXECUTE_FEE_PCT : PLATFORM_FEE_PCT;
+    const effectiveFeePct = isVip(decoded.email) ? 0 : (autoExecuted ? AUTO_EXECUTE_FEE_PCT : PLATFORM_FEE_PCT);
     const adjustedPlatformFee = parseFloat((play.expectedProfit * effectiveFeePct).toFixed(4));
     const adjustedUserProfit = parseFloat((play.expectedProfit - adjustedPlatformFee).toFixed(4));
 
     const mode = userDoc.exists ? (userDoc.data().mode || 'sandbox') : 'sandbox';
 
-    const engine = new PolymarketAlphaEngine(decoded.uid, { mode });
+    const engine = new PolymarketAlphaEngine(decoded.uid, { mode, email: decoded.email });
     const brackets = await engine.fetchActiveNegRiskBrackets();
     const target = brackets.find(b => b.id === play.bracketId);
 

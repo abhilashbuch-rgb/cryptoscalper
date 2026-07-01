@@ -1867,6 +1867,31 @@ body::before {
       <!-- Panel: Strategy -->
 
     <div class="tile tile-wide" id="settings-card" style="display:none">
+
+      <!-- Wallet connection — hidden once connected -->
+      <div id="settings-wallet-section" style="border-bottom:1px solid var(--border); margin-bottom:24px; padding-bottom:24px;">
+        <div class="card-title">Polymarket Wallet</div>
+        <!-- Connected state -->
+        <div id="settings-wallet-connected" style="display:none; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; background:rgba(16,185,129,.06); border:1px solid rgba(16,185,129,.15); border-radius:8px;">
+          <div>
+            <div style="font-size:10px; font-family:var(--mono); color:var(--green); font-weight:700; letter-spacing:.06em; margin-bottom:3px;">CONNECTED</div>
+            <div style="font-size:13px; color:var(--text1); font-family:var(--mono);" id="settings-wallet-addr"></div>
+          </div>
+          <button onclick="document.getElementById('settings-wallet-change').style.display=document.getElementById('settings-wallet-change').style.display==='block'?'none':'block'" style="padding:5px 12px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text3); font-family:var(--mono); font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0;">Change</button>
+        </div>
+        <!-- Change / connect form -->
+        <div id="settings-wallet-change">
+          <div class="form-group" style="margin-top:14px; margin-bottom:8px;">
+            <label class="form-label">Wallet Private Key (Polygon)</label>
+            <input class="form-input" id="dash-poly-key" type="password" placeholder="0x..." autocomplete="off" spellcheck="false">
+          </div>
+          <div style="font-size:10px; color:var(--text3); line-height:1.5; margin-bottom:12px;">Non-custodial — WICK places trades but cannot withdraw or transfer funds. Key is AES-256 encrypted.</div>
+          <div id="connect-error" class="form-error" style="display:none"></div>
+          <div id="connect-success" class="form-success" style="display:none"></div>
+          <button class="btn-primary" id="btn-connect" onclick="connectWallet()" style="width:100%;">Connect Wallet</button>
+        </div>
+      </div>
+
       <div class="card-title">Strategy &amp; Risk</div>
       <div class="form-label" style="margin-bottom:12px;">Choose strategy</div>
       <div class="strategy-grid" id="strategy-grid"></div>
@@ -2028,13 +2053,13 @@ body::before {
         </div>
 
         <!-- Wallet status -->
-        <div style="margin-top:24px; padding:16px; background:rgba(22,82,240,.04); border:1px solid rgba(22,82,240,.12); border-radius:10px;">
+        <div style="margin-top:24px; padding:14px 16px; background:rgba(22,82,240,.04); border:1px solid rgba(22,82,240,.12); border-radius:10px;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <div style="font-size:12px; font-family:var(--mono); color:#4D8FFF; font-weight:700; margin-bottom:4px;">Wallet</div>
+              <div style="font-size:11px; font-family:var(--mono); color:#4D8FFF; font-weight:700; margin-bottom:3px; letter-spacing:.04em;">WALLET</div>
               <div style="font-size:13px; color:var(--text2);" id="poly-wallet-status">Not connected</div>
             </div>
-            <button onclick="showPanel('broker')" style="padding:8px 16px; background:rgba(22,82,240,.12); border:1px solid rgba(22,82,240,.25); border-radius:6px; color:#4D8FFF; font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; border:none;">Connect Wallet</button>
+            <button id="poly-wallet-settings-btn" onclick="toggleControlPanel()" style="padding:6px 12px; background:rgba(22,82,240,.12); border-radius:6px; color:#4D8FFF; font-family:var(--mono); font-size:10px; font-weight:700; cursor:pointer; border:none; display:none;">Change</button>
           </div>
         </div>
 
@@ -2055,22 +2080,6 @@ body::before {
           </div>
         </div>
 
-
-
-      <!-- Panel: Broker -->
-
-    <div class="tile tile-wide" id="wallet-card">
-      <div class="tile-title">Polymarket Wallet</div>
-      <div id="wallet-status" style="font-size:12px; color:var(--accent); font-family:var(--mono); margin-bottom:14px;"></div>
-      <div class="form-group">
-        <label class="form-label">Wallet Private Key (Polygon)</label>
-        <input class="form-input" id="dash-poly-key" type="password" placeholder="0x..." autocomplete="off" spellcheck="false">
-      </div>
-      <div style="font-size:10px; color:var(--text3); line-height:1.5; margin-bottom:14px;">Your key is AES-256 encrypted. WICK can only place trades — it cannot withdraw or transfer your funds.</div>
-      <div id="connect-error" class="form-error" style="display:none"></div>
-      <div id="connect-success" class="form-success" style="display:none"></div>
-      <button class="btn-primary" id="btn-connect" onclick="connectWallet()">Connect Wallet</button>
-    </div>
 
 
       <!-- Panel: Settings -->
@@ -3792,13 +3801,27 @@ function applyStatusToUI(d) {
 
   // Update wallet status display
   const walletStatusEl = document.getElementById('poly-wallet-status');
+  const walletSettingsBtn = document.getElementById('poly-wallet-settings-btn');
+  const settingsConnected = document.getElementById('settings-wallet-connected');
+  const settingsChange    = document.getElementById('settings-wallet-change');
+  const settingsAddr      = document.getElementById('settings-wallet-addr');
   if (walletStatusEl) {
     if (d.wallet_address) {
-      walletStatusEl.textContent = d.wallet_address.slice(0, 8) + '...' + d.wallet_address.slice(-4);
+      const shortAddr = d.wallet_address.slice(0, 8) + '...' + d.wallet_address.slice(-4);
+      walletStatusEl.textContent = shortAddr;
       walletStatusEl.style.color = 'var(--green)';
+      if (walletSettingsBtn) walletSettingsBtn.style.display = 'inline-block';
+      // Settings wallet section: show connected, hide form
+      if (settingsConnected) settingsConnected.style.display = 'flex';
+      if (settingsChange)    settingsChange.style.display    = 'none';
+      if (settingsAddr)      settingsAddr.textContent        = shortAddr;
     } else if (d.configured && d.mode === 'sandbox') {
       walletStatusEl.textContent = 'Sandbox mode ($10,000 simulated)';
       walletStatusEl.style.color = '#4D8FFF';
+      if (walletSettingsBtn) walletSettingsBtn.style.display = 'none';
+      // Settings wallet section: show connect form
+      if (settingsConnected) settingsConnected.style.display = 'none';
+      if (settingsChange)    settingsChange.style.display    = 'block';
     }
   }
 
@@ -4602,14 +4625,18 @@ window.connectWallet = async function () {
     okEl.textContent = `Wallet connected${shortAddr ? ': ' + shortAddr : ''} · live mode active`;
     okEl.style.display = 'block';
 
-    const walletStatusEl = document.getElementById('poly-wallet-status');
-    if (walletStatusEl && d.address) {
-      walletStatusEl.textContent = shortAddr;
-      walletStatusEl.style.color = 'var(--green)';
-    }
     document.getElementById('dash-poly-key').value = '';
     window._configured = true;
-    setTimeout(() => loadStatus(), 1500);
+    // After 1.5s collapse the form and show connected state
+    setTimeout(() => {
+      loadStatus();
+      const sc = document.getElementById('settings-wallet-change');
+      const sw = document.getElementById('settings-wallet-connected');
+      const sa = document.getElementById('settings-wallet-addr');
+      if (sc) sc.style.display = 'none';
+      if (sw) sw.style.display = 'flex';
+      if (sa) sa.textContent = shortAddr;
+    }, 1500);
   } catch (err) {
     errEl.textContent = err.message;
     errEl.style.display = 'block';

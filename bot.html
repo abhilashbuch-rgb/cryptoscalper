@@ -301,6 +301,33 @@ body::before {
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
+/* Dashboard tile visual order: stream → positions → trades → stats → rest → controls */
+#control-bar    { order: 0; grid-column: 1/-1; }
+#flash-play-tile{ order: 1; }
+#positions-tile { order: 2; }
+#trades-card    { order: 3; }
+#stats-row      { order: 4; }
+#worldcup-tile  { order: 5; }
+#risk-desk-tile { order: 6; }
+#poly-card-home { order: 7; }
+#badges-tile, #referral-card { order: 8; }
+#bot-control    { order: 10; }
+#settings-card  { order: 11; }
+/* Compact control bar */
+#control-bar {
+  background: rgba(10,14,22,.96);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  padding: 10px 18px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#control-bar .cb-divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+/* Settings drawer expand/collapse */
+#settings-card.drawer-open, #bot-control.drawer-open { display: block !important; }
+
 .tile {
   background: rgba(10,14,22,.90);
   border: 1px solid rgba(255,255,255,.05);
@@ -1483,6 +1510,20 @@ body::before {
 
     <!-- Control Room — everything on one page -->
     <div class="tile-grid">
+
+    <!-- ═══ COMPACT CONTROL BAR ═══ -->
+    <div id="control-bar">
+      <div class="bot-status-dot" id="cb-dot"></div>
+      <span style="font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--text1)">WICK</span>
+      <span class="bot-mode paper" id="cb-badge" style="font-size:9px;padding:2px 8px">PAPER</span>
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono)" id="cb-label">Agent off</span>
+      <div style="flex:1"></div>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--green)" id="cb-winrate">—</span>
+      <span style="font-size:10px;color:var(--text3);font-family:var(--mono)" id="cb-pnl"></span>
+      <div class="cb-divider"></div>
+      <div class="toggle" id="cb-toggle" onclick="toggleBot()" style="flex-shrink:0"></div>
+      <button onclick="toggleControlPanel()" id="ctrl-panel-btn" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text2);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap">⚙ SETTINGS ▾</button>
+    </div>
 
     <!-- Stat tiles -->
     <div id="stats-row" style="display:none; grid-column:1/-1; display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
@@ -3798,11 +3839,11 @@ function applyStatusToUI(d) {
   }
 
   document.getElementById('stats-row').style.display     = 'grid';
-  document.getElementById('bot-control').style.display   = 'block';
   document.getElementById('trades-card').style.display   = 'block';
   document.getElementById('worldcup-tile').style.display    = 'block';
   document.getElementById('flash-play-tile').style.display = 'block';
   document.getElementById('risk-desk-tile').style.display  = 'block';
+  // bot-control and settings-card start collapsed; compact bar is the entry point
   loadRiskStatus();
   streamStart();
 
@@ -3839,6 +3880,12 @@ function applyStatusToUI(d) {
   const pnlEl = document.getElementById('stat-pnl');
   const pnlText = pnl !== 0 ? `${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}` : '—';
   tickStat('stat-pnl', pnlText, pnl >= 0 ? 'up' : 'down');
+
+  // Sync compact bar quick stats
+  const cbWr = document.getElementById('cb-winrate');
+  const cbPnl = document.getElementById('cb-pnl');
+  if (cbWr) { cbWr.textContent = s.win_rate_pct ? s.win_rate_pct + '% win' : ''; cbWr.style.color = 'var(--green)'; }
+  if (cbPnl) { cbPnl.textContent = pnl !== 0 ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2) : ''; cbPnl.style.color = pnl >= 0 ? 'var(--green)' : '#ef4444'; }
   pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
 
   const portText = d.portfolio_value ? `$${parseFloat(d.portfolio_value).toLocaleString()}` : '—';
@@ -3881,7 +3928,7 @@ function applyStatusToUI(d) {
     }
   }
 
-  document.getElementById('settings-card').style.display = d.configured ? 'block' : 'none';
+  // settings-card shown only when user expands the control panel via ⚙ button
   if (d.available_strategies) renderStrategies(d.available_strategies, d.selected_strategy);
   applySettingsToUI(d.settings || {});
 
@@ -3976,6 +4023,31 @@ function updateToggleUI(active, mode) {
   // Hide paper/live toggle for brokers that are always live or for polymarket (mode is managed via wallet setup)
   const modeSwitch = document.getElementById('mode-switch');
   if (modeSwitch) modeSwitch.style.display = (alwaysLive || window._broker === 'polymarket') ? 'none' : '';
+
+  // Sync compact control bar
+  const cbBar = document.getElementById('control-bar');
+  if (cbBar) cbBar.style.display = 'flex';
+  const cbDot = document.getElementById('cb-dot');
+  const cbToggle = document.getElementById('cb-toggle');
+  const cbBadge = document.getElementById('cb-badge');
+  const cbLabel = document.getElementById('cb-label');
+  if (cbDot) cbDot.className = `bot-status-dot${active ? ' active' : ''}`;
+  if (cbToggle) cbToggle.className = `toggle${active ? ' on' : ''}`;
+  if (cbBadge) { cbBadge.textContent = actualMode.toUpperCase(); cbBadge.className = `bot-mode ${actualMode}`; cbBadge.style.fontSize = '9px'; cbBadge.style.padding = '2px 8px'; }
+  if (cbLabel) cbLabel.textContent = active ? 'Agent running' : 'Agent off';
+}
+
+function toggleControlPanel() {
+  const botCtrl = document.getElementById('bot-control');
+  const settingsCard = document.getElementById('settings-card');
+  const btn = document.getElementById('ctrl-panel-btn');
+  const open = botCtrl && (botCtrl.style.display === 'block' || botCtrl.classList.contains('drawer-open'));
+  [botCtrl, settingsCard].forEach(el => {
+    if (!el) return;
+    if (open) { el.style.display = 'none'; }
+    else { el.style.display = 'block'; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+  if (btn) btn.textContent = open ? '⚙ SETTINGS ▾' : '⚙ SETTINGS ▴';
 }
 
 function renderTrades(trades) {

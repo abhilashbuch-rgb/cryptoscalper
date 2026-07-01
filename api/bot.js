@@ -222,16 +222,25 @@ module.exports = async (req, res) => {
   if (action === 'settings') {
     if (req.method === 'POST') {
       const body = req.body || {};
-      const settings = {};
-      if (body.strategy !== undefined)         settings.strategy = body.strategy;
-      if (body.risk_level !== undefined)       settings.risk_level = body.risk_level;
-      if (body.max_position_pct !== undefined) settings.max_position_pct = body.max_position_pct;
-      if (body.daily_goal_pct !== undefined)   settings.daily_goal_pct = body.daily_goal_pct;
-      if (body.bot_type !== undefined)         settings.bot_type = body.bot_type;
-      if (body.take_profit_pct !== undefined)   settings.take_profit_pct = body.take_profit_pct;
-      if (body.stop_loss_pct !== undefined)     settings.stop_loss_pct = body.stop_loss_pct;
-      if (body.auto_exit_enabled !== undefined) settings.auto_exit_enabled = body.auto_exit_enabled;
-      await userRef.set({ settings, updated: FieldValue.serverTimestamp() }, { merge: true });
+      // Use dot-notation update so only provided fields change; other settings are preserved
+      const ALLOWED = ['strategy','risk_level','max_position_pct','daily_goal_pct','bot_type',
+        'take_profit_pct','stop_loss_pct','auto_exit_enabled','auto_execute_enabled',
+        'symbols','frequency','max_open_positions','max_daily_trades','cooldown_minutes',
+        'tpsl_multiplier','trading_hours','strike_size','signal_weights'];
+      const update = { updated: FieldValue.serverTimestamp() };
+      for (const key of ALLOWED) {
+        if (body[key] !== undefined) update[`settings.${key}`] = body[key];
+      }
+      try {
+        await userRef.update(update);
+      } catch (e) {
+        if (e.code === 5 || (e.message || '').includes('NOT_FOUND')) {
+          // Doc doesn't exist yet — create with the provided fields
+          const settings = {};
+          for (const key of ALLOWED) { if (body[key] !== undefined) settings[key] = body[key]; }
+          await userRef.set({ settings, updated: FieldValue.serverTimestamp() }, { merge: true });
+        } else throw e;
+      }
       return res.json({ ok: true });
     }
     const doc = await userRef.get();

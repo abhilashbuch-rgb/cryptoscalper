@@ -6,7 +6,6 @@ const { submitMarketOrder, getCredentialsFromEnv } = require('../lib/polymarket-
 const WIRE_SECRET = process.env.WIRE_WEBHOOK_SECRET;
 const WIRE_LEG_SIZE = parseInt(process.env.WIRE_LEG_SIZE || '25', 10);
 const WIRE_MIN_SCORE = parseInt(process.env.WIRE_MIN_SCORE || '3', 10);
-const PLATFORM_FEE_PCT = 0.10;
 
 function verifySignature(req) {
   if (!WIRE_SECRET) return true;
@@ -172,7 +171,6 @@ async function executeWireTrade(wireId, wireDoc, match, mode) {
     const yesPrice = market.yesPrice || market.tokens?.[0]?.currentYesPrice || 0;
     const edge = yesPrice > 0.5 ? yesPrice - 0.5 : 0;
     const expectedProfit = edge * WIRE_LEG_SIZE;
-    const platformFee = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
 
     wireDoc.action = 'EXECUTED_LIVE';
     wireDoc.execution = {
@@ -183,16 +181,9 @@ async function executeWireTrade(wireId, wireDoc, match, mode) {
       status: orderResult.status || 'SUBMITTED',
     };
     wireDoc.expectedProfit = expectedProfit;
-    wireDoc.platformFee = platformFee;
     wireDoc.execMs = (Number(process.hrtime.bigint() - execStart) / 1e6).toFixed(2);
 
     await db.collection('wire_events').doc(wireId).set(wireDoc);
-
-    db.collection('config').doc('platform_revenue').set({
-      totalFees: FieldValue.increment(platformFee),
-      totalTrades: FieldValue.increment(1),
-      lastTradeAt: FieldValue.serverTimestamp(),
-    }, { merge: true }).catch(() => {});
 
   } catch (err) {
     wireDoc.action = 'EXECUTION_FAILED';

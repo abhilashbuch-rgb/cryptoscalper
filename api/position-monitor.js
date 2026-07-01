@@ -1,11 +1,7 @@
 const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
 const { submitMarketOrder, getCredentialsFromEnv } = require('../lib/polymarket-clob');
-const { collectFee } = require('../lib/fee-collector');
-const { isVip } = require('../lib/vip-accounts');
-
 const CLOB_API = 'https://clob.polymarket.com';
-const PLATFORM_FEE_PCT = 0.10;
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -114,8 +110,8 @@ module.exports = async (req, res) => {
           }
 
           const profit = (currentPrice - entryPrice) * pos.size;
-          const platformFee = (profit > 0 && !isVip(userData.email)) ? parseFloat((profit * PLATFORM_FEE_PCT).toFixed(4)) : 0;
-          const userProfit = parseFloat((profit - platformFee).toFixed(4));
+          const platformFee = 0;
+          const userProfit = profit;
 
           if (mode === 'live') {
             try {
@@ -154,25 +150,10 @@ module.exports = async (req, res) => {
             size: pos.size,
             pnlPct: Math.round(pnlPct * 100) / 100,
             profit,
-            platformFee,
-            platformFeePct: PLATFORM_FEE_PCT,
             userProfit,
             mode,
             timestamp: FieldValue.serverTimestamp(),
           });
-
-          if (platformFee > 0) {
-            await db.collection('config').doc('platform_revenue').set({
-              totalFees: FieldValue.increment(platformFee),
-              totalExits: FieldValue.increment(1),
-              lastExitAt: FieldValue.serverTimestamp(),
-            }, { merge: true });
-
-            if (mode === 'live' && userData.poly_private_key) {
-              const feeResult = await collectFee(userData.poly_private_key, platformFee);
-              await pos.ref.update({ feeCollection: feeResult });
-            }
-          }
 
           exited++;
         }
@@ -268,9 +249,8 @@ module.exports = async (req, res) => {
     const currentPrice = prices[pos.tokenId] ? parseFloat(prices[pos.tokenId]) : pos.entryPrice;
     const pnlPct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
     const profit = (currentPrice - pos.entryPrice) * pos.size;
-    const userEmail = userDoc.exists ? (userDoc.data().email || '') : '';
-    const platformFee = (profit > 0 && !isVip(userEmail)) ? parseFloat((profit * PLATFORM_FEE_PCT).toFixed(4)) : 0;
-    const userProfit = parseFloat((profit - platformFee).toFixed(4));
+    const platformFee = 0;
+    const userProfit = profit;
 
     if (mode === 'live') {
       try {
@@ -315,38 +295,17 @@ module.exports = async (req, res) => {
       size: pos.size,
       pnlPct: Math.round(pnlPct * 100) / 100,
       profit,
-      platformFee,
-      platformFeePct: PLATFORM_FEE_PCT,
       userProfit,
       mode,
       timestamp: FieldValue.serverTimestamp(),
     });
-
-    let feeCollection = null;
-    if (platformFee > 0) {
-      await db.collection('config').doc('platform_revenue').set({
-        totalFees: FieldValue.increment(platformFee),
-        totalExits: FieldValue.increment(1),
-        lastExitAt: FieldValue.serverTimestamp(),
-      }, { merge: true });
-
-      if (mode === 'live') {
-        const userData = userDoc.exists ? userDoc.data() : {};
-        if (userData.poly_private_key) {
-          feeCollection = await collectFee(userData.poly_private_key, platformFee);
-          await posRef.update({ feeCollection });
-        }
-      }
-    }
 
     return res.json({
       ok: true,
       exitPrice: currentPrice,
       pnlPct: Math.round(pnlPct * 100) / 100,
       profit,
-      platformFee,
       userProfit,
-      feeCollected: feeCollection?.collected || false,
     });
   }
 

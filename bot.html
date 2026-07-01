@@ -1407,94 +1407,118 @@ body::before {
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- WIZARD (new users — single-step quick setup)                              -->
+<!-- WIZARD (new users — 3-step quick setup)                                   -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <div id="wizard">
   <div class="wizard-shell">
 
+    <!-- Step progress -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:32px">
+      <div class="wiz-step-dot active" id="dot-1">1</div>
+      <div class="wiz-step-line" id="line-1"></div>
+      <div class="wiz-step-dot" id="dot-2">2</div>
+      <div class="wiz-step-line" id="line-2"></div>
+      <div class="wiz-step-dot" id="dot-3">3</div>
+    </div>
+    <div class="wiz-step-labels" style="display:flex;justify-content:space-between;margin-top:-20px;margin-bottom:24px;padding:0 4px">
+      <div class="wiz-step-label active" id="label-1">Mode</div>
+      <div class="wiz-step-label" id="label-2">Risk</div>
+      <div class="wiz-step-label" id="label-3">Wallet</div>
+    </div>
+
+    <!-- ── Step 1: Mode selection ── -->
     <div class="wiz-panel active" id="wiz-step-1">
       <div style="text-align:center;margin-bottom:24px">
         <div style="display:inline-block;background:#2962FF;color:#fff;font-weight:900;font-size:18px;width:44px;height:44px;line-height:44px;border-radius:10px;margin-bottom:12px">W</div>
-        <div class="wiz-title" style="margin-bottom:4px">Connect to Polymarket</div>
-        <div class="wiz-desc">Start in sandbox with $10,000 simulated funds, or connect your wallet for live trading.</div>
+        <div class="wiz-title" style="margin-bottom:4px">How do you want to start?</div>
+        <div class="wiz-desc">Sandbox is free — $10,000 simulated funds, no wallet needed.</div>
       </div>
 
-      <div style="background:#080b0f;border:1px solid #1a2030;border-radius:14px;overflow:hidden">
-
-        <!-- Mode selector -->
-        <div style="padding:20px;border-bottom:1px solid #1a2030">
-          <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:100%">
-            <button id="pm-mode-sandbox" onclick="pmSetMode('sandbox')" style="flex:1;padding:12px 18px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:rgba(41,98,255,.12);color:#4D8FFF;transition:all .2s">SANDBOX</button>
-            <button id="pm-mode-live" onclick="pmSetMode('live')" style="flex:1;padding:12px 18px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">LIVE TRADING</button>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <button id="wiz-mode-sandbox" onclick="wizPickMode('sandbox')" style="display:flex;align-items:center;gap:16px;padding:18px;background:rgba(41,98,255,.12);border:2px solid #2962FF;border-radius:12px;cursor:pointer;text-align:left;width:100%">
+          <div style="font-size:24px">🎮</div>
+          <div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:#4D8FFF;letter-spacing:.04em">SANDBOX</div>
+            <div style="font-size:11px;color:#8899aa;margin-top:3px">No wallet needed · $10,000 simulated funds · zero risk</div>
           </div>
+        </button>
+        <button id="wiz-mode-live" onclick="wizPickMode('live')" style="display:flex;align-items:center;gap:16px;padding:18px;background:#080b0f;border:2px solid #1a2030;border-radius:12px;cursor:pointer;text-align:left;width:100%">
+          <div style="font-size:24px">⚡</div>
+          <div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:800;color:#c0ccd8;letter-spacing:.04em">LIVE TRADING</div>
+            <div style="font-size:11px;color:#8899aa;margin-top:3px">Real trades on Polymarket · requires Polygon wallet</div>
+          </div>
+        </button>
+      </div>
+
+      <button class="wiz-btn next" id="wiz-btn-mode" onclick="wizGo(2)" style="width:100%;padding:14px;font-size:14px" disabled>
+        Continue →
+      </button>
+    </div>
+
+    <!-- ── Step 2: Risk level ── -->
+    <div class="wiz-panel" id="wiz-step-2">
+      <div style="text-align:center;margin-bottom:24px">
+        <div class="wiz-title" style="margin-bottom:4px">Risk level</div>
+        <div class="wiz-desc">How aggressive should WICK be when it finds a mispricing?</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+        <button id="wiz-risk-conservative" onclick="wizSetRisk('conservative')" style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:#080b0f;border:2px solid #1a2030;border-radius:10px;cursor:pointer;width:100%">
+          <div style="text-align:left">
+            <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#c0ccd8">CONSERVATIVE</div>
+            <div style="font-size:11px;color:#8899aa;margin-top:3px">Smaller positions · more frequent · lower risk per trade</div>
+          </div>
+        </button>
+        <button id="wiz-risk-balanced" onclick="wizSetRisk('balanced')" style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:rgba(41,98,255,.08);border:2px solid #2962FF;border-radius:10px;cursor:pointer;width:100%">
+          <div style="text-align:left">
+            <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#4D8FFF">BALANCED <span style="font-size:9px;color:#4D8FFF;opacity:.7;font-weight:600">RECOMMENDED</span></div>
+            <div style="font-size:11px;color:#8899aa;margin-top:3px">Even-handed · default take-profit &amp; stop-loss</div>
+          </div>
+        </button>
+        <button id="wiz-risk-aggressive" onclick="wizSetRisk('aggressive')" style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:#080b0f;border:2px solid #1a2030;border-radius:10px;cursor:pointer;width:100%">
+          <div style="text-align:left">
+            <div style="font-family:var(--mono);font-size:12px;font-weight:800;color:#c0ccd8">AGGRESSIVE</div>
+            <div style="font-size:11px;color:#8899aa;margin-top:3px">Larger positions · bigger swings · higher upside, higher risk</div>
+          </div>
+        </button>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="wiz-btn back" onclick="wizGo(1)" style="flex:0 0 auto;padding:12px 20px">← Back</button>
+        <button class="wiz-btn next" id="wiz-btn-risk" onclick="wizSaveRiskAndContinue()" style="flex:1;padding:14px;font-size:14px">Continue →</button>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Wallet connection ── -->
+    <div class="wiz-panel" id="wiz-step-3">
+      <div style="text-align:center;margin-bottom:24px">
+        <div class="wiz-title" style="margin-bottom:4px">Connect your wallet</div>
+        <div class="wiz-desc" id="wiz-wallet-desc">Paste your Polygon private key — WICK trades on your behalf and cannot withdraw funds.</div>
+      </div>
+
+      <div style="background:#080b0f;border:1px solid #1a2030;border-radius:12px;overflow:hidden;margin-bottom:16px">
+        <div style="padding:18px">
+          <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:8px">POLYGON WALLET PRIVATE KEY</label>
+          <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px">
+          <div style="font-size:10px;color:#4a5568;line-height:1.5;margin-top:10px">Non-custodial. AES-256 encrypted. Trade execution only — no withdrawal capability.</div>
         </div>
-
-        <!-- Sandbox info (shown by default) -->
-        <div id="pm-sandbox-info" style="padding:20px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <div style="width:36px;height:36px;border-radius:10px;background:rgba(41,98,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
-            <div>
-              <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff">Sandbox Mode</div>
-              <div style="font-family:var(--mono);font-size:10px;color:#4a5568">No wallet needed · $10,000 simulated funds</div>
-            </div>
-          </div>
-          <div style="font-size:12px;color:#8899aa;line-height:1.7">Practice with simulated funds. See live anomalies, test strategies, and learn how WICK works — zero risk. You can connect your wallet later from the dashboard.</div>
+        <div style="padding:12px 18px;border-top:1px solid #1a2030;background:rgba(255,255,255,.015);display:flex;gap:10px;align-items:center">
+          <span style="color:#10b981;font-size:14px">🔒</span>
+          <div style="font-size:11px;color:#5a6a7a;line-height:1.5">Your funds stay in your Polymarket wallet. WICK can place trades but cannot withdraw or transfer capital.</div>
         </div>
-
-        <!-- Live wallet setup (hidden by default) -->
-        <div id="pm-live-setup" style="display:none;padding:20px">
-          <div style="font-family:var(--mono);font-size:9px;color:#f43f5e;font-weight:700;letter-spacing:.12em;margin-bottom:16px">⚠ REAL CAPITAL AT RISK</div>
-
-          <!-- Wallet source selector -->
-          <div style="display:flex;gap:0;border:1px solid #1a2030;border-radius:8px;overflow:hidden;width:100%;margin-bottom:16px">
-            <button id="wallet-src-polymarket" onclick="setWalletSource('polymarket')" style="flex:1;padding:10px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;border:none;cursor:pointer;background:rgba(130,71,229,.12);color:#8247e5;transition:all .2s">POLYMARKET</button>
-            <button id="wallet-src-coinbase" onclick="setWalletSource('coinbase')" style="flex:1;padding:10px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;border:none;cursor:pointer;background:#0c1018;color:#4a5568;transition:all .2s">COINBASE WALLET</button>
-          </div>
-
-          <!-- Polymarket wallet instructions -->
-          <div id="wallet-info-polymarket">
-            <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:16px">Paste your Polygon wallet private key. WICK places trades on Polymarket's CLOB on your behalf — we can never withdraw your funds.</div>
-          </div>
-
-          <!-- Coinbase wallet instructions -->
-          <div id="wallet-info-coinbase" style="display:none">
-            <div style="font-size:12px;color:#c0ccd8;line-height:1.6;margin-bottom:12px">Export your private key from Coinbase Wallet and paste it below. WICK uses the same key to trade on Polymarket's CLOB.</div>
-            <div style="background:rgba(0,82,255,.06);border:1px solid rgba(0,82,255,.15);border-radius:8px;padding:12px;margin-bottom:16px">
-              <div style="font-family:var(--mono);font-size:9px;color:#0052FF;font-weight:700;letter-spacing:.08em;margin-bottom:8px">HOW TO EXPORT</div>
-              <ol style="margin:0;padding:0 0 0 16px;font-size:11px;color:#8899aa;line-height:1.8">
-                <li>Open <strong style="color:#c0ccd8">Coinbase Wallet</strong> app or extension</li>
-                <li>Go to <strong style="color:#c0ccd8">Settings</strong> &rarr; <strong style="color:#c0ccd8">Developer Settings</strong></li>
-                <li>Tap <strong style="color:#c0ccd8">Show Private Key</strong></li>
-                <li>Verify with your password or biometrics</li>
-                <li>Copy the key and paste it below</li>
-              </ol>
-            </div>
-          </div>
-
-          <div style="margin-bottom:12px">
-            <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:6px">WALLET PRIVATE KEY</label>
-            <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px">
-          </div>
-          <div style="font-size:10px;color:#4a5568;line-height:1.5">Non-custodial. AES-256 encrypted. Trade execution only — no withdrawal capability. Requires USDC on Polygon.</div>
-        </div>
-
-        <!-- Security note -->
-        <div style="padding:16px 20px;border-top:1px solid #1a2030;background:rgba(255,255,255,.015)">
-          <div style="display:flex;gap:12px;align-items:flex-start">
-            <div style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px">🔒</div>
-            <div style="font-size:11px;color:#5a6a7a;line-height:1.6"><strong style="color:#8899aa">Non-custodial by design.</strong> Your funds stay in your Polymarket wallet. WICK can place trades but has zero capability to withdraw or transfer capital. You retain 100% custody.</div>
-          </div>
-        </div>
-
       </div>
 
       <div id="wiz-connect-error" class="form-error" style="display:none"></div>
       <div id="wiz-connect-success" class="form-success" style="display:none"></div>
 
-      <button class="wiz-btn next" id="wiz-btn-start" onclick="wizQuickStart()" style="width:100%;margin-top:16px;padding:16px;font-size:14px">
-        Start Trading
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <button class="wiz-btn back" onclick="wizGo(2)" style="flex:0 0 auto;padding:12px 20px">← Back</button>
+        <button class="wiz-btn next" id="wiz-btn-start" onclick="wizQuickStart()" style="flex:1;padding:14px;font-size:14px">Connect &amp; Launch</button>
+      </div>
+      <button id="wiz-btn-skip" onclick="wizSkipWallet()" style="display:none;width:100%;padding:12px;background:transparent;border:1px solid #1a2030;border-radius:8px;color:#4a5568;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.06em">
+        Skip for now — use sandbox only
       </button>
-      <div style="text-align:center;margin-top:10px;font-family:var(--mono);font-size:10px;color:#3a4a5a">Strategy & risk settings available on your dashboard</div>
     </div>
 
   </div>
@@ -1523,6 +1547,16 @@ body::before {
       <div class="cb-divider"></div>
       <div class="toggle" id="cb-toggle" onclick="toggleBot()" style="flex-shrink:0"></div>
       <button onclick="toggleControlPanel()" id="ctrl-panel-btn" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text2);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap">⚙ SETTINGS ▾</button>
+    </div>
+
+    <!-- Wallet connect nudge (sandbox users without wallet) -->
+    <div id="wallet-nudge-banner" style="display:none; grid-column:1/-1; padding:12px 18px; background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2); border-radius:10px; display:flex; align-items:center; gap:12px;">
+      <span style="font-size:16px;flex-shrink:0">👛</span>
+      <div style="flex:1">
+        <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:#f59e0b;letter-spacing:.04em">SANDBOX MODE — NO WALLET CONNECTED</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">You can see anomalies and practice, but live trades require a connected Polygon wallet.</div>
+      </div>
+      <button onclick="toggleControlPanel()" style="flex-shrink:0;padding:7px 14px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:7px;color:#f59e0b;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Connect Wallet</button>
     </div>
 
     <!-- Stat tiles -->
@@ -2162,6 +2196,7 @@ window._strategy   = 'brilliant';
 window._broker     = 'polymarket';
 window._risk       = 'balanced';
 window._wizStep    = 1;
+window._pmMode     = null;
 window._wizBotOn   = false;
 window._autoLogout = true;
 
@@ -3245,75 +3280,73 @@ async function loadRiskStatus() {
   } catch {}
 }
 
-window.wizSelectBroker = function (broker) {
-  window._broker = broker;
-  // Highlight in dynamic grid + static cards
-  const allCards = document.querySelectorAll('#wiz-broker-grid .broker-card, .broker-card[id^="card-"]');
-  allCards.forEach(el => {
-    const isSel = el.id === 'card-' + broker;
-    el.className = 'broker-card' + (isSel ? ' selected' : '');
-    el.style.borderColor = isSel ? (BROKER_COLORS[broker] || '') : '';
-  });
-  BROKER_FORMS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = id === BROKER_MAP[broker] ? '' : 'none';
-  });
-  document.getElementById('wiz-connect-error').style.display   = 'none';
-  document.getElementById('wiz-connect-success').style.display = 'none';
-  const btn = document.getElementById('wiz-btn-connect');
-  if (btn) btn.style.background = BROKER_COLORS[broker] || 'var(--green)';
+// Wizard step 1 — mode picker
+window.wizPickMode = function (mode) {
+  window._pmMode = mode;
+  const sbBtn  = document.getElementById('wiz-mode-sandbox');
+  const lvBtn  = document.getElementById('wiz-mode-live');
+  const nextBtn = document.getElementById('wiz-btn-mode');
+  if (sbBtn) { sbBtn.style.borderColor = mode === 'sandbox' ? '#2962FF' : '#1a2030'; sbBtn.style.background = mode === 'sandbox' ? 'rgba(41,98,255,.12)' : '#080b0f'; }
+  if (lvBtn) { lvBtn.style.borderColor = mode === 'live'    ? '#10b981' : '#1a2030'; lvBtn.style.background = mode === 'live'    ? 'rgba(16,185,129,.08)' : '#080b0f'; }
+  if (nextBtn) nextBtn.disabled = false;
+  // Show skip button on step 3 only for sandbox
+  const skipBtn = document.getElementById('wiz-btn-skip');
+  if (skipBtn) skipBtn.style.display = mode === 'sandbox' ? 'block' : 'none';
+  const desc = document.getElementById('wiz-wallet-desc');
+  if (desc) desc.textContent = mode === 'live'
+    ? 'Paste your Polygon private key — WICK trades on your behalf and cannot withdraw funds.'
+    : 'Connect a wallet to enable live trading, or skip and start in sandbox mode.';
 };
 
-// ── Robinhood in-browser Ed25519 key generation (WebCrypto) ──────────────────
-window._rhGeneratedPrivateKey = null;
+// Wizard step 2 — risk selector (also syncs button styles)
+window.wizSetRisk = function (level) {
+  window._risk = level;
+  const colors = { conservative: '#8899aa', balanced: '#4D8FFF', aggressive: '#f59e0b' };
+  ['conservative','balanced','aggressive'].forEach(l => {
+    const el = document.getElementById('wiz-risk-' + l);
+    if (!el) return;
+    const active = l === level;
+    el.style.borderColor = active ? (colors[l] || '#2962FF') : '#1a2030';
+    el.style.background  = active ? `rgba(${l === 'balanced' ? '41,98,255' : l === 'aggressive' ? '245,158,11' : '136,153,170'},.08)` : '#080b0f';
+  });
+};
 
-// One-click: generate keys, copy public to clipboard, open Robinhood
-window.rhAutoSetup = async function () {
-  const btn = document.getElementById('rh-auto-btn');
-  btn.disabled = true; btn.textContent = 'Generating secure key…';
+// Save risk + continue to step 3
+window.wizSaveRiskAndContinue = async function () {
+  const btn = document.getElementById('wiz-btn-risk');
+  btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    const keyPair = await crypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
-    const rawPrivate = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-    const rawPublic  = await crypto.subtle.exportKey('raw', keyPair.publicKey);
-
-    const publicBase64  = btoa(String.fromCharCode(...new Uint8Array(rawPublic)));
-    const pkcs8Bytes    = new Uint8Array(rawPrivate);
-    const privateBase64 = btoa(String.fromCharCode(...pkcs8Bytes.slice(pkcs8Bytes.length - 32)));
-
-    window._rhGeneratedPrivateKey = privateBase64;
-    document.getElementById('rh-private-key').value = privateBase64;
-
-    await navigator.clipboard.writeText(publicBase64);
-
-    window.open('https://robinhood.com/account/crypto', '_blank');
-
-    btn.textContent = 'Key copied — Robinhood is open';
-    btn.style.background = 'rgba(74,222,128,.15)';
-    btn.style.color = '#4D8FFF';
-    document.getElementById('rh-clipboard-confirm').style.display = 'block';
-  } catch (err) {
-    btn.textContent = 'Open Robinhood API Settings';
-    btn.disabled = false;
-    alert('Your browser doesn\'t support automatic key generation. Use the manual entry below.');
-    rhShowManual();
+    await apiFetch('/api/bot?action=settings', {
+      method: 'POST',
+      body: JSON.stringify({ risk_level: window._risk || 'balanced', strategy: 'negrisk_arb' }),
+    });
+    wizGo(3);
+  } catch {
+    wizGo(3); // don't block — settings can be changed in dashboard
+  } finally {
+    btn.disabled = false; btn.textContent = 'Continue →';
   }
 };
 
-window.rhGoToScreen2 = function () {
-  document.getElementById('rh-screen-1').style.display = 'none';
-  document.getElementById('rh-screen-2').style.display = 'block';
+// Wizard step 3 — skip wallet (sandbox users)
+window.wizSkipWallet = async function () {
+  const btn = document.getElementById('wiz-btn-skip');
+  btn.disabled = true; btn.textContent = 'Setting up…';
+  try {
+    const r = await apiFetch('/api/bot?action=connect', {
+      method: 'POST',
+      body: JSON.stringify({ mode: 'sandbox' }),
+    });
+    if (!r.ok) throw new Error();
+    document.getElementById('wizard').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    showPanel('home');
+    loadStatus();
+  } catch {
+    btn.disabled = false; btn.textContent = 'Skip for now — use sandbox only';
+  }
 };
 
-window.rhBackToScreen1 = function () {
-  document.getElementById('rh-screen-2').style.display = 'none';
-  document.getElementById('rh-screen-1').style.display = 'block';
-};
-
-window.rhShowManual = function () {
-  document.getElementById('rh-manual-form').style.display = 'block';
-  document.getElementById('rh-screen-1').style.display = 'none';
-  document.getElementById('rh-screen-2').style.display = 'none';
-};
 
 window.wizGo = function (step) {
   window._wizStep = step;
@@ -3364,46 +3397,33 @@ window.wizQuickStart = async function () {
   okEl.style.display  = 'none';
 
   const privKey = document.getElementById('poly-private-key')?.value?.trim();
+  if (!privKey) {
+    errEl.textContent = 'Paste your Polygon wallet private key above';
+    errEl.style.display = 'block';
+    return;
+  }
 
   btn.disabled = true;
-  btn.textContent = privKey ? 'Connecting wallet...' : 'Setting up...';
+  btn.textContent = 'Connecting wallet…';
 
   try {
-    if (privKey) {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ poly_private_key: privKey, mode: 'live' }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Connection failed');
-      okEl.textContent = `Wallet connected: ${d.address?.slice(0,8)}...${d.address?.slice(-4)}`;
-      okEl.style.display = 'block';
-    } else {
-      const r = await apiFetch('/api/bot?action=connect', {
-        method: 'POST',
-        body: JSON.stringify({ mode: 'sandbox' }),
-      });
-      if (!r.ok) {
-        const d = await r.json().catch(() => ({}));
-        throw new Error(d.error || 'Setup failed — server error');
-      }
-    }
-
-    const sr = await apiFetch('/api/bot?action=settings', {
+    const r = await apiFetch('/api/bot?action=connect', {
       method: 'POST',
-      body: JSON.stringify({ strategy: 'negrisk_arb', risk_level: 'balanced', max_position_pct: 10 }),
+      body: JSON.stringify({ poly_private_key: privKey, mode: 'live' }),
     });
-    if (!sr.ok) {
-      const d = await sr.json().catch(() => ({}));
-      throw new Error(d.error || 'Failed to save settings');
-    }
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Connection failed');
+    okEl.textContent = `Connected: ${d.address?.slice(0,8)}…${d.address?.slice(-4)}`;
+    okEl.style.display = 'block';
 
     window._configured = true;
-    btn.textContent = 'Launching dashboard...';
-    document.getElementById('wizard').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    showPanel('home');
-    loadStatus();
+    btn.textContent = 'Launching dashboard…';
+    setTimeout(() => {
+      document.getElementById('wizard').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      showPanel('home');
+      loadStatus();
+    }, 900);
   } catch (err) {
     errEl.textContent = err.message;
     errEl.style.display = 'block';
@@ -3501,15 +3521,8 @@ window.wizSaveAndContinue = async function () {
 };
 
 function wizPopulateSummary() {
-  document.getElementById('launch-broker').textContent   = window._broker === 'robinhood' ? 'Robinhood' : 'Alpaca';
-  document.getElementById('launch-mode').textContent     = 'Paper';
-  document.getElementById('launch-assets').textContent   = window._botType === 'both' ? 'Crypto + Stocks' : window._botType === 'stocks' ? 'Stocks' : 'Crypto';
-  document.getElementById('launch-risk').textContent     = window._risk.charAt(0).toUpperCase() + window._risk.slice(1);
-  document.getElementById('launch-maxpos').textContent   = document.getElementById('wiz-maxpos').value + '%';
-
-  // Strategy name
-  const stratCard = document.querySelector('#wiz-strategy-grid .strat-card.selected .strat-name');
-  document.getElementById('launch-strategy').textContent = stratCard ? stratCard.textContent : 'WICK Scalper';
+  const riskEl = document.getElementById('launch-risk');
+  if (riskEl) riskEl.textContent = window._risk ? (window._risk.charAt(0).toUpperCase() + window._risk.slice(1)) : 'Balanced';
 }
 
 window.wizToggleBot = async function () {
@@ -3625,16 +3638,6 @@ function wizInitStep2() {
 // ══════════════════════════════════════════════════════════════════════════════
 // DASHBOARD LOGIC (existing, refactored)
 // ══════════════════════════════════════════════════════════════════════════════
-
-window.setBroker = function (broker) {
-  window._broker = broker;
-  document.getElementById('broker-alpaca').className    = 'mode-btn' + (broker === 'alpaca'     ? ' active live' : '');
-  document.getElementById('broker-robinhood').className = 'mode-btn' + (broker === 'robinhood'  ? ' active live' : '');
-  document.getElementById('alpaca-section').style.display = broker === 'alpaca'    ? '' : 'none';
-  document.getElementById('rh-section').style.display     = broker === 'robinhood' ? '' : 'none';
-  document.getElementById('connect-error').style.display   = 'none';
-  document.getElementById('connect-success').style.display = 'none';
-};
 
 // ── Auth ─────────────────────────────────────────────────────────
 function dbg(msg) { console.log('[WICK]', msg); }
@@ -3796,7 +3799,7 @@ function applyStatusToUI(d) {
   window._subscribed   = d.subscribed === true;
   window._hasFuel      = d.fuel && d.fuel.balance > 0;
   window._selectedMode = d.mode;
-  window._broker       = d.broker || 'alpaca';
+  window._broker       = 'polymarket';
   _connected           = !!d.connected;
 
   // Update wallet status display
@@ -3845,20 +3848,8 @@ function applyStatusToUI(d) {
       tierBadge.style.color = '#f59e0b';
       tierBadge.style.borderColor = 'rgba(245,158,11,.25)';
       tierBadge.style.cursor = 'pointer';
-      tierBadge.onclick = () => showPanel('broker');
+      tierBadge.onclick = () => toggleControlPanel();
     }
-  }
-
-  // Highlight the active broker tab
-  document.querySelectorAll('#dash-broker-tabs .dash-nav-btn').forEach(b => {
-    b.classList.remove('active');
-    b.style.borderBottomColor = 'transparent';
-  });
-  const activeTab = document.getElementById('dbt-' + window._broker);
-  if (activeTab) {
-    activeTab.classList.add('active');
-    activeTab.style.borderBottomColor = BROKER_TAB_COLORS[window._broker] || 'var(--green)';
-    activeTab.style.color = BROKER_TAB_COLORS[window._broker] || 'var(--text1)';
   }
 
   document.getElementById('stats-row').style.display     = 'grid';
@@ -3873,10 +3864,9 @@ function applyStatusToUI(d) {
   if (d.fuel) updateFuelUI(d.fuel);
   if (d.badges) renderBadges(d.badges);
 
-  // Show broker card for non-polymarket brokers
-  const broker = d.broker || window._broker;
-  document.getElementById('alpaca-card').style.display = broker !== 'polymarket' ? 'block' : 'none';
-  setBroker(broker);
+  // Wallet nudge banner — show when sandbox with no wallet connected
+  const nudge = document.getElementById('wallet-nudge-banner');
+  if (nudge) nudge.style.display = (d.configured && d.mode === 'sandbox' && !d.wallet_address) ? 'flex' : 'none';
 
   // ── PARADIGM 1: Polymarket hyper-responsive stat flashes ──
   // Helper: update a stat tile with flash animation on change
@@ -3923,70 +3913,11 @@ function applyStatusToUI(d) {
   updateToggleUI(d.bot_active, d.mode);
   renderTrades(d.recent_trades || []);
 
-  // Populate broker-specific account balances
-  const pv = d.portfolio_value ? parseFloat(d.portfolio_value) : 0;
-  const bp = d.buying_power ? parseFloat(d.buying_power) : 0;
-  const brokerPrefixes = { robinhood: 'rh', coinbase: 'cb', alpaca: 'al' };
-  const prefix = brokerPrefixes[broker];
-  if (prefix) {
-    const infoEl = document.getElementById(prefix + '-account-info');
-    const pvEl = document.getElementById(prefix + '-portfolio-val');
-    const bpEl = document.getElementById(prefix + '-buying-power');
-    const eqEl = document.getElementById(prefix + '-equity-display');
-    const stEl = document.getElementById(prefix + '-status-display');
-    const swEl = document.getElementById(prefix + '-master-switch');
-
-    if (infoEl) infoEl.style.display = 'block';
-    if (pvEl) pvEl.textContent = '$' + pv.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    if (bpEl) bpEl.textContent = '$' + bp.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    if (eqEl) eqEl.textContent = '$' + pv.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    if (stEl) stEl.textContent = d.configured ? (d.bot_active ? 'Active' : 'Connected') : 'Not connected';
-    if (swEl && d.configured) {
-      const colors = { polymarket: '#2962FF' };
-      swEl.textContent = d.bot_active ? 'PIPELINE ACTIVE' : 'ACTIVATE PIPELINE';
-      if (d.bot_active) {
-        swEl.style.background = 'rgba(255,255,255,.06)';
-        swEl.style.color = colors[broker] || 'var(--green)';
-      }
-    }
-  }
 
   // settings-card shown only when user expands the control panel via ⚙ button
   if (d.available_strategies) renderStrategies(d.available_strategies, d.selected_strategy);
   applySettingsToUI(d.settings || {});
 
-  // ── Connection status banner ──
-  const banner = document.getElementById('connection-banner');
-  const connDot = document.getElementById('conn-dot');
-  const connTitle = document.getElementById('conn-title');
-  const connDetail = document.getElementById('conn-detail');
-  const connBadge = document.getElementById('conn-badge');
-  if (banner) {
-    banner.style.display = 'block';
-    const br = (d.broker || 'none').toUpperCase();
-    if (d.configured && d.broker) {
-      const active = d.bot_active;
-      connDot.style.background = active ? 'var(--green)' : 'var(--amber)';
-      connDot.style.boxShadow = active ? '0 0 8px var(--green)' : '0 0 6px var(--amber)';
-      connTitle.textContent = `${br} Connected`;
-      connTitle.style.color = 'var(--green)';
-      connDetail.textContent = active
-        ? `Agent running · ${d.mode} mode · scanning every 2 min`
-        : `Connected but agent is OFF — toggle it on to start trading`;
-      connBadge.textContent = active ? 'ACTIVE' : 'IDLE';
-      connBadge.style.background = active ? 'rgba(0,200,5,.12)' : 'rgba(41,98,255,.12)';
-      connBadge.style.color = active ? 'var(--green)' : 'var(--amber)';
-    } else {
-      connDot.style.background = 'var(--red)';
-      connDot.style.boxShadow = '0 0 6px var(--red)';
-      connTitle.textContent = 'No Broker Connected';
-      connTitle.style.color = 'var(--red)';
-      connDetail.textContent = 'Go to the Broker panel in the sidebar to connect';
-      connBadge.textContent = 'DISCONNECTED';
-      connBadge.style.background = 'rgba(255,68,102,.12)';
-      connBadge.style.color = 'var(--red)';
-    }
-  }
 
   // ── Live activity feed ──
   const actCard = document.getElementById('activity-card');
@@ -4033,9 +3964,7 @@ function updateToggleUI(active, mode) {
   dot.className    = `bot-status-dot${active ? ' active' : ''}`;
   toggle.className = `toggle${active ? ' on' : ''}`;
   label.innerHTML  = `Agent is <strong>${active ? 'running' : 'off'}</strong>`;
-  // Robinhood/Coinbase/Kraken are always live — override paper badge; sandbox maps to paper
-  const alwaysLive = window._broker === 'robinhood' || window._broker === 'coinbase' || window._broker === 'kraken';
-  const actualMode = alwaysLive ? 'live' : (mode === 'sandbox' ? 'paper' : mode);
+  const actualMode = mode === 'sandbox' ? 'paper' : (mode || 'paper');
   badge.textContent = actualMode.toUpperCase();
   badge.className   = `bot-mode ${actualMode}`;
 
@@ -4043,9 +3972,9 @@ function updateToggleUI(active, mode) {
   document.getElementById('btn-live').className  = `mode-btn live${actualMode === 'live' ? ' active' : ''}`;
   document.getElementById('live-warning').style.display = actualMode === 'live' ? 'block' : 'none';
 
-  // Hide paper/live toggle for brokers that are always live or for polymarket (mode is managed via wallet setup)
+  // Mode switch is managed via wallet setup — always hide on Polymarket
   const modeSwitch = document.getElementById('mode-switch');
-  if (modeSwitch) modeSwitch.style.display = (alwaysLive || window._broker === 'polymarket') ? 'none' : '';
+  if (modeSwitch) modeSwitch.style.display = 'none';
 
   // Sync compact control bar
   const cbBar = document.getElementById('control-bar');
@@ -4159,20 +4088,13 @@ window.toggleBot = async function () {
 window.setMode = function (mode) {
   if (mode === 'live' && !_connected) {
     alert('Connect your Polymarket wallet first to enable live trading.');
-    showPanel('broker');
+    toggleControlPanel();
     return;
   }
   window._selectedMode = mode;
   document.getElementById('btn-paper').className = `mode-btn ${mode === 'paper' ? 'active paper' : ''}`;
   document.getElementById('btn-live').className  = `mode-btn live${mode === 'live' ? ' active' : ''}`;
   document.getElementById('live-warning').style.display = mode === 'live' ? 'block' : 'none';
-  const card = document.getElementById('alpaca-card');
-  const hint = document.getElementById('alpaca-mode-hint');
-  if (hint) hint.textContent = mode === 'live'
-    ? 'Live trading uses your LIVE keys. Real money will be at risk.'
-    : 'Paper trading uses your PAPER keys. No real money.';
-  card.style.display = 'block';
-  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
 // ── Strategy selector ────────────────────────────────────────────────────────
@@ -4646,111 +4568,9 @@ window.connectWallet = async function () {
   }
 };
 
-// Dashboard broker connect
-window.connectBroker = function () {
-  if (window._broker === 'robinhood') dashConnectRobinhood();
-  else dashConnectAlpaca();
-};
 
-async function dashConnectAlpaca() {
-  const keyId  = document.getElementById('dash-alpaca-key').value.trim();
-  const secret = document.getElementById('dash-alpaca-secret').value.trim();
-  const errEl  = document.getElementById('connect-error');
-  const okEl   = document.getElementById('connect-success');
-  const btn    = document.getElementById('btn-connect');
 
-  errEl.style.display = 'none'; okEl.style.display = 'none';
-  if (!keyId || !secret) { errEl.textContent = 'Both fields are required'; errEl.style.display = 'block'; return; }
-
-  btn.disabled = true; btn.textContent = 'Validating…';
-  try {
-    const r = await apiFetch('/api/bot?action=connect', {
-      method: 'POST',
-      body: JSON.stringify({ broker: 'alpaca', alpaca_key_id: keyId, alpaca_secret_key: secret, mode: window._selectedMode || window._botMode || 'paper' }),
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Connection failed');
-    okEl.textContent = `✓ Alpaca connected (${d.mode}) · Portfolio $${parseFloat(d.portfolio_value||0).toLocaleString()}`;
-    okEl.style.display = 'block';
-    window._configured = true;
-    setTimeout(() => { showPanel('home'); loadStatus(); }, 1200);
-  } catch (err) {
-    errEl.textContent = err.message; errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-  }
-}
-
-// Dashboard Robinhood auto-setup (same as wizard flow)
-window.dashRhAutoSetup = async function () {
-  const btn = document.getElementById('dash-rh-auto-btn');
-  btn.disabled = true; btn.textContent = 'Generating…';
-  try {
-    const keyPair = await crypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
-    const rawPrivate = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-    const rawPublic  = await crypto.subtle.exportKey('raw', keyPair.publicKey);
-    const publicBase64  = btoa(String.fromCharCode(...new Uint8Array(rawPublic)));
-    const pkcs8Bytes    = new Uint8Array(rawPrivate);
-    const privateBase64 = btoa(String.fromCharCode(...pkcs8Bytes.slice(pkcs8Bytes.length - 32)));
-
-    window._dashRhPrivateKey = privateBase64;
-    document.getElementById('dash-rh-pem').value = privateBase64;
-
-    await navigator.clipboard.writeText(publicBase64);
-    window.open('https://robinhood.com/account/crypto', '_blank');
-
-    btn.textContent = 'Key copied — Robinhood is open';
-    btn.style.background = 'rgba(74,222,128,.15)';
-    btn.style.color = '#4D8FFF';
-    document.getElementById('dash-rh-confirm').style.display = 'block';
-  } catch {
-    btn.textContent = 'Generate Key & Open Robinhood'; btn.disabled = false;
-    document.getElementById('dash-rh-manual').style.display = 'block';
-    document.getElementById('dash-rh-screen-1').style.display = 'none';
-  }
-};
-
-async function dashConnectRobinhood() {
-  // Check auto flow first, then manual
-  let apiKeyId, privateKey;
-  const manual = document.getElementById('dash-rh-manual');
-  if (manual && manual.style.display !== 'none') {
-    apiKeyId   = document.getElementById('dash-rh-manual-key').value.trim();
-    privateKey = document.getElementById('dash-rh-manual-pem').value.trim();
-  } else {
-    apiKeyId   = document.getElementById('dash-rh-key').value.trim();
-    privateKey = document.getElementById('dash-rh-pem').value.trim() || window._dashRhPrivateKey || '';
-  }
-
-  const errEl = document.getElementById('connect-error');
-  const okEl  = document.getElementById('connect-success');
-  const btn   = document.getElementById('btn-connect');
-
-  errEl.style.display = 'none'; okEl.style.display = 'none';
-  if (!apiKeyId || !privateKey) {
-    errEl.textContent = apiKeyId ? 'Generate your key first (click the button above)' : 'Paste your Robinhood API Key ID';
-    errEl.style.display = 'block'; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Validating…';
-  try {
-    const r = await apiFetch('/api/bot?action=connect', {
-      method: 'POST',
-      body: JSON.stringify({ broker: 'robinhood', rh_api_key_id: apiKeyId, rh_private_key: privateKey }),
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Connection failed');
-    okEl.textContent = `✓ Robinhood connected · key ${d.key_preview}`;
-    okEl.style.display = 'block';
-    window._configured = true;
-    window._dashRhPrivateKey = null;
-    setTimeout(() => { showPanel('home'); loadStatus(); }, 1200);
-  } catch (err) {
-    errEl.textContent = err.message; errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Connect & Validate Keys';
-  }
-}
+// (Robinhood and Alpaca broker support removed)
 
 // Refresh stats every 2 minutes, risk desk every 60s
 setInterval(() => { if (auth.currentUser && document.getElementById('dashboard').style.display !== 'none') loadStatus(); }, 120_000);

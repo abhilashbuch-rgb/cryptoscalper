@@ -155,6 +155,48 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // ── Closing soon: markets ending within 48h with ≥5% NegRisk edge ──
+    const CLOSING_SOON_MS = 48 * 60 * 60 * 1000;
+    const now = Date.now();
+    for (const bracket of eligible) {
+      if (!bracket.endDate) continue;
+      const endTs = new Date(bracket.endDate).getTime();
+      if (isNaN(endTs) || endTs <= now || endTs > now + CLOSING_SOON_MS) continue;
+      const basketSum = bracket.tokens.reduce((s, t) => s + t.currentYesPrice, 0);
+      const edge = basketSum - 1.00;
+      if (edge < 0.05) continue; // require 5%+ edge for closing-soon
+      const expectedProfit = edge * 50;
+      const platformFee    = parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
+      const userProfit     = parseFloat((expectedProfit - platformFee).toFixed(4));
+      const hoursLeft      = Math.round((endTs - now) / 3600000);
+      const confidence     = Math.min(99, Math.round(
+        60 + (edge * 100) * 4 + (hoursLeft < 12 ? 15 : hoursLeft < 24 ? 8 : 0)
+      ));
+      const bracketKeys = (bracket.title || '').toUpperCase().replace(/[^A-Z0-9\s]/g, ' ').split(/\s+/);
+      const categories  = [...new Set(bracketKeys.map(k => ALIAS_INDEX.get(k)).filter(Boolean))];
+      anomalies.push({
+        anomalyType:    'CLOSING_SOON',
+        bracketId:      bracket.id,
+        bracket:        bracket.title,
+        legs:           bracket.tokens.map(t => ({ slug: t.slug, noPrice: 1 - t.currentYesPrice })),
+        basketSum,
+        edge,
+        edgePct:        (edge * 100).toFixed(2),
+        confidence,
+        expectedProfit,
+        platformFee,
+        userProfit,
+        totalDeployed:  bracket.tokens.length * 50,
+        signal:         `Closes in ${hoursLeft}h — basket ${basketSum.toFixed(3)} > 1.05 — auto-exits at 5%`,
+        categories,
+        marketPrice:    parseFloat((1 / bracket.tokens.length).toFixed(4)),
+        eventProb:      parseFloat(((1 / bracket.tokens.length) + edge).toFixed(4)),
+        newsSource:     null,
+        endDate:        bracket.endDate,
+        sortScore:      confidence + (edge * 500) + (hoursLeft < 12 ? 40 : 20),
+      });
+    }
+
     // Sort and take top MAX_ANOMALIES
     anomalies.sort((a, b) => b.sortScore - a.sortScore);
     const top = anomalies.slice(0, MAX_ANOMALIES);

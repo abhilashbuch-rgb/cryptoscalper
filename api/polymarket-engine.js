@@ -763,7 +763,8 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Bracket no longer active. Market moved.' });
     }
 
-    const result = await engine.executeBracketArbitrage(target, play.legSize);
+    const execOpts = play.anomalyType === 'CLOSING_SOON' ? { take_profit_pct: 5 } : {};
+    const result = await engine.executeBracketArbitrage(target, play.legSize, execOpts);
 
     await playRef.update({
       status: serverAutoExecuted ? 'AUTO_EXECUTED' : 'EXECUTED',

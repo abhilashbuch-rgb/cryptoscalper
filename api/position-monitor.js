@@ -274,9 +274,19 @@ module.exports = async (req, res) => {
 
     if (mode === 'live') {
       try {
-        const creds = getCredentialsFromEnv();
+        // Use user's own L2 credentials if available; fall back to platform credentials
+        const userData = userDoc.exists ? userDoc.data() : {};
+        let creds = getCredentialsFromEnv();
+        if (userData.poly_api_key && userData.poly_api_secret && userData.poly_passphrase) {
+          creds = {
+            privateKey: userData.poly_private_key || creds.privateKey,
+            apiKey:     userData.poly_api_key,
+            apiSecret:  userData.poly_api_secret,
+            passphrase: userData.poly_passphrase,
+          };
+        }
         if (creds.apiKey && creds.apiSecret && creds.passphrase) {
-          await submitMarketOrder(pos.tokenId, 'SELL', pos.size);
+          await submitMarketOrder(pos.tokenId, 'SELL', pos.size, creds);
         }
       } catch (err) {
         return res.status(500).json({ error: `Exit failed: ${err.message}` });

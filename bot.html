@@ -1504,7 +1504,20 @@ body::before {
             <input class="form-input" id="poly-private-key" type="password" placeholder="0x... (66 characters total)" autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px;padding-right:48px;width:100%;box-sizing:border-box">
             <button type="button" onclick="toggleKeyVisibility('poly-private-key', this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#5a6a7a;padding:4px" title="Show/hide key">👁</button>
           </div>
-          <div style="font-size:10px;color:#4a5568;line-height:1.6;margin-top:10px">64-character hex string starting with <code style="color:#7aa2f7">0x</code>. Found in Polymarket → Settings → Export private key. Non-custodial — trade execution only, no withdrawal capability.</div>
+          <div style="font-size:10px;color:#4a5568;line-height:1.6;margin-top:10px">64-character hex string starting with <code style="color:#7aa2f7">0x</code>. Non-custodial — trade execution only, no withdrawal capability.</div>
+          <details style="margin-top:10px">
+            <summary style="font-size:10px;color:#5a7aaa;cursor:pointer;font-family:var(--mono);font-weight:700;letter-spacing:.04em;list-style:none">▶ WHERE TO FIND YOUR PRIVATE KEY</summary>
+            <div style="margin-top:8px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid #1a2030;border-radius:8px;font-size:10px;color:#5a6a7a;line-height:1.8">
+              <strong style="color:#8899aa;display:block;margin-bottom:4px">Email / Google login (most users):</strong>
+              1. Go to <strong style="color:#7aa2f7">polymarket.com</strong> and sign in<br>
+              2. Click your profile picture → <strong style="color:#7aa2f7">Profile</strong><br>
+              3. Click the <strong style="color:#7aa2f7">⚙ Settings</strong> gear<br>
+              4. Scroll to <strong style="color:#7aa2f7">Export private key</strong> and copy it<br>
+              <span style="color:#4a5568;margin-top:4px;display:block">It starts with 0x and is 66 characters total.</span>
+              <strong style="color:#8899aa;display:block;margin-top:8px;margin-bottom:4px">MetaMask / external wallet:</strong>
+              Export private key from your wallet app directly.
+            </div>
+          </details>
         </div>
         <div style="padding:12px 18px;border-top:1px solid #1a2030;background:rgba(255,255,255,.015);display:flex;gap:10px;align-items:center">
           <span style="color:#10b981;font-size:14px">🔒</span>
@@ -1925,7 +1938,20 @@ body::before {
               <button type="button" onclick="toggleKeyVisibility('dash-poly-key', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--text3);padding:4px" title="Show/hide key">👁</button>
             </div>
           </div>
-          <div style="font-size:10px; color:var(--text3); line-height:1.6; margin-bottom:12px;">64-char hex string starting with <code style="color:#7aa2f7">0x</code>. Find it in Polymarket → Settings → Export private key. Trade execution only — we can never withdraw funds.</div>
+          <div style="font-size:10px; color:var(--text3); line-height:1.6; margin-bottom:6px;">64-character hex string starting with <code style="color:#7aa2f7">0x</code>. Trade execution only — we never withdraw funds.</div>
+          <details style="margin-bottom:12px">
+            <summary style="font-size:10px;color:var(--text3);cursor:pointer;font-family:var(--mono);font-weight:700;letter-spacing:.04em;list-style:none">▶ WHERE TO FIND YOUR PRIVATE KEY</summary>
+            <div style="margin-top:6px;padding:10px 12px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;font-size:10px;color:var(--text3);line-height:1.8">
+              <strong style="color:var(--text2);display:block;margin-bottom:4px">Email / Google login (most users):</strong>
+              1. Go to <strong style="color:#7aa2f7">polymarket.com</strong> and sign in<br>
+              2. Click your profile picture → <strong style="color:#7aa2f7">Profile</strong><br>
+              3. Click the <strong style="color:#7aa2f7">⚙ Settings</strong> gear<br>
+              4. Scroll to <strong style="color:#7aa2f7">Export private key</strong> and copy it<br>
+              <span style="color:var(--text3);margin-top:4px;display:block">Starts with 0x, 66 characters total.</span>
+              <strong style="color:var(--text2);display:block;margin-top:8px;margin-bottom:4px">MetaMask / external wallet:</strong>
+              Export private key from your wallet app directly.
+            </div>
+          </details>
           <div id="connect-error" class="form-error" style="display:none"></div>
           <div id="connect-success" class="form-success" style="display:none"></div>
           <button class="btn-primary" id="btn-connect" onclick="connectWallet()" style="width:100%;">Connect Wallet</button>
@@ -3870,7 +3896,11 @@ onAuthStateChanged(auth, async user => {
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 async function apiFetch(url, opts = {}) {
-  const token = idToken || await auth.currentUser?.getIdToken();
+  // Always call getIdToken() — Firebase auto-refreshes tokens that are near/past expiry.
+  // Falling back to the cached global only handles the edge case where there's no current user.
+  let token;
+  try { token = await auth.currentUser?.getIdToken(); } catch {}
+  token = token || idToken;
   return fetch(url, {
     ...opts,
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(opts.headers || {}) },

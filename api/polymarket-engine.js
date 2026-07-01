@@ -495,7 +495,7 @@ module.exports = async (req, res) => {
     for (const bracket of eligible) {
       const basketSum = bracket.tokens.reduce((s, t) => s + t.currentYesPrice, 0);
       const edge = basketSum - 1.00;
-      if (edge >= 0.03) {
+      if (edge >= 0.01) {
         const expectedProfit = edge * effectiveLegSize;
         const platformFee = vip ? 0 : parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
         const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
@@ -542,7 +542,7 @@ module.exports = async (req, res) => {
 
     for (const [, match] of newsMatches) {
       const market = match.market;
-      if (match.score < 3) continue;
+      if (match.score < 2) continue;
 
       const isBracket = !!market.tokens;
       let confidence, edge, expectedProfit, platformFee, userProfit, mktPrice, evtProb;

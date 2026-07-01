@@ -303,7 +303,6 @@ body::before {
 }
 /* Below-fold: left col (spans 2) = feed/positions/trades, right col (col 3) = scores/risk/wallet */
 #control-bar    { order: 0; grid-column: 1/-1; }
-#flash-play-tile{ order: 1; grid-column: 1 / span 2; }
 #worldcup-tile  { order: 2; grid-column: 3; }
 #positions-tile { order: 3; grid-column: 1 / span 2; }
 #risk-desk-tile { order: 4; grid-column: 3; }
@@ -1638,30 +1637,41 @@ body::before {
     <!-- ═══ COMMAND CENTER — split screen ═══ -->
     <div class="command-center" id="command-center">
 
-    <!-- ═══ LEFT PANEL: ANOMALY FEED ═══ -->
+    <!-- ═══ LEFT PANEL: ANOMALY STREAM ═══ -->
     <div class="cc-panel" id="cc-left">
       <div class="cc-panel-header">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text1);text-transform:uppercase">Anomaly Feed</span>
-          <span style="width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite"></span>
-          <span style="font-family:var(--mono);font-size:9px;color:#10b981;letter-spacing:.08em">LIVE</span>
+          <span style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text1);text-transform:uppercase">Anomaly Stream</span>
+          <span class="tile-badge" id="stream-status-badge" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.2);font-size:8px;padding:2px 6px">SCANNING</span>
+          <span class="tile-badge" id="tier-badge" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25);font-size:8px;padding:2px 6px">POLYMARKET</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-family:var(--mono);font-size:9px;color:var(--text3)" id="cc-scan-count">0 scanned</span>
+          <span style="font-family:var(--mono);font-size:9px;color:var(--text3)"><span id="stream-scan-count">0</span> scanned · <span id="stream-grab-count">0</span> struck</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite"></span>
         </div>
       </div>
+      <!-- Strike size selector -->
       <div style="padding:8px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0">
         <span style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;font-weight:700">STRIKE</span>
         <button class="strike-size-btn" onclick="setStrikeSize(25)">$25</button>
         <button class="strike-size-btn active" onclick="setStrikeSize(50)">$50</button>
         <button class="strike-size-btn" onclick="setStrikeSize(100)">$100</button>
         <button class="strike-size-btn" onclick="setStrikeSize(250)">$250</button>
-        <span style="font-family:var(--mono);font-size:9px;color:#10b981;font-weight:700;margin-left:auto" id="cc-strike-display">$50/leg</span>
+        <button class="strike-size-btn" onclick="setStrikeSize(500)">$500</button>
+        <span style="font-family:var(--mono);font-size:9px;color:#10b981;font-weight:700;margin-left:auto" id="strike-size-display">$50/leg</span>
       </div>
-      <div class="cc-panel-body" id="cc-anomaly-feed">
-        <div id="cc-anomaly-empty" style="text-align:center;padding:40px 0">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.06em;margin-bottom:6px">SCANNING FOR ANOMALIES...</div>
-          <div style="font-size:11px;color:var(--text3)">Mispriced markets appear here. Hit the button to trade.</div>
+      <div class="cc-panel-body" style="padding:0;overflow-y:auto">
+        <!-- Anomaly cards container -->
+        <div id="stream-cards" style="display:flex;flex-direction:column;gap:10px;padding:12px;min-height:120px">
+          <div id="stream-empty" style="text-align:center;padding:40px 0;display:block">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.06em;margin-bottom:6px">SCANNING FOR ANOMALIES...</div>
+            <div style="font-size:11px;color:var(--text3)">Mispriced markets will appear here as cards. Hit STRIKE to trade.</div>
+          </div>
+        </div>
+        <!-- Recent grabs log -->
+        <div id="stream-log" style="border-top:1px solid var(--border);padding:10px 14px;display:none">
+          <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">RECENT ACTIVITY</div>
+          <div id="stream-log-entries" style="font-family:var(--mono);font-size:10px;color:var(--text2);max-height:80px;overflow-y:auto"></div>
         </div>
       </div>
     </div>
@@ -1739,55 +1749,7 @@ body::before {
       </div>
     </div>
 
-    <!-- ═══ ANOMALY STREAM — live cards with individual timers ═══ -->
-    <div class="tile tile-full" id="flash-play-tile" style="display:none">
-      <div class="tile-title">
-        Anomaly Stream
-        <span class="tile-badge" id="stream-status-badge" style="background:rgba(16,185,129,.12);color:#10b981">SCANNING</span>
-        <span class="tile-badge" id="tier-badge" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25);margin-left:4px">POLYMARKET</span>
-      </div>
-
-      <!-- Strike size selector -->
-      <div class="strike-size-row">
-        <span style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;font-weight:700">STRIKE SIZE</span>
-        <button class="strike-size-btn" onclick="setStrikeSize(25)">$25</button>
-        <button class="strike-size-btn active" onclick="setStrikeSize(50)">$50</button>
-        <button class="strike-size-btn" onclick="setStrikeSize(100)">$100</button>
-        <button class="strike-size-btn" onclick="setStrikeSize(250)">$250</button>
-        <button class="strike-size-btn" onclick="setStrikeSize(500)">$500</button>
-        <span style="font-family:var(--mono);font-size:9px;color:#10b981;font-weight:700;margin-left:auto" id="strike-size-display">$50/leg</span>
-      </div>
-
-      <!-- Stream header -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">
-          <span id="stream-scan-count">0</span> markets scanned
-          <span style="color:var(--border);margin:0 6px">|</span>
-          <span id="stream-grab-count">0</span> struck
-          <span style="color:var(--border);margin:0 6px">|</span>
-          <span style="color:#10b981">&#9889;</span> Strike to trade · Auto mode available
-        </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite"></span>
-          <span style="font-family:var(--mono);font-size:9px;color:#10b981;letter-spacing:.08em">LIVE</span>
-        </div>
-      </div>
-
-      <!-- Anomaly cards container — up to 3 cards -->
-      <div id="stream-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-height:180px">
-        <!-- Empty state -->
-        <div id="stream-empty" style="grid-column:1/-1;text-align:center;padding:40px 0;display:block">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.06em;margin-bottom:6px">SCANNING FOR ANOMALIES...</div>
-          <div style="font-size:11px;color:var(--text3)">Mispriced markets will appear here as cards. Grab them before the timer runs out.</div>
-        </div>
-      </div>
-
-      <!-- Recent grabs log -->
-      <div id="stream-log" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;display:none">
-        <div style="font-family:var(--mono);font-size:8px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">RECENT ACTIVITY</div>
-        <div id="stream-log-entries" style="font-family:var(--mono);font-size:10px;color:var(--text2);max-height:80px;overflow-y:auto"></div>
-      </div>
-    </div>
+    <!-- flash-play-tile removed — stream lives in cc-left panel -->
 
     <!-- ═══ RISK DESK STATUS ═══ -->
     <div class="tile" id="risk-desk-tile" style="display:none">
@@ -2933,14 +2895,12 @@ function streamStart() {
 function streamSeedFromCache() {
   const catches = window._cachedLiveFeed || [];
   if (!catches.length) return;
-  const anomalyTypeLabel = { NEGRISK_ARB: 'ARB', NEWS_LAG: 'NEWS LAG' };
-  const anomalyTypeColor = { NEGRISK_ARB: '#4D8FFF', NEWS_LAG: '#f59e0b' };
-  const anomalyTypeBg    = { NEGRISK_ARB: 'rgba(59,130,246,.1)', NEWS_LAG: 'rgba(245,158,11,.1)' };
-  const anomalyTypeBorder= { NEGRISK_ARB: 'rgba(59,130,246,.2)', NEWS_LAG: 'rgba(245,158,11,.2)' };
+  const anomalyTypeLabel = { NEGRISK_ARB: 'ARB', NEWS_LAG: 'NEWS LAG', CLOSING_SOON: 'CLOSING SOON' };
+  const anomalyTypeColor = { NEGRISK_ARB: '#4D8FFF', NEWS_LAG: '#f59e0b', CLOSING_SOON: '#ef4444' };
+  const anomalyTypeBg    = { NEGRISK_ARB: 'rgba(59,130,246,.1)', NEWS_LAG: 'rgba(245,158,11,.1)', CLOSING_SOON: 'rgba(239,68,68,.1)' };
+  const anomalyTypeBorder= { NEGRISK_ARB: 'rgba(59,130,246,.2)', NEWS_LAG: 'rgba(245,158,11,.2)', CLOSING_SOON: 'rgba(239,68,68,.2)' };
   const feedContainer = document.getElementById('stream-cards');
   const emptyEl = document.getElementById('stream-empty');
-  const ccFeed = document.getElementById('cc-anomaly-feed');
-  const ccEmpty = document.getElementById('cc-anomaly-empty');
   catches.slice(0, STREAM_MAX_CARDS).forEach(c => {
     if (_streamCards.size >= STREAM_MAX_CARDS) return;
     const id = 'preview_' + Math.random().toString(36).slice(2, 8);
@@ -2964,10 +2924,6 @@ function streamSeedFromCache() {
     if (feedContainer && emptyEl) {
       emptyEl.style.display = 'none';
       feedContainer.insertAdjacentHTML('beforeend', html);
-    }
-    if (ccFeed && ccEmpty) {
-      ccEmpty.style.display = 'none';
-      ccFeed.insertAdjacentHTML('beforeend', html.replace(`id="sc-${id}"`, `id="cc-sc-${id}"`));
     }
     _streamCards.set(id, { preview: true });
   });
@@ -3021,9 +2977,7 @@ function streamClearPreviews() {
   for (const [id, card] of _streamCards) {
     if (!card.preview) continue;
     const el = document.getElementById('sc-' + id);
-    const ccEl = document.getElementById('cc-sc-' + id);
     if (el) el.remove();
-    if (ccEl) ccEl.remove();
     _streamCards.delete(id);
   }
 }
@@ -3041,11 +2995,6 @@ async function streamPoll() {
       const sub = emptyEl.querySelectorAll('div');
       if (sub[1]) sub[1].textContent = t;
     }
-    const ccEmpty = document.getElementById('cc-anomaly-empty');
-    if (ccEmpty) {
-      const sub = ccEmpty.querySelectorAll('div');
-      if (sub[1]) sub[1].textContent = t;
-    }
   }
 
   try {
@@ -3058,8 +3007,6 @@ async function streamPoll() {
     const d = await r.json();
     _streamScanCount += d.scanned || 1;
     document.getElementById('stream-scan-count').textContent = _streamScanCount;
-    const ccScan = document.getElementById('cc-scan-count');
-    if (ccScan) ccScan.textContent = _streamScanCount + ' scanned';
 
     if (d.verdict === 'PLAYS_FOUND' && d.plays) {
       streamClearPreviews();
@@ -3089,8 +3036,6 @@ async function streamPoll() {
     _streamScanCount++;
     const scanEl = document.getElementById('stream-scan-count');
     if (scanEl) scanEl.textContent = _streamScanCount;
-    const ccScan = document.getElementById('cc-scan-count');
-    if (ccScan) ccScan.textContent = _streamScanCount + ' scanned';
     updateTimestamp('scanning...');
   }
   finally { _streamPollInFlight = false; }
@@ -3111,9 +3056,6 @@ function streamAddCard(d) {
   const container = document.getElementById('stream-cards');
   const emptyEl = document.getElementById('stream-empty');
   if (emptyEl) emptyEl.style.display = 'none';
-  const ccFeed = document.getElementById('cc-anomaly-feed');
-  const ccEmpty = document.getElementById('cc-anomaly-empty');
-  if (ccEmpty) ccEmpty.style.display = 'none';
 
   const id = d.playId;
   const ttl = d.ttlSeconds || STREAM_TTL;
@@ -3125,10 +3067,10 @@ function streamAddCard(d) {
   const platform = (d.platform || 'Polymarket').toUpperCase();
 
   const anomalyType = d.anomalyType || 'NEGRISK_ARB';
-  const typeLabel = anomalyType === 'NEWS_LAG' ? 'NEWS LAG' : 'ARB';
-  const typeColor = anomalyType === 'NEWS_LAG' ? '#f59e0b' : '#4D8FFF';
-  const typeBg = anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.1)' : 'rgba(59,130,246,.1)';
-  const typeBorder = anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.2)' : 'rgba(59,130,246,.2)';
+  const typeLabel = anomalyType === 'CLOSING_SOON' ? 'CLOSING SOON' : anomalyType === 'NEWS_LAG' ? 'NEWS LAG' : 'ARB';
+  const typeColor = anomalyType === 'CLOSING_SOON' ? '#ef4444' : anomalyType === 'NEWS_LAG' ? '#f59e0b' : '#4D8FFF';
+  const typeBg = anomalyType === 'CLOSING_SOON' ? 'rgba(239,68,68,.1)' : anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.1)' : 'rgba(59,130,246,.1)';
+  const typeBorder = anomalyType === 'CLOSING_SOON' ? 'rgba(239,68,68,.2)' : anomalyType === 'NEWS_LAG' ? 'rgba(245,158,11,.2)' : 'rgba(59,130,246,.2)';
 
   const signalText = d.signal ? d.signal.slice(0, 60) : '';
   const signalHtml = signalText
@@ -3219,18 +3161,10 @@ function streamAddCard(d) {
     <div class="timer-bar" id="bar-${id}" style="width:100%"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
       <span id="fee-label-${id}" style="font-family:var(--mono);font-size:7px;color:#475569;letter-spacing:.06em">10% FEE</span>
-      <span id="auto-exec-badge-${id}" style="display:none;font-family:var(--mono);font-size:7px;font-weight:700;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:1px 5px;border-radius:3px">AUTO-EXECUTE ON</span>
+      ${anomalyType === 'CLOSING_SOON' ? '<span style="font-family:var(--mono);font-size:7px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);padding:1px 5px;border-radius:3px">&#9993; AUTO-EXIT @ 5%</span>' : `<span id="auto-exec-badge-${id}" style="display:none;font-family:var(--mono);font-size:7px;font-weight:700;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:1px 5px;border-radius:3px">AUTO-EXECUTE ON</span>`}
     </div>
   `;
   container.appendChild(card);
-
-  if (ccFeed) {
-    const ccCard = card.cloneNode(true);
-    ccCard.id = 'cc-' + card.id;
-    ccCard.querySelectorAll('[id]').forEach(el => { el.id = 'cc-' + el.id; });
-    ccCard.style.gridColumn = '';
-    ccFeed.insertBefore(ccCard, ccFeed.firstChild);
-  }
 
   let secs = ttl;
   const cardData = {
@@ -3307,6 +3241,7 @@ async function streamStrike(playId) {
     _streamGrabCount++;
     document.getElementById('stream-grab-count').textContent = _streamGrabCount;
     streamLog('STRUCK', cardData.data.bracket, d.userProfit, feePct, '#10b981');
+    loadPositions();
   } catch {
     streamLog('FAILED', cardData.data.bracket, 0, '—', '#f43f5e');
   }
@@ -3343,15 +3278,11 @@ async function streamAutoExecute(playId) {
 function streamRemoveCard(playId) {
   const cardEl = document.getElementById('anom-' + playId);
   if (cardEl) cardEl.remove();
-  const ccCardEl = document.getElementById('cc-anom-' + playId);
-  if (ccCardEl) ccCardEl.remove();
   _streamCards.delete(playId);
 
   if (_streamCards.size === 0) {
     const emptyEl = document.getElementById('stream-empty');
     if (emptyEl) emptyEl.style.display = 'block';
-    const ccEmpty = document.getElementById('cc-anomaly-empty');
-    if (ccEmpty) ccEmpty.style.display = 'block';
   }
 }
 
@@ -4025,7 +3956,6 @@ function applyStatusToUI(d) {
   document.getElementById('stats-row').style.display     = 'grid';
   document.getElementById('trades-card').style.display   = 'block';
   document.getElementById('worldcup-tile').style.display    = 'block';
-  document.getElementById('flash-play-tile').style.display = 'block';
   document.getElementById('risk-desk-tile').style.display  = 'block';
   // bot-control and settings-card start collapsed; compact bar is the entry point
   loadRiskStatus();

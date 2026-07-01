@@ -1,12 +1,11 @@
 const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
-const { PolymarketAlphaEngine, PLATFORM_FEE_PCT } = require('../lib/polymarket-alpha');
+const { PolymarketAlphaEngine } = require('../lib/polymarket-alpha');
 const { evaluateArbitrage, buildMarketPayload } = require('../lib/research-desk');
 const { runRiskDeskCycle, getRiskBoundaries } = require('../lib/risk-desk');
 const { verifyConnection, deriveApiCredentials } = require('../lib/polymarket-clob');
 const { getStrip, matchHeadline, ENTITY_ALIASES } = require('../lib/market-strip');
 const { parseJsonArray } = require('../lib/gamma-utils');
-const { isVip } = require('../lib/vip-accounts');
 
 const ALIAS_INDEX = new Map();
 for (const [category, aliases] of Object.entries(ENTITY_ALIASES)) {
@@ -371,7 +370,6 @@ module.exports = async (req, res) => {
     const userData = userDoc.exists ? userDoc.data() : {};
     const connected = !!userData.wallet_address;
     const cutoff = Date.now();
-    const vip = isVip(decoded.email);
 
     let liveSnap = null;
     try {
@@ -396,9 +394,6 @@ module.exports = async (req, res) => {
         const a = doc.data();
         const playId = `flash_${decoded.uid}_${Date.now()}_${i}`;
         const expiresAt = Date.now() + FLASH_PLAY_TTL_MS;
-        const displayPlatformFee = vip ? 0 : a.platformFee;
-        const displayUserProfit = vip ? a.expectedProfit : a.userProfit;
-
         db.collection('flash_plays').doc(playId).set({
           userId: decoded.uid,
           bracketId: a.bracketId,
@@ -409,8 +404,8 @@ module.exports = async (req, res) => {
           legSize: effectiveLegSize,
           totalDeployed: a.totalDeployed || effectiveLegSize,
           expectedProfit: a.expectedProfit,
-          platformFee: displayPlatformFee,
-          userProfit: displayUserProfit,
+          platformFee: 0,
+          userProfit: a.expectedProfit,
           confidence: a.confidence,
           anomalyType: a.anomalyType,
           signal: a.signal,
@@ -447,8 +442,8 @@ module.exports = async (req, res) => {
           })),
           totalDeployed: a.totalDeployed || effectiveLegSize,
           expectedProfit: a.expectedProfit,
-          platformFee: displayPlatformFee,
-          userProfit: displayUserProfit,
+          platformFee: 0,
+          userProfit: a.expectedProfit,
           mode,
           source: 'vps_engine',
           delayed: false,
@@ -480,7 +475,7 @@ module.exports = async (req, res) => {
       return res.json({ verdict: 'RISK_HALT', reason: riskBounds.reasoning_brief });
     }
 
-    if (walletBalance < 500 && mode !== 'sandbox' && !vip) {
+    if (walletBalance < 500 && mode !== 'sandbox') {
       return res.json({ verdict: 'CRITICAL_STANDBY', walletBalance });
     }
 
@@ -504,8 +499,8 @@ module.exports = async (req, res) => {
       const edge = basketSum - 1.00;
       if (edge >= 0.01) {
         const expectedProfit = edge * effectiveLegSize;
-        const platformFee = vip ? 0 : parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
-        const userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
+        const platformFee = 0;
+        const userProfit = expectedProfit;
         const confidence = Math.min(99, Math.round(
           50 + (edge * 100) * 5
             + (bracket.tokens.length >= 3 ? 10 : 0)
@@ -552,7 +547,7 @@ module.exports = async (req, res) => {
       if (match.score < 2) continue;
 
       const isBracket = !!market.tokens;
-      let confidence, edge, expectedProfit, platformFee, userProfit, mktPrice, evtProb;
+      let confidence, edge, expectedProfit, mktPrice, evtProb;
 
       if (isBracket) {
         const basketSum = market.tokens.reduce((s, t) => s + (t.currentYesPrice || 0), 0);
@@ -582,8 +577,8 @@ module.exports = async (req, res) => {
       }
 
       expectedProfit = parseFloat((edge * effectiveLegSize).toFixed(4));
-      platformFee = vip ? 0 : parseFloat((expectedProfit * PLATFORM_FEE_PCT).toFixed(4));
-      userProfit = parseFloat((expectedProfit - platformFee).toFixed(4));
+      const platformFee = 0;
+      const userProfit = expectedProfit;
 
       const alreadyCovered = anomalies.some(a =>
         a.type === 'NEGRISK_ARB' && a.bracket.id === market.id
@@ -659,9 +654,8 @@ module.exports = async (req, res) => {
         legSize: effectiveLegSize,
         totalDeployed: (a.bracket.tokens?.length || 1) * effectiveLegSize,
         expectedProfit: a.expectedProfit,
-        platformFee: a.platformFee,
-        platformFeePct: PLATFORM_FEE_PCT,
-        userProfit: a.userProfit,
+        platformFee: 0,
+        userProfit: a.expectedProfit,
         confidence: a.confidence,
         whaleSignal,
         anomalyType: a.type,
@@ -747,10 +741,8 @@ module.exports = async (req, res) => {
     }
 
     const serverAutoExecuted = Date.now() > play.expiresAt;
-    const AUTO_EXECUTE_FEE_PCT = 0.50;
-    const effectiveFeePct = isVip(decoded.email) ? 0 : (serverAutoExecuted ? AUTO_EXECUTE_FEE_PCT : PLATFORM_FEE_PCT);
-    const adjustedPlatformFee = parseFloat((play.expectedProfit * effectiveFeePct).toFixed(4));
-    const adjustedUserProfit = parseFloat((play.expectedProfit - adjustedPlatformFee).toFixed(4));
+    const adjustedPlatformFee = 0;
+    const adjustedUserProfit = play.expectedProfit;
 
     const mode = userDoc.exists ? (userDoc.data().mode || 'sandbox') : 'sandbox';
 
@@ -787,7 +779,6 @@ module.exports = async (req, res) => {
     await playRef.update({
       status: serverAutoExecuted ? 'AUTO_EXECUTED' : 'EXECUTED',
       autoExecuted: serverAutoExecuted,
-      effectiveFeePct,
       platformFee: adjustedPlatformFee,
       userProfit: adjustedUserProfit,
       executedAt: FieldValue.serverTimestamp(),

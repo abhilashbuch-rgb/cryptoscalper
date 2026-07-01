@@ -1571,7 +1571,7 @@ body::before {
         <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:#f59e0b;letter-spacing:.04em">SANDBOX MODE — NO WALLET CONNECTED</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px">You can see anomalies and practice, but live trades require a connected Polygon wallet.</div>
       </div>
-      <button onclick="toggleControlPanel()" style="flex-shrink:0;padding:7px 14px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:7px;color:#f59e0b;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Connect Wallet</button>
+      <button onclick="toggleControlPanel()" style="flex-shrink:0;padding:7px 14px;background:rgba(100,120,150,.15);border:1px solid rgba(100,120,150,.3);border-radius:7px;color:var(--text3);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Settings</button>
     </div>
 
     <!-- Action bar — compact single-row controls (replaces quick-controls + stats-row) -->
@@ -1588,7 +1588,7 @@ body::before {
       </div>
       <div onclick="toggleAutoExecute()" style="display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0">
         <div>
-          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text1)">AUTO-EXECUTE <span style="color:#f59e0b;font-size:8px;font-weight:400">50% fee</span></div>
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text1)">AUTO-EXECUTE</div>
           <div style="font-size:9px;color:var(--text3);margin-top:1px" id="ab-auto-exec-desc">executes expired plays</div>
         </div>
         <div class="toggle" id="ab-auto-exec-toggle"></div>
@@ -3219,7 +3219,7 @@ async function streamStrike(playId) {
     const d = await r.json();
     _streamGrabCount++;
     document.getElementById('stream-grab-count').textContent = _streamGrabCount;
-    streamLog('STRUCK', cardData.data.bracket, d.userProfit, feePct, '#10b981');
+    streamLog('STRUCK', cardData.data.bracket, d.userProfit, '', '#10b981');
     loadPositions();
     const toast = document.getElementById('strike-toast');
     if (toast) {
@@ -3252,7 +3252,7 @@ async function streamAutoExecute(playId) {
       body: JSON.stringify({ playId, autoExecuted: true }),
     });
     const d = await r.json();
-    streamLog('AUTO', cardData.data.bracket, d.userProfit, '50%', '#f59e0b');
+    streamLog('AUTO', cardData.data.bracket, d.userProfit, '', '#f59e0b');
   } catch {
     streamLog('EXPIRED', cardData.data.bracket, 0, '—', '#5a6a7a');
   }
@@ -3284,7 +3284,6 @@ function streamLog(type, bracket, profit, fee, color) {
     <span style="color:${color};font-weight:700;min-width:48px">${type}</span>
     <span style="color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(bracket||'').slice(0,40)}</span>
     <span style="color:${color};font-weight:700">${profitStr}</span>
-    <span style="color:var(--text3)">${fee} fee</span>
   `;
   entries.insertBefore(entry, entries.firstChild);
   if (entries.children.length > 10) entries.lastChild.remove();
@@ -3948,9 +3947,9 @@ function applyStatusToUI(d) {
   if (d.fuel) updateFuelUI(d.fuel);
   if (d.badges) renderBadges(d.badges);
 
-  // Wallet nudge banner — show when sandbox with no wallet connected
+  // Wallet nudge banner — always hidden (no upsell)
   const nudge = document.getElementById('wallet-nudge-banner');
-  if (nudge) nudge.style.display = (d.configured && d.mode === 'sandbox' && !d.wallet_address) ? 'flex' : 'none';
+  if (nudge) nudge.style.display = 'none';
 
   // Seed markets + news on first load (only runs once per session)
   if (!window._predictionsLoaded) {
@@ -4619,15 +4618,15 @@ function updateAutoExecuteUI() {
   const onColor = _autoExecuteEnabled ? '#f59e0b' : 'var(--text3)';
   const onClass = 'toggle' + (_autoExecuteEnabled ? ' on' : '');
   const descText = _autoExecuteEnabled
-    ? 'ACTIVE — expired plays execute automatically at 50% fee'
-    : 'When a play expires unacted, WICK trades it — 50% fee applies';
+    ? 'ACTIVE — expired plays execute automatically'
+    : 'Auto-trades plays that expire unacted';
   ['', 'st-', 'ab-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exec-toggle');
     const label = document.getElementById(prefix + 'auto-exec-label');
     const desc = document.getElementById(prefix + 'auto-exec-desc');
     if (toggle) toggle.className = onClass;
     if (label) { label.textContent = onText; label.style.color = onColor; }
-    if (desc) desc.textContent = _autoExecuteEnabled ? 'running — 50% fee on auto-trades' : 'executes expired plays';
+    if (desc) desc.textContent = _autoExecuteEnabled ? 'running — auto-trades on expiry' : 'executes expired plays';
   });
 }
 

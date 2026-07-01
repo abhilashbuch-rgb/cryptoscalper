@@ -1500,8 +1500,11 @@ body::before {
       <div style="background:#080b0f;border:1px solid #1a2030;border-radius:12px;overflow:hidden;margin-bottom:16px">
         <div style="padding:18px">
           <label style="font-family:var(--mono);font-size:9px;color:#4a5568;letter-spacing:.08em;display:block;margin-bottom:8px">POLYGON WALLET PRIVATE KEY</label>
-          <input class="form-input" id="poly-private-key" type="password" placeholder="0x..." autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px">
-          <div style="font-size:10px;color:#4a5568;line-height:1.5;margin-top:10px">Non-custodial. AES-256 encrypted. Trade execution only — no withdrawal capability.</div>
+          <div style="position:relative">
+            <input class="form-input" id="poly-private-key" type="password" placeholder="0x... (66 characters total)" autocomplete="off" style="font-size:13px;background:#0a0f18;border-color:#1a2030;padding:14px;padding-right:48px;width:100%;box-sizing:border-box">
+            <button type="button" onclick="toggleKeyVisibility('poly-private-key', this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#5a6a7a;padding:4px" title="Show/hide key">👁</button>
+          </div>
+          <div style="font-size:10px;color:#4a5568;line-height:1.6;margin-top:10px">64-character hex string starting with <code style="color:#7aa2f7">0x</code>. Found in Polymarket → Settings → Export private key. Non-custodial — trade execution only, no withdrawal capability.</div>
         </div>
         <div style="padding:12px 18px;border-top:1px solid #1a2030;background:rgba(255,255,255,.015);display:flex;gap:10px;align-items:center">
           <span style="color:#10b981;font-size:14px">🔒</span>
@@ -1917,9 +1920,12 @@ body::before {
         <div id="settings-wallet-change">
           <div class="form-group" style="margin-top:14px; margin-bottom:8px;">
             <label class="form-label">Wallet Private Key (Polygon)</label>
-            <input class="form-input" id="dash-poly-key" type="password" placeholder="0x..." autocomplete="off" spellcheck="false">
+            <div style="position:relative">
+              <input class="form-input" id="dash-poly-key" type="password" placeholder="0x... (66 characters total)" autocomplete="off" spellcheck="false" style="padding-right:44px;width:100%;box-sizing:border-box">
+              <button type="button" onclick="toggleKeyVisibility('dash-poly-key', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;color:var(--text3);padding:4px" title="Show/hide key">👁</button>
+            </div>
           </div>
-          <div style="font-size:10px; color:var(--text3); line-height:1.5; margin-bottom:12px;">Non-custodial — WICK places trades but cannot withdraw or transfer funds. Key is AES-256 encrypted.</div>
+          <div style="font-size:10px; color:var(--text3); line-height:1.6; margin-bottom:12px;">64-char hex string starting with <code style="color:#7aa2f7">0x</code>. Find it in Polymarket → Settings → Export private key. Trade execution only — we can never withdraw funds.</div>
           <div id="connect-error" class="form-error" style="display:none"></div>
           <div id="connect-success" class="form-success" style="display:none"></div>
           <button class="btn-primary" id="btn-connect" onclick="connectWallet()" style="width:100%;">Connect Wallet</button>
@@ -3388,6 +3394,25 @@ async function goLiveAfterConnect() {
   loadStatus();
 }
 
+function normalizePrivKey(raw) {
+  const s = (raw || '').trim().replace(/\s+/g, '');
+  const key = s.startsWith('0x') || s.startsWith('0X') ? s : '0x' + s;
+  const hex = key.slice(2);
+  if (!/^[0-9a-fA-F]+$/.test(hex))
+    return { ok: false, error: 'Key must contain only hex characters (0–9, a–f). Make sure you\'re pasting the private key, not a seed phrase or address.' };
+  if (hex.length !== 64)
+    return { ok: false, error: `Key is ${hex.length} hex characters — it must be exactly 64 (you have ${hex.length < 64 ? 'too few' : 'too many'}). Make sure you copied the full key.` };
+  return { ok: true, key };
+}
+
+window.toggleKeyVisibility = function (inputId, btnEl) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const showing = inp.type === 'text';
+  inp.type = showing ? 'password' : 'text';
+  btnEl.textContent = showing ? '👁' : '🙈';
+};
+
 window.wizQuickStart = async function () {
   const errEl = document.getElementById('wiz-connect-error');
   const okEl  = document.getElementById('wiz-connect-success');
@@ -3396,12 +3421,19 @@ window.wizQuickStart = async function () {
   errEl.style.display = 'none';
   okEl.style.display  = 'none';
 
-  const privKey = document.getElementById('poly-private-key')?.value?.trim();
-  if (!privKey) {
+  const raw = document.getElementById('poly-private-key')?.value || '';
+  if (!raw.trim()) {
     errEl.textContent = 'Paste your Polygon wallet private key above';
     errEl.style.display = 'block';
     return;
   }
+  const validated = normalizePrivKey(raw);
+  if (!validated.ok) {
+    errEl.textContent = validated.error;
+    errEl.style.display = 'block';
+    return;
+  }
+  const privKey = validated.key;
 
   btn.disabled = true;
   btn.textContent = 'Connecting wallet…';
@@ -4518,19 +4550,26 @@ function updateAutoExecuteUI() {
 
 // Dashboard Polymarket wallet connect
 window.connectWallet = async function () {
-  const privKey = document.getElementById('dash-poly-key')?.value?.trim();
-  const errEl   = document.getElementById('connect-error');
-  const okEl    = document.getElementById('connect-success');
-  const btn     = document.getElementById('btn-connect');
+  const raw    = document.getElementById('dash-poly-key')?.value || '';
+  const errEl  = document.getElementById('connect-error');
+  const okEl   = document.getElementById('connect-success');
+  const btn    = document.getElementById('btn-connect');
 
   errEl.style.display = 'none';
   okEl.style.display  = 'none';
 
-  if (!privKey) {
+  if (!raw.trim()) {
     errEl.textContent = 'Paste your Polygon wallet private key first';
     errEl.style.display = 'block';
     return;
   }
+  const validated = normalizePrivKey(raw);
+  if (!validated.ok) {
+    errEl.textContent = validated.error;
+    errEl.style.display = 'block';
+    return;
+  }
+  const privKey = validated.key;
 
   btn.disabled = true;
   btn.textContent = 'Connecting…';

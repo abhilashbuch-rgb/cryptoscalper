@@ -8,11 +8,13 @@ function cors(res) {
 
 async function fetchScores() {
   const leagues = [
-    { name: 'NFL', url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard' },
     { name: 'NBA', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard' },
     { name: 'MLB', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard' },
+    { name: 'NFL', url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard' },
     { name: 'NHL', url: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard' },
     { name: 'MLS', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard' },
+    { name: 'EPL', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard' },
+    { name: 'UCL', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard' },
   ];
 
   const games = [];
@@ -29,8 +31,8 @@ async function fetchScores() {
           if (home && away) {
             games.push({
               league: name,
-              home: home.team?.abbreviation || '?',
-              away: away.team?.abbreviation || '?',
+              home: home.team?.abbreviation || home.team?.shortDisplayName || '?',
+              away: away.team?.abbreviation || away.team?.shortDisplayName || '?',
               homeScore: home.score || '0',
               awayScore: away.score || '0',
               status: comp.status?.type?.shortDetail || 'Scheduled',
@@ -45,28 +47,43 @@ async function fetchScores() {
   return games;
 }
 
+function extractRssTitles(xml, excludeTerms = []) {
+  // Match both plain and CDATA-wrapped titles, strip HTML entities
+  const titles = [...xml.matchAll(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/gm)]
+    .map(m => m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#\d+;/g, '').trim())
+    .filter(t => t.length > 10 && !excludeTerms.some(ex => t.toLowerCase().includes(ex)));
+  return [...new Set(titles)]; // deduplicate
+}
+
 async function fetchNews() {
   const sources = [
-    'https://feeds.bbci.co.uk/news/world/rss.xml',
-    'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml',
+    { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', exclude: ['bbc news', 'bbc sport'] },
+    { url: 'https://feeds.bbci.co.uk/news/rss.xml', exclude: ['bbc news', 'bbc sport'] },
+    { url: 'https://www.theguardian.com/world/rss', exclude: ['the guardian'] },
+    { url: 'https://feeds.npr.org/1001/rss.xml', exclude: ['npr'] },
+    { url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', exclude: ['nytimes', 'new york times'] },
+    { url: 'https://feeds.reuters.com/reuters/topNews', exclude: ['reuters'] },
   ];
 
-  for (const url of sources) {
-    try {
-      const { data } = await axios.get(url, {
-        timeout: 5000,
-        headers: { 'User-Agent': 'WICK/1.0' },
-      });
-      const titles = [...data.matchAll(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/g)]
-        .map(m => m[1].trim())
-        .filter(t => t && !t.toLowerCase().includes('bbc') && !t.toLowerCase().includes('nytimes'))
-        .slice(0, 12);
-      if (titles.length >= 3) return titles;
-    } catch {
-      // try next source
-    }
-  }
-  return [];
+  const allTitles = [];
+  await Promise.allSettled(
+    sources.map(async ({ url, exclude }) => {
+      try {
+        const { data } = await axios.get(url, {
+          timeout: 4000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WICK/1.0)' },
+        });
+        const titles = extractRssTitles(data, exclude).slice(0, 8);
+        allTitles.push(...titles);
+      } catch {
+        // skip failed source
+      }
+    })
+  );
+
+  // Deduplicate, shuffle slightly (interleave sources), take top 15
+  const unique = [...new Set(allTitles)].filter(t => t.length > 15).slice(0, 15);
+  return unique;
 }
 
 module.exports = async (req, res) => {

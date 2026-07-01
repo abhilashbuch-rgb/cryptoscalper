@@ -1559,6 +1559,7 @@ body::before {
       <div style="flex:1"></div>
       <span style="font-family:var(--mono);font-size:11px;color:var(--green)" id="cb-winrate">—</span>
       <span style="font-size:10px;color:var(--text3);font-family:var(--mono)" id="cb-pnl"></span>
+      <span id="cb-wallet-status" style="display:none;font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:4px;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);white-space:nowrap">WALLET ✓</span>
       <div class="cb-divider"></div>
       <div class="toggle" id="cb-toggle" onclick="toggleBot()" style="flex-shrink:0"></div>
       <button onclick="toggleControlPanel()" id="ctrl-panel-btn" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text2);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap">⚙ SETTINGS ▾</button>
@@ -1840,12 +1841,20 @@ body::before {
 
     <!-- Polymarket tile -->
     <div class="tile" id="poly-card-home">
-      <div class="card-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:10px">
         <span>Polymarket Signals</span>
         <span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0">Crowd prediction markets</span>
       </div>
-      <div class="poly-row" id="poly-body">
-        <div class="empty-state" style="padding:16px">Loading signals...</div>
+      <!-- Category filters -->
+      <div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;">
+        <button onclick="polyFilter('all')" class="poly-cat active" id="pcat-all">All</button>
+        <button onclick="polyFilter('crypto')" class="poly-cat" id="pcat-crypto">Crypto</button>
+        <button onclick="polyFilter('politics')" class="poly-cat" id="pcat-politics">Politics</button>
+        <button onclick="polyFilter('sports')" class="poly-cat" id="pcat-sports">Sports</button>
+        <button onclick="polyFilter('business')" class="poly-cat" id="pcat-business">Business</button>
+      </div>
+      <div id="poly-body" style="display:flex;flex-direction:column;gap:8px">
+        <div class="empty-state" style="padding:16px">Loading markets...</div>
       </div>
       <div class="poly-attr">via polymarket.com</div>
     </div>
@@ -1859,30 +1868,7 @@ body::before {
         </div>
       </div>
 
-      <!-- Auto-Exit Toggle -->
-      <div style="background:linear-gradient(135deg, rgba(16,185,129,.06), rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXIT</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px" id="auto-exit-desc">WICK monitors and sells when targets are hit</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="auto-exit-label">OFF</span>
-          <div class="toggle" id="auto-exit-toggle" onclick="toggleAutoExit()" style="flex-shrink:0"></div>
-        </div>
-      </div>
       <div id="auto-exit-status" style="display:none;font-size:10px;color:var(--green);font-family:var(--mono);margin-bottom:10px;padding:6px 10px;background:rgba(16,185,129,.08);border-radius:6px;text-align:center"></div>
-
-      <!-- Auto-Execute Toggle -->
-      <div style="background:linear-gradient(135deg, rgba(245,158,11,.06), rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXECUTE <span style="font-size:9px;color:#f59e0b;font-weight:400">(50% FEE)</span></div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px" id="auto-exec-desc">When a play expires unacted, WICK trades it — 50% fee applies</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="auto-exec-label">OFF</span>
-          <div class="toggle" id="auto-exec-toggle" onclick="toggleAutoExecute()" style="flex-shrink:0"></div>
-        </div>
-      </div>
 
       <div id="positions-body" style="display:flex;flex-direction:column;gap:8px">
         <div class="empty-state" style="padding:16px;font-size:12px;color:var(--text3)">No open positions. Trades will appear here when you execute a strike.</div>
@@ -1917,6 +1903,43 @@ body::before {
 
     <div class="tile tile-wide" id="settings-card" style="display:none">
 
+      <!-- ── Automation Controls ── -->
+      <div style="border-bottom:1px solid var(--border); margin-bottom:24px; padding-bottom:24px;">
+        <div class="card-title" style="margin-bottom:14px;">Automation</div>
+        <!-- Auto-Exit -->
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXIT</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px" id="st-auto-exit-desc">Sells positions automatically at your take-profit target</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="st-auto-exit-label">OFF</span>
+            <div class="toggle" id="st-auto-exit-toggle" onclick="toggleAutoExit()" style="flex-shrink:0"></div>
+          </div>
+        </div>
+        <!-- Auto-Execute -->
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXECUTE <span style="font-size:9px;color:#f59e0b;font-weight:400">(50% FEE)</span></div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px" id="st-auto-exec-desc">When a play expires unacted, WICK trades it on your behalf — 50% performance fee</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="st-auto-exec-label">OFF</span>
+            <div class="toggle" id="st-auto-exec-toggle" onclick="toggleAutoExecute()" style="flex-shrink:0"></div>
+          </div>
+        </div>
+        <!-- Session Security -->
+        <div style="padding:12px 14px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-LOGOUT</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">Signs out after 15 min inactive or 5 min with tab hidden</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="toggle on" id="auto-logout-toggle" onclick="toggleAutoLogout()"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Wallet connection — hidden once connected -->
       <div id="settings-wallet-section" style="border-bottom:1px solid var(--border); margin-bottom:24px; padding-bottom:24px;">
         <div class="card-title">Polymarket Wallet</div>
@@ -1929,7 +1952,7 @@ body::before {
           <button onclick="document.getElementById('settings-wallet-change').style.display=document.getElementById('settings-wallet-change').style.display==='block'?'none':'block'" style="padding:5px 12px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text3); font-family:var(--mono); font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0;">Change</button>
         </div>
         <!-- Change / connect form -->
-        <div id="settings-wallet-change">
+        <div id="settings-wallet-change" style="display:none">
           <div class="form-group" style="margin-top:14px; margin-bottom:8px;">
             <label class="form-label">Wallet Private Key (Polygon)</label>
             <div style="position:relative">
@@ -2087,15 +2110,6 @@ body::before {
         </div>
         <div class="panel-sub">Polymarket prediction markets. The agent trades mispriced odds using live news and sports data.</div>
 
-        <!-- Category filters -->
-        <div style="display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap;">
-          <button onclick="polyFilter('all')" class="poly-cat active" id="pcat-all">All</button>
-          <button onclick="polyFilter('crypto')" class="poly-cat" id="pcat-crypto">Crypto</button>
-          <button onclick="polyFilter('politics')" class="poly-cat" id="pcat-politics">Politics</button>
-          <button onclick="polyFilter('sports')" class="poly-cat" id="pcat-sports">Sports</button>
-          <button onclick="polyFilter('business')" class="poly-cat" id="pcat-business">Business</button>
-        </div>
-
         <!-- Live markets -->
         <div id="poly-markets-list" style="display:flex; flex-direction:column; gap:10px;">
           <div style="text-align:center; padding:40px; color:var(--text3); font-size:13px;">Loading markets...</div>
@@ -2147,25 +2161,6 @@ body::before {
 
 
 
-      <!-- Panel: Settings -->
-
-        <div class="card">
-          <div class="card-title">Session Security</div>
-          <div class="toggle-row">
-            <div>
-              <span class="toggle-label" id="auto-logout-label">Auto-logout is <strong>on</strong></span>
-              <div style="font-size:11px; color:var(--text3); margin-top:4px;">Signs you out after 15 min inactive or 5 min with tab hidden. The agent keeps running server-side regardless.</div>
-            </div>
-            <div class="toggle on" id="auto-logout-toggle" onclick="toggleAutoLogout()"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">About</div>
-          <div style="font-size:12px; color:var(--text3); line-height:1.6;">
-            Trading crypto and stocks involves substantial risk of loss. WICK is automated trading software — not a financial advisor, and nothing here is financial advice. Trades execute through your own brokerage account; WICK never holds or transfers your funds, and API keys cannot withdraw. You can disconnect or cancel anytime. Only trade money you can afford to lose.
-          </div>
-        </div>
 
     <!-- ═══ RISK DISCLAIMER FOOTER ═══ -->
     <div class="tile tile-full" style="background:rgba(248,113,113,.02);border-color:rgba(248,113,113,.08)">
@@ -2174,7 +2169,7 @@ body::before {
         <div>
           <div style="font-family:var(--mono);font-size:9px;color:rgba(248,113,113,.6);letter-spacing:.1em;font-weight:700;margin-bottom:6px">RISK DISCLOSURE</div>
           <div style="font-size:11px;color:var(--text3);line-height:1.7">
-            Prediction market trading involves substantial risk of loss. Past performance shown on this dashboard — including win rates, P&L, and trade history — does not guarantee future results. WICK finds mathematical mispricings; it does not predict outcomes. Markets can move against any position. Only trade with funds you can afford to lose entirely. WICK is not registered with any financial regulatory authority. Not financial advice.
+            Prediction market trading involves substantial risk of loss. Past performance — including win rates, P&L, and trade history — does not guarantee future results. WICK finds mathematical mispricings; it does not predict outcomes. Markets can move against any position. Only trade with funds you can afford to lose entirely. <strong style="color:rgba(248,113,113,.7)">Performance fee:</strong> WICK collects a 10% fee on profitable trade exits, settled on-chain from your connected wallet. Losing trades incur no fee. WICK is not a financial advisor. Not financial advice.
           </div>
         </div>
       </div>
@@ -2345,8 +2340,6 @@ window.polyFilter = function (cat) {
 };
 
 function renderPolyMarkets() {
-  const list = document.getElementById('poly-markets-list');
-  if (!list) return;
   const keywords = {
     crypto: /bitcoin|btc|ethereum|eth|solana|sol|crypto|defi/i,
     politics: /trump|biden|president|election|congress|senate|republican|democrat|vote/i,
@@ -2357,23 +2350,28 @@ function renderPolyMarkets() {
   if (_polyFilter !== 'all' && keywords[_polyFilter]) {
     filtered = filtered.filter(m => keywords[_polyFilter].test(m.question));
   }
-  if (!filtered.length) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">No markets in this category</div>';
-    return;
-  }
-  list.innerHTML = filtered.slice(0, 15).map(m => {
-    const yesPct = Math.round(m.yesPrice * 100);
-    const noPct = Math.round(m.noPrice * 100);
-    const vol = m.volume24h > 1000 ? '$' + (m.volume24h / 1000).toFixed(0) + 'K' : '$' + Math.round(m.volume24h);
-    return `<div class="pm-card">
-      <div class="pm-question">${m.question}</div>
-      <div class="pm-odds">
-        <div class="pm-odds-btn pm-odds-yes">Yes ${yesPct}%</div>
-        <div class="pm-odds-btn pm-odds-no">No ${noPct}%</div>
-      </div>
-      <div class="pm-meta"><span class="pm-vol">Vol: ${vol}</span></div>
-    </div>`;
-  }).join('');
+  const marketHtml = filtered.length
+    ? filtered.slice(0, 15).map(m => {
+        const yesPct = Math.round(m.yesPrice * 100);
+        const noPct = Math.round(m.noPrice * 100);
+        const vol = m.volume24h > 1000 ? '$' + (m.volume24h / 1000).toFixed(0) + 'K' : '$' + Math.round(m.volume24h);
+        return `<div class="pm-card">
+          <div class="pm-question">${m.question}</div>
+          <div class="pm-odds">
+            <div class="pm-odds-btn pm-odds-yes">Yes ${yesPct}%</div>
+            <div class="pm-odds-btn pm-odds-no">No ${noPct}%</div>
+          </div>
+          <div class="pm-meta"><span class="pm-vol">Vol: ${vol}</span></div>
+        </div>`;
+      }).join('')
+    : '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">No markets in this category</div>';
+
+  const list = document.getElementById('poly-markets-list');
+  if (list) list.innerHTML = marketHtml;
+
+  // Also update the compact signals tile on the home view
+  const body = document.getElementById('poly-body');
+  if (body && _polyMarketsCache.length) body.innerHTML = marketHtml;
 }
 
 async function loadPredictionsPanel() {
@@ -2382,17 +2380,10 @@ async function loadPredictionsPanel() {
   const newsList = document.getElementById('poly-news-list');
 
   try {
-    const [marketsResp, sportsResp, newsResp] = await Promise.all([
-      fetch('https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=30&order=volume&ascending=false').then(r => r.json()).catch(() => []),
-      Promise.all([
-        fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard', {signal:AbortSignal.timeout(4000)}).then(r=>r.json()).catch(()=>({events:[]})),
-        fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard', {signal:AbortSignal.timeout(4000)}).then(r=>r.json()).catch(()=>({events:[]})),
-        fetch('https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard', {signal:AbortSignal.timeout(4000)}).then(r=>r.json()).catch(()=>({events:[]})),
-      ]),
-      fetch('https://news.google.com/rss/search?q=breaking+news+when:1h&hl=en-US&gl=US&ceid=US:en', {headers:{'User-Agent':'WICK/1.0'},signal:AbortSignal.timeout(5000)}).then(r=>r.text()).catch(()=>''),
-    ]);
+    // Markets from Polymarket gamma-api (browser can reach this — has CORS headers)
+    const marketsResp = await fetch('https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=50&order=volume&ascending=false')
+      .then(r => r.json()).catch(() => []);
 
-    // Markets
     if (Array.isArray(marketsResp)) {
       _polyMarketsCache = marketsResp.filter(m => m.active && !m.closed && m.outcomePrices).map(m => {
         let prices; try { prices = JSON.parse(m.outcomePrices); } catch { prices = ['0.5','0.5']; }
@@ -2401,43 +2392,27 @@ async function loadPredictionsPanel() {
       renderPolyMarkets();
     }
 
-    // Sports
-    const games = [];
-    const sportNames = ['NFL', 'NBA', 'MLB'];
-    sportsResp.forEach((data, i) => {
-      (data.events || []).forEach(e => {
-        const comp = e.competitions?.[0];
-        if (!comp) return;
-        const teams = comp.competitors || [];
-        const home = teams.find(t => t.homeAway === 'home');
-        const away = teams.find(t => t.homeAway === 'away');
-        if (home && away) {
-          games.push({
-            league: sportNames[i],
-            home: home.team?.abbreviation || '?', away: away.team?.abbreviation || '?',
-            homeScore: home.score || '0', awayScore: away.score || '0',
-            status: comp.status?.type?.shortDetail || 'Scheduled',
-          });
-        }
-      });
-    });
-    if (games.length) {
-      sportsList.innerHTML = games.slice(0, 10).map(g =>
-        `<div class="pm-sport-row"><span class="pm-sport-league">${g.league}</span><span class="pm-sport-teams">${g.away} @ ${g.home}</span><span class="pm-sport-score">${g.awayScore} - ${g.homeScore}</span><span class="pm-sport-status">${g.status}</span></div>`
-      ).join('');
-    } else {
-      sportsList.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No live games right now</div>';
+    // Scores + news via server-side proxy (avoids CORS issues with ESPN/news feeds)
+    const newsData = await fetch('/api/news').then(r => r.json()).catch(() => ({ scores: [], headlines: [] }));
+
+    if (sportsList) {
+      if (newsData.scores?.length) {
+        sportsList.innerHTML = newsData.scores.slice(0, 12).map(g =>
+          `<div class="pm-sport-row"><span class="pm-sport-league">${g.league}</span><span class="pm-sport-teams">${g.away} @ ${g.home}</span><span class="pm-sport-score">${g.awayScore} - ${g.homeScore}</span><span class="pm-sport-status">${g.status}</span></div>`
+        ).join('');
+      } else {
+        sportsList.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0;">No live games right now</div>';
+      }
     }
 
-    // News
-    const titles = [...newsResp.matchAll(/<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/g)]
-      .map(m => m[1].trim()).filter(t => t && t !== 'Google News').slice(0, 10);
-    if (titles.length) {
-      newsList.innerHTML = titles.map(t =>
-        `<div class="pm-news-item"><span class="pm-news-source">WIRE</span><span class="pm-news-title">${esc(t)}</span></div>`
-      ).join('');
-    } else {
-      newsList.innerHTML = '<div style="font-size:12px;color:var(--text3);">No breaking news</div>';
+    if (newsList) {
+      if (newsData.headlines?.length) {
+        newsList.innerHTML = newsData.headlines.map(t =>
+          `<div class="pm-news-item"><span class="pm-news-source">WIRE</span><span class="pm-news-title">${esc(t)}</span></div>`
+        ).join('');
+      } else {
+        newsList.innerHTML = '<div style="font-size:12px;color:var(--text3);">No breaking news</div>';
+      }
     }
 
   } catch (err) {
@@ -2448,11 +2423,7 @@ async function loadPredictionsPanel() {
 window.toggleAutoLogout = function () {
   window._autoLogout = !window._autoLogout;
   const btn = document.getElementById('auto-logout-toggle');
-  if (btn) {
-    btn.className = 'toggle' + (window._autoLogout ? ' on' : '');
-    const label = document.getElementById('auto-logout-label');
-    if (label) label.innerHTML = `Auto-logout is <strong>${window._autoLogout ? 'on' : 'off'}</strong>`;
-  }
+  if (btn) btn.className = 'toggle' + (window._autoLogout ? ' on' : '');
   if (window._autoLogout) resetInactivityTimer();
   else { clearTimeout(_inactivityTimer); clearTimeout(_tabHiddenTimer); }
   try { localStorage.setItem('wick_auto_logout', window._autoLogout ? '1' : '0'); } catch {}
@@ -3961,6 +3932,9 @@ function applyStatusToUI(d) {
       if (settingsConnected) settingsConnected.style.display = 'flex';
       if (settingsChange)    settingsChange.style.display    = 'none';
       if (settingsAddr)      settingsAddr.textContent        = shortAddr;
+      // Control bar wallet badge
+      const cbWallet = document.getElementById('cb-wallet-status');
+      if (cbWallet) cbWallet.style.display = 'inline';
     } else if (d.configured && d.mode === 'sandbox') {
       walletStatusEl.textContent = 'Sandbox mode ($10,000 simulated)';
       walletStatusEl.style.color = '#4D8FFF';
@@ -3968,6 +3942,8 @@ function applyStatusToUI(d) {
       // Settings wallet section: show connect form
       if (settingsConnected) settingsConnected.style.display = 'none';
       if (settingsChange)    settingsChange.style.display    = 'block';
+      const cbWallet = document.getElementById('cb-wallet-status');
+      if (cbWallet) cbWallet.style.display = 'none';
     }
   }
 
@@ -4010,6 +3986,14 @@ function applyStatusToUI(d) {
   // Wallet nudge banner — show when sandbox with no wallet connected
   const nudge = document.getElementById('wallet-nudge-banner');
   if (nudge) nudge.style.display = (d.configured && d.mode === 'sandbox' && !d.wallet_address) ? 'flex' : 'none';
+
+  // Seed markets + news on first load (only runs once per session)
+  if (!window._predictionsLoaded) {
+    window._predictionsLoaded = true;
+    loadPredictionsPanel();
+    // Refresh every 5 minutes
+    setInterval(loadPredictionsPanel, 5 * 60_000);
+  }
 
   // ── PARADIGM 1: Polymarket hyper-responsive stat flashes ──
   // Helper: update a stat tile with flash animation on change
@@ -4609,7 +4593,7 @@ function updateAutoExitUI() {
   const onClass = 'toggle' + (_autoExitEnabled ? ' on' : '');
   const descText = _autoExitEnabled ? 'Actively monitoring — sells at +' + tpPct + '% gain' : 'Auto-sells at +' + tpPct + '% gain';
 
-  ['', 'cc-'].forEach(prefix => {
+  ['', 'cc-', 'st-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exit-toggle');
     const label = document.getElementById(prefix + 'auto-exit-label');
     const desc = document.getElementById(prefix + 'auto-exit-desc');
@@ -4654,12 +4638,14 @@ function updateAutoExecuteUI() {
   const descText = _autoExecuteEnabled
     ? 'ACTIVE — expired plays execute automatically at 50% fee'
     : 'When a play expires unacted, WICK trades it — 50% fee applies';
-  const toggle = document.getElementById('auto-exec-toggle');
-  const label = document.getElementById('auto-exec-label');
-  const desc = document.getElementById('auto-exec-desc');
-  if (toggle) toggle.className = onClass;
-  if (label) { label.textContent = onText; label.style.color = onColor; }
-  if (desc) desc.textContent = descText;
+  ['', 'st-'].forEach(prefix => {
+    const toggle = document.getElementById(prefix + 'auto-exec-toggle');
+    const label = document.getElementById(prefix + 'auto-exec-label');
+    const desc = document.getElementById(prefix + 'auto-exec-desc');
+    if (toggle) toggle.className = onClass;
+    if (label) { label.textContent = onText; label.style.color = onColor; }
+    if (desc) desc.textContent = descText;
+  });
 }
 
 // Dashboard Polymarket wallet connect
@@ -4729,16 +4715,21 @@ window.connectWallet = async function () {
 setInterval(() => { if (auth.currentUser && document.getElementById('dashboard').style.display !== 'none') loadStatus(); }, 120_000);
 setInterval(() => { if (auth.currentUser && document.getElementById('dashboard').style.display !== 'none') loadRiskStatus(); }, 60_000);
 
-// ── Polymarket signals ────────────────────────────────────────────────────────
+// ── Polymarket signals (initial fast load from /api/polymarket) ───────────────
 async function loadPolymarket() {
+  // Skip if gamma-api data already loaded via loadPredictionsPanel
+  if (_polyMarketsCache.length) return;
   try {
     const r = await fetch('/api/polymarket');
     const d = await r.json();
     const body = document.getElementById('poly-body');
+    if (!body) return;
     if (!d.markets?.length) {
       body.innerHTML = '<div class="empty-state" style="padding:16px">No active crypto markets found</div>';
       return;
     }
+    // Only show if gamma-api still hasn't loaded
+    if (_polyMarketsCache.length) return;
     body.innerHTML = d.markets.map(m => {
       const pct = Math.round(m.yes_prob * 100);
       const s = m.sentiment;
@@ -4751,8 +4742,8 @@ async function loadPolymarket() {
       </div>`;
     }).join('');
   } catch (err) {
-    document.getElementById('poly-body').innerHTML =
-      '<div class="empty-state" style="padding:16px">Unable to load signals</div>';
+    const body = document.getElementById('poly-body');
+    if (body && !_polyMarketsCache.length) body.innerHTML = '<div class="empty-state" style="padding:16px">Unable to load signals</div>';
   }
 }
 

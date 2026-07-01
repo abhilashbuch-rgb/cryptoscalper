@@ -3052,7 +3052,11 @@ async function streamPoll() {
     streamAddCard(d);
   } catch (e) {
     console.warn('[stream]', e?.message || e);
-    // Still update timestamp so the UI shows activity, not a frozen clock
+    _streamScanCount++;
+    const scanEl = document.getElementById('stream-scan-count');
+    if (scanEl) scanEl.textContent = _streamScanCount;
+    const ccScan = document.getElementById('cc-scan-count');
+    if (ccScan) ccScan.textContent = _streamScanCount + ' scanned';
     updateTimestamp('scanning...');
   }
   finally { _streamPollInFlight = false; }

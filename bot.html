@@ -4571,6 +4571,54 @@ function updateAutoExecuteUI() {
   if (desc) desc.textContent = descText;
 }
 
+// Dashboard Polymarket wallet connect
+window.connectWallet = async function () {
+  const privKey = document.getElementById('dash-poly-key')?.value?.trim();
+  const errEl   = document.getElementById('connect-error');
+  const okEl    = document.getElementById('connect-success');
+  const btn     = document.getElementById('btn-connect');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!privKey) {
+    errEl.textContent = 'Paste your Polygon wallet private key first';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Connecting…';
+
+  try {
+    const r = await apiFetch('/api/bot?action=connect', {
+      method: 'POST',
+      body: JSON.stringify({ poly_private_key: privKey, mode: 'live' }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Connection failed');
+
+    const shortAddr = d.address ? `${d.address.slice(0, 8)}…${d.address.slice(-4)}` : '';
+    okEl.textContent = `Wallet connected${shortAddr ? ': ' + shortAddr : ''} · live mode active`;
+    okEl.style.display = 'block';
+
+    const walletStatusEl = document.getElementById('poly-wallet-status');
+    if (walletStatusEl && d.address) {
+      walletStatusEl.textContent = shortAddr;
+      walletStatusEl.style.color = 'var(--green)';
+    }
+    document.getElementById('dash-poly-key').value = '';
+    window._configured = true;
+    setTimeout(() => loadStatus(), 1500);
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Connect Wallet';
+  }
+};
+
 // Dashboard broker connect
 window.connectBroker = function () {
   if (window._broker === 'robinhood') dashConnectRobinhood();

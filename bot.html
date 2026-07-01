@@ -1574,62 +1574,38 @@ body::before {
       <button onclick="toggleControlPanel()" style="flex-shrink:0;padding:7px 14px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:7px;color:#f59e0b;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Connect Wallet</button>
     </div>
 
-    <!-- Quick Controls — always-visible toggles -->
-    <div id="quick-controls" style="display:none;grid-column:1/-1;grid-template-columns:repeat(3,1fr);gap:10px;">
-      <!-- Agent On/Off -->
-      <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" onclick="toggleBot()">
+    <!-- Action bar — compact single-row controls (replaces quick-controls + stats-row) -->
+    <div id="action-bar" style="display:none;grid-column:1/-1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:11px 20px;align-items:center;gap:16px;flex-wrap:wrap">
+      <span id="ab-mode-badge" class="bot-mode paper" style="font-size:9px;padding:3px 10px;flex-shrink:0">PAPER</span>
+      <button id="ab-agent-btn" onclick="toggleBot()" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#10b981;font-family:var(--mono);font-size:11px;font-weight:700;padding:7px 20px;border-radius:8px;cursor:pointer;letter-spacing:.06em;flex-shrink:0;transition:all .15s">&#9654; START AGENT</button>
+      <div style="width:1px;height:26px;background:var(--border);flex-shrink:0"></div>
+      <div onclick="toggleAutoExit()" style="display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0">
         <div>
-          <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em" id="qc-agent-label">AGENT OFF</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px" id="qc-agent-desc">Click to start paper trading</div>
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text1)">AUTO-EXIT</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px" id="ab-auto-exit-desc">sells at +20%</div>
         </div>
-        <div class="toggle" id="qc-bot-toggle"></div>
+        <div class="toggle" id="ab-auto-exit-toggle"></div>
       </div>
-      <!-- Auto-Exit -->
-      <div style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" onclick="toggleAutoExit()">
+      <div onclick="toggleAutoExecute()" style="display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0">
         <div>
-          <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text1)">AUTO-EXIT</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px" id="qc-auto-exit-desc">Auto-sells at +20% gain</div>
+          <div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--text1)">AUTO-EXECUTE <span style="color:#f59e0b;font-size:8px;font-weight:400">50% fee</span></div>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px" id="ab-auto-exec-desc">executes expired plays</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:var(--mono);font-size:10px;font-weight:700" id="qc-auto-exit-label">OFF</span>
-          <div class="toggle" id="qc-auto-exit-toggle"></div>
-        </div>
+        <div class="toggle" id="ab-auto-exec-toggle"></div>
       </div>
-      <!-- Auto-Execute -->
-      <div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" onclick="toggleAutoExecute()">
-        <div>
-          <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text1)">AUTO-EXECUTE <span style="font-size:9px;color:#f59e0b;font-weight:400">(50% FEE)</span></div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px" id="qc-auto-exec-desc">Auto-trades expired plays</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:var(--mono);font-size:10px;font-weight:700" id="qc-auto-exec-label">OFF</span>
-          <div class="toggle" id="qc-auto-exec-toggle"></div>
-        </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:10px;flex-shrink:0">
+        <span id="ab-pnl" style="color:var(--text3)">P&amp;L —</span>
+        <span id="ab-winrate" style="color:var(--text3)"></span>
       </div>
     </div>
 
-    <!-- Stat tiles -->
-    <div id="stats-row" style="display:none; grid-column:1/-1; grid-template-columns:repeat(4,1fr); gap:14px;">
-      <div class="tile">
-        <div class="tile-title">Win Rate</div>
-        <div class="tile-value" style="color:var(--green);" id="stat-winrate">—</div>
-        <div class="tile-sub" id="stat-trades">0 closed trades</div>
-      </div>
-      <div class="tile">
-        <div class="tile-title">Total P&amp;L</div>
-        <div class="tile-value" id="stat-pnl">—</div>
-        <div class="tile-sub">all time</div>
-      </div>
-      <div class="tile">
-        <div class="tile-title">Portfolio</div>
-        <div class="tile-value" style="color:#4D8FFF;" id="stat-portfolio">—</div>
-        <div class="tile-sub" id="stat-buying-power">— buying power</div>
-      </div>
-      <div class="tile">
-        <div class="tile-title">Status</div>
-        <div class="tile-value" id="stat-status">Idle</div>
-        <div class="tile-sub" id="stat-mode-sub">paper mode</div>
-      </div>
+    <!-- Stat tiles — hidden from view, kept for JS animation hooks -->
+    <div id="stats-row" style="display:none!important;grid-column:1/-1;grid-template-columns:repeat(4,1fr);gap:14px">
+      <div class="tile"><div class="tile-title">Win Rate</div><div class="tile-value" style="color:var(--green)" id="stat-winrate">—</div><div class="tile-sub" id="stat-trades">0 closed trades</div></div>
+      <div class="tile"><div class="tile-title">Total P&amp;L</div><div class="tile-value" id="stat-pnl">—</div><div class="tile-sub">all time</div></div>
+      <div class="tile"><div class="tile-title">Portfolio</div><div class="tile-value" style="color:#4D8FFF" id="stat-portfolio">—</div><div class="tile-sub" id="stat-buying-power">— buying power</div></div>
+      <div class="tile"><div class="tile-title">Status</div><div class="tile-value" id="stat-status">Idle</div><div class="tile-sub" id="stat-mode-sub">paper mode</div></div>
     </div>
 
     </div><!-- end tile-grid for stats -->
@@ -1688,6 +1664,9 @@ body::before {
         </div>
       </div>
       <div class="cc-panel-body" id="cc-trade-feed">
+        <!-- Strike confirmation toast -->
+        <div id="strike-toast" style="display:none;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-family:var(--mono);font-size:11px;color:#10b981;animation:cardSlideIn .3s">&#9889; Position opened</div>
+
         <!-- Auto-Exit Banner -->
         <div style="background:linear-gradient(135deg, rgba(16,185,129,.06), rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
           <div>
@@ -3242,6 +3221,12 @@ async function streamStrike(playId) {
     document.getElementById('stream-grab-count').textContent = _streamGrabCount;
     streamLog('STRUCK', cardData.data.bracket, d.userProfit, feePct, '#10b981');
     loadPositions();
+    const toast = document.getElementById('strike-toast');
+    if (toast) {
+      toast.textContent = '⚡ Position opened' + (cardData.data.anomalyType === 'CLOSING_SOON' ? ' — auto-exits at 5%' : ' — auto-exit when ready');
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
   } catch {
     streamLog('FAILED', cardData.data.bracket, 0, '—', '#f43f5e');
   }
@@ -3952,8 +3937,7 @@ function applyStatusToUI(d) {
     }
   }
 
-  document.getElementById('quick-controls').style.display = 'grid';
-  document.getElementById('stats-row').style.display     = 'grid';
+  document.getElementById('action-bar').style.display    = 'flex';
   document.getElementById('trades-card').style.display   = 'block';
   document.getElementById('worldcup-tile').style.display    = 'block';
   document.getElementById('risk-desk-tile').style.display  = 'block';
@@ -4007,6 +3991,10 @@ function applyStatusToUI(d) {
   const cbPnl = document.getElementById('cb-pnl');
   if (cbWr) { cbWr.textContent = s.win_rate_pct ? s.win_rate_pct + '% win' : ''; cbWr.style.color = 'var(--green)'; }
   if (cbPnl) { cbPnl.textContent = pnl !== 0 ? (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2) : ''; cbPnl.style.color = pnl >= 0 ? 'var(--green)' : '#ef4444'; }
+  const abPnl = document.getElementById('ab-pnl');
+  const abWr  = document.getElementById('ab-winrate');
+  if (abPnl) { abPnl.textContent = pnl !== 0 ? 'P&L ' + (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2) : 'P&L —'; abPnl.style.color = pnl >= 0 ? 'var(--green)' : '#ef4444'; }
+  if (abWr && s.win_rate_pct) { abWr.textContent = s.win_rate_pct + '% wins'; abWr.style.color = 'var(--green)'; }
   pnlEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
 
   const portText = d.portfolio_value ? `$${parseFloat(d.portfolio_value).toLocaleString()}` : '—';
@@ -4096,15 +4084,19 @@ function updateToggleUI(active, mode) {
   if (cbBadge) { cbBadge.textContent = actualMode.toUpperCase(); cbBadge.className = `bot-mode ${actualMode}`; cbBadge.style.fontSize = '9px'; cbBadge.style.padding = '2px 8px'; }
   if (cbLabel) cbLabel.textContent = active ? 'Agent running' : 'Agent off';
 
-  // Quick controls agent toggle
-  const qcToggle = document.getElementById('qc-bot-toggle');
-  const qcLabel  = document.getElementById('qc-agent-label');
-  const qcDesc   = document.getElementById('qc-agent-desc');
-  if (qcToggle) qcToggle.className = `toggle${active ? ' on' : ''}`;
-  if (qcLabel) qcLabel.textContent = active ? 'AGENT RUNNING' : 'AGENT OFF';
-  if (qcDesc) qcDesc.textContent = active
-    ? (actualMode === 'paper' ? 'Paper trading active' : 'Live trading active')
-    : (actualMode === 'paper' ? 'Click to start paper trading' : 'Click to start live trading');
+  // Action bar agent button + mode badge
+  const abModeBadge = document.getElementById('ab-mode-badge');
+  if (abModeBadge) { abModeBadge.textContent = actualMode.toUpperCase(); abModeBadge.className = `bot-mode ${actualMode}`; }
+  const abBtn = document.getElementById('ab-agent-btn');
+  if (abBtn) {
+    if (active) {
+      abBtn.innerHTML = '&#9646;&#9646; STOP AGENT';
+      abBtn.style.cssText = 'background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#ef4444;font-family:var(--mono);font-size:11px;font-weight:700;padding:7px 20px;border-radius:8px;cursor:pointer;letter-spacing:.06em;flex-shrink:0;transition:all .15s';
+    } else {
+      abBtn.innerHTML = '&#9654; START AGENT';
+      abBtn.style.cssText = 'background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#10b981;font-family:var(--mono);font-size:11px;font-weight:700;padding:7px 20px;border-radius:8px;cursor:pointer;letter-spacing:.06em;flex-shrink:0;transition:all .15s';
+    }
+  }
 }
 
 function toggleControlPanel() {
@@ -4584,14 +4576,14 @@ function updateAutoExitUI() {
   const onClass = 'toggle' + (_autoExitEnabled ? ' on' : '');
   const descText = _autoExitEnabled ? 'Actively monitoring — sells at +' + tpPct + '% gain' : 'Auto-sells at +' + tpPct + '% gain';
 
-  ['', 'cc-', 'st-', 'qc-'].forEach(prefix => {
+  ['', 'cc-', 'st-', 'ab-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exit-toggle');
     const label = document.getElementById(prefix + 'auto-exit-label');
     const desc = document.getElementById(prefix + 'auto-exit-desc');
     const status = document.getElementById(prefix + 'auto-exit-status');
     if (toggle) toggle.className = onClass;
     if (label) { label.textContent = onText; label.style.color = onColor; }
-    if (desc) desc.textContent = descText;
+    if (desc) desc.textContent = _autoExitEnabled ? 'selling at +' + tpPct + '%' : 'sells at +' + tpPct + '%';
     if (status && !_autoExitEnabled) status.style.display = 'none';
   });
 }
@@ -4629,13 +4621,13 @@ function updateAutoExecuteUI() {
   const descText = _autoExecuteEnabled
     ? 'ACTIVE — expired plays execute automatically at 50% fee'
     : 'When a play expires unacted, WICK trades it — 50% fee applies';
-  ['', 'st-', 'qc-'].forEach(prefix => {
+  ['', 'st-', 'ab-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exec-toggle');
     const label = document.getElementById(prefix + 'auto-exec-label');
     const desc = document.getElementById(prefix + 'auto-exec-desc');
     if (toggle) toggle.className = onClass;
     if (label) { label.textContent = onText; label.style.color = onColor; }
-    if (desc) desc.textContent = descText;
+    if (desc) desc.textContent = _autoExecuteEnabled ? 'running — 50% fee on auto-trades' : 'executes expired plays';
   });
 }
 

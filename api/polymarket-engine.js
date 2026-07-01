@@ -373,14 +373,21 @@ module.exports = async (req, res) => {
     const cutoff = Date.now();
     const vip = isVip(decoded.email);
 
-    const liveSnap = await db.collection('live_anomalies')
-      .where('status', '==', 'LIVE')
-      .where('expiresAt', '>', cutoff)
-      .orderBy('expiresAt', 'desc')
-      .limit(6)
-      .get();
+    let liveSnap = null;
+    try {
+      const snap = await db.collection('live_anomalies')
+        .where('status', '==', 'LIVE')
+        .limit(10)
+        .get();
+      const liveDocs = snap.docs.filter(d => (d.data().expiresAt || 0) > cutoff);
+      if (liveDocs.length > 0) {
+        liveSnap = { empty: false, docs: liveDocs };
+      }
+    } catch (_queryErr) {
+      // composite index may not exist yet — fall through to on-demand scan
+    }
 
-    if (!liveSnap.empty) {
+    if (liveSnap && !liveSnap.empty) {
       const mode = userData.mode || 'sandbox';
       const riskBounds = await getRiskBoundaries();
       const effectiveLegSize = Math.round((riskBounds.max_leg_size_pusd || 50) * (riskBounds.risk_multiplier || 1.0));

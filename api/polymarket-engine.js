@@ -716,32 +716,32 @@ module.exports = async (req, res) => {
     const decoded = await verifyToken(req);
     if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { playId, autoExecuted } = req.body || {};
+    const { playId } = req.body || {};
     if (!playId) return res.status(400).json({ error: 'playId required' });
 
     const playRef = db.collection('flash_plays').doc(playId);
-    const [playDoc, userDoc] = await Promise.all([
-      playRef.get(),
-      db.collection('users').doc(decoded.uid).get(),
-    ]);
+    const userDoc = await db.collection('users').doc(decoded.uid).get();
 
-    if (!playDoc.exists) return res.status(404).json({ error: 'Play not found' });
-
-    const play = playDoc.data();
-
-    if (play.userId !== decoded.uid) return res.status(403).json({ error: 'Not your play' });
-
-    if (play.status !== 'PENDING') {
-      return res.status(409).json({ error: `Play already ${play.status.toLowerCase()}` });
+    // Atomically claim the play to prevent double-execution
+    let play;
+    try {
+      await db.runTransaction(async (t) => {
+        const playDoc = await t.get(playRef);
+        if (!playDoc.exists) throw Object.assign(new Error('Play not found'), { status: 404 });
+        const data = playDoc.data();
+        if (data.userId !== decoded.uid) throw Object.assign(new Error('Not your play'), { status: 403 });
+        if (data.status !== 'PENDING') throw Object.assign(new Error(`Play already ${data.status.toLowerCase()}`), { status: 409 });
+        if (Date.now() > data.expiresAt + 5000) throw Object.assign(new Error('Play expired. Scan again for a fresh opportunity.'), { status: 410 });
+        play = data;
+        t.update(playRef, { status: 'PROCESSING' });
+      });
+    } catch (err) {
+      return res.status(err.status || 500).json({ error: err.message });
     }
 
-    if (Date.now() > play.expiresAt + 5000) {
-      await playRef.update({ status: 'EXPIRED' });
-      return res.status(410).json({ error: 'Play expired. Scan again for a fresh opportunity.' });
-    }
-
+    const serverAutoExecuted = Date.now() > play.expiresAt;
     const AUTO_EXECUTE_FEE_PCT = 0.50;
-    const effectiveFeePct = isVip(decoded.email) ? 0 : (autoExecuted ? AUTO_EXECUTE_FEE_PCT : PLATFORM_FEE_PCT);
+    const effectiveFeePct = isVip(decoded.email) ? 0 : (serverAutoExecuted ? AUTO_EXECUTE_FEE_PCT : PLATFORM_FEE_PCT);
     const adjustedPlatformFee = parseFloat((play.expectedProfit * effectiveFeePct).toFixed(4));
     const adjustedUserProfit = parseFloat((play.expectedProfit - adjustedPlatformFee).toFixed(4));
 
@@ -759,8 +759,8 @@ module.exports = async (req, res) => {
     const result = await engine.executeBracketArbitrage(target, play.legSize);
 
     await playRef.update({
-      status: autoExecuted ? 'AUTO_EXECUTED' : 'EXECUTED',
-      autoExecuted: !!autoExecuted,
+      status: serverAutoExecuted ? 'AUTO_EXECUTED' : 'EXECUTED',
+      autoExecuted: serverAutoExecuted,
       effectiveFeePct,
       platformFee: adjustedPlatformFee,
       userProfit: adjustedUserProfit,
@@ -772,7 +772,7 @@ module.exports = async (req, res) => {
       ok: true,
       playId,
       ...result,
-      autoExecuted: !!autoExecuted,
+      autoExecuted: serverAutoExecuted,
       platformFee: adjustedPlatformFee,
       userProfit: adjustedUserProfit,
       mode,

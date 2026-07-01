@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
   if (action === 'cron_check') {
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.authorization;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -343,9 +343,8 @@ module.exports = async (req, res) => {
   // ── Closed positions history ──
   if (action === 'history') {
     try {
-      const snap = await db.collection('users').doc(uid).collection('open_positions')
-        .where('status', '==', 'CLOSED')
-        .orderBy('closedAt', 'desc')
+      const snap = await db.collection('users').doc(uid).collection('polymarket_history')
+        .orderBy('timestamp', 'desc')
         .limit(20)
         .get();
 
@@ -355,7 +354,7 @@ module.exports = async (req, res) => {
           id: d.id,
           bracketTitle: data.bracketTitle,
           tokenSlug: data.tokenSlug,
-          exitReason: data.exitReason,
+          exitReason: data.exitReason || data.type,
           entryPrice: data.entryPrice,
           exitPrice: data.exitPrice,
           size: data.size,
@@ -364,7 +363,7 @@ module.exports = async (req, res) => {
           userProfit: data.userProfit,
           platformFee: data.platformFee,
           mode: data.mode,
-          closedAt: data.closedAt?.toDate?.()?.toISOString() || null,
+          closedAt: data.timestamp?.toDate?.()?.toISOString() || null,
         };
       });
 

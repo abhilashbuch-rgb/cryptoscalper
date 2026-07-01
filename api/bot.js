@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const { ethers } = require('ethers');
 const { db, FieldValue, _initError } = require('../lib/firebase-config');
 const { waitlistNotification, inviteRedeemedNotification, newUserLoginNotification, walletConnectedNotification, sendWelcomeEmail, syncResendContact } = require('../lib/notify-admin');
 
@@ -54,7 +55,6 @@ module.exports = async (req, res) => {
       pk_has_begin: pk.includes('-----BEGIN'),
       pk_has_real_newlines: pk.includes('\n'),
       pk_has_escaped_newlines: pk.includes('\\n'),
-      pk_first_30: pk.slice(0, 30),
       has_project_id: !!process.env.FIREBASE_PROJECT_ID,
       has_client_email: !!process.env.FIREBASE_CLIENT_EMAIL,
       apps_count: admin.apps.length,
@@ -202,7 +202,12 @@ module.exports = async (req, res) => {
     if (body.poly_private_key) update.poly_private_key = body.poly_private_key;
     update.mode = body.mode || 'sandbox';
     if (body.poly_private_key) {
-      const addr = '0x' + body.poly_private_key.slice(-40);
+      let addr;
+      try {
+        addr = new ethers.Wallet(body.poly_private_key).address;
+      } catch {
+        return res.status(400).json({ error: 'Invalid private key' });
+      }
       update.wallet_address = addr;
       await userRef.set(update, { merge: true });
       walletConnectedNotification(email, addr, update.mode).catch(() => {});

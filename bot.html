@@ -3458,8 +3458,10 @@ function normalizePrivKey(raw) {
   const hex = key.slice(2);
   if (!/^[0-9a-fA-F]+$/.test(hex))
     return { ok: false, error: 'Key must contain only hex characters (0–9, a–f). Make sure you\'re pasting the private key, not a seed phrase or address.' };
+  if (hex.length === 40)
+    return { ok: false, error: 'That looks like your wallet address, not your private key. Your address is public — the private key is a different 64-character string. In Polymarket, go to Settings → Export private key.' };
   if (hex.length !== 64)
-    return { ok: false, error: `Key is ${hex.length} hex characters — it must be exactly 64 (you have ${hex.length < 64 ? 'too few' : 'too many'}). Make sure you copied the full key.` };
+    return { ok: false, error: `Key is ${hex.length} hex characters — needs to be exactly 64. ${hex.length < 64 ? 'You may have copied a partial key.' : 'You may have extra characters — paste just the key.'}` };
   return { ok: true, key };
 }
 

@@ -3856,8 +3856,6 @@ function applyStatusToUI(d) {
   // Populate broker-specific account balances
   const pv = d.portfolio_value ? parseFloat(d.portfolio_value) : 0;
   const bp = d.buying_power ? parseFloat(d.buying_power) : 0;
-  const broker = d.broker || 'alpaca';
-
   const brokerPrefixes = { robinhood: 'rh', coinbase: 'cb', alpaca: 'al' };
   const prefix = brokerPrefixes[broker];
   if (prefix) {

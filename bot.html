@@ -2786,6 +2786,7 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // ══════════════════════════════════════════════════════════════════════════════
 const _streamCards = new Map();
 let _streamPollTimer = null;
+let _streamPollInFlight = false;
 let _streamGrabCount = 0;
 let _streamScanCount = 0;
 const STREAM_TTL = 15;
@@ -2853,6 +2854,8 @@ function updateWorldCupTile(plays) {
 
 async function streamPoll() {
   if (_streamCards.size >= STREAM_MAX_CARDS) return;
+  if (_streamPollInFlight) return;
+  _streamPollInFlight = true;
   try {
     const r = await apiFetch('/api/polymarket-engine?action=flash_scan', { method: 'POST' });
     const d = await r.json();
@@ -2878,6 +2881,7 @@ async function streamPoll() {
 
     streamAddCard(d);
   } catch {}
+  finally { _streamPollInFlight = false; }
 }
 
 function setStrikeSize(size) {
@@ -3055,11 +3059,7 @@ function streamAddCard(d) {
         } else {
           const cardEl = document.getElementById('anom-' + id);
           if (cardEl) cardEl.style.opacity = '0.4';
-          const strikeBtn = document.getElementById('strike-' + id);
-          if (strikeBtn) {
-            strikeBtn.innerHTML = '<span style="color:#10b981">&#128279; Connect Polymarket Wallet</span>';
-            strikeBtn.onclick = () => showPanel('broker');
-          }
+          setTimeout(() => streamRemoveCard(id), 2000);
         }
       }
     }, 1000),

@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
           anomalyType:    'NEGRISK_ARB',
           bracketId:      bracket.id,
           bracket:        bracket.title,
-          legs:           bracket.tokens.map(t => ({ slug: t.slug, noPrice: 1 - t.currentYesPrice })),
+          legs:           bracket.tokens.map(t => ({ slug: t.slug, noPrice: 1 - t.currentYesPrice, noTokenId: t.noTokenId || null })),
           basketSum,
           edge,
           edgePct:        (edge * 100).toFixed(2),
@@ -137,8 +137,8 @@ module.exports = async function handler(req, res) {
         bracketId:      market.id || `news_${Date.now()}`,
         bracket:        market.title || market.question || 'News-matched market',
         legs:           isBracket
-          ? market.tokens.map(t => ({ slug: t.slug, noPrice: 1 - (t.currentYesPrice || 0) }))
-          : [{ slug: market.conditionId || market.id, noPrice: 1 - (market.yesPrice || 0.5) }],
+          ? market.tokens.map(t => ({ slug: t.slug, noPrice: 1 - (t.currentYesPrice || 0), noTokenId: t.noTokenId || null }))
+          : [{ slug: market.conditionId || market.id, noPrice: 1 - (market.yesPrice || 0.5), noTokenId: null }],
         edge,
         edgePct:        (edge * 100).toFixed(2),
         confidence,
@@ -178,7 +178,7 @@ module.exports = async function handler(req, res) {
         anomalyType:    'CLOSING_SOON',
         bracketId:      bracket.id,
         bracket:        bracket.title,
-        legs:           bracket.tokens.map(t => ({ slug: t.slug, noPrice: 1 - t.currentYesPrice })),
+        legs:           bracket.tokens.map(t => ({ slug: t.slug, noPrice: 1 - t.currentYesPrice, noTokenId: t.noTokenId || null })),
         basketSum,
         edge,
         edgePct:        (edge * 100).toFixed(2),

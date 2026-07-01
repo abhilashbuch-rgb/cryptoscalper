@@ -2853,7 +2853,7 @@ let _streamGrabCount = 0;
 let _streamScanCount = 0;
 const STREAM_TTL = 15;
 const STREAM_MAX_CARDS = 3;
-const STREAM_POLL_MS = 10000; // cron pre-populates every 2 min; polling faster than 10s gains nothing
+const STREAM_POLL_MS = 5000; // cron pre-populates every 2 min; Firestore reads are fast so 5s is safe
 let _strikeSize = 50;
 let _connected = false;
 

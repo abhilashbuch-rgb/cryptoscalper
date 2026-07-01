@@ -2878,7 +2878,7 @@ let _streamGrabCount = 0;
 let _streamScanCount = 0;
 const STREAM_TTL = 15;
 const STREAM_MAX_CARDS = 3;
-const STREAM_POLL_MS = 2000;
+const STREAM_POLL_MS = 10000; // cron pre-populates every 2 min; polling faster than 10s gains nothing
 let _strikeSize = 50;
 let _connected = false;
 
@@ -2999,8 +2999,28 @@ async function streamPoll() {
   if (_streamCards.size >= STREAM_MAX_CARDS && !allPreviews) return;
   if (_streamPollInFlight) return;
   _streamPollInFlight = true;
+
+  function updateTimestamp(msg) {
+    const t = `Last checked: ${new Date().toLocaleTimeString()} — ${msg}`;
+    const emptyEl = document.getElementById('stream-empty');
+    if (emptyEl) {
+      const sub = emptyEl.querySelectorAll('div');
+      if (sub[1]) sub[1].textContent = t;
+    }
+    const ccEmpty = document.getElementById('cc-anomaly-empty');
+    if (ccEmpty) {
+      const sub = ccEmpty.querySelectorAll('div');
+      if (sub[1]) sub[1].textContent = t;
+    }
+  }
+
   try {
-    const r = await apiFetch('/api/polymarket-engine?action=flash_scan', { method: 'POST' });
+    // 25s client-side timeout — lets the 60s server function finish in most cases
+    // but unblocks _streamPollInFlight if the connection hangs
+    const r = await apiFetch('/api/polymarket-engine?action=flash_scan', {
+      method: 'POST',
+      signal: AbortSignal.timeout(25000),
+    });
     const d = await r.json();
     _streamScanCount += d.scanned || 1;
     document.getElementById('stream-scan-count').textContent = _streamScanCount;
@@ -3020,19 +3040,9 @@ async function streamPoll() {
     }
 
     if (d.verdict !== 'PLAY_FOUND') {
-      // Show last-scan timestamp so users know the scanner is alive
       const scanBadge = document.getElementById('stream-status-badge');
       if (scanBadge) scanBadge.textContent = 'SCANNING';
-      const emptyEl = document.getElementById('stream-empty');
-      if (emptyEl && emptyEl.style.display !== 'none') {
-        const sub = emptyEl.querySelectorAll('div');
-        if (sub[1]) sub[1].textContent = `Last checked: ${new Date().toLocaleTimeString()} — market checked, no edge yet.`;
-      }
-      const ccEmpty = document.getElementById('cc-anomaly-empty');
-      if (ccEmpty && ccEmpty.style.display !== 'none') {
-        const sub = ccEmpty.querySelectorAll('div');
-        if (sub[1]) sub[1].textContent = `Last checked: ${new Date().toLocaleTimeString()} — no mispricing detected.`;
-      }
+      updateTimestamp('no edge yet');
       return;
     }
     streamClearPreviews();
@@ -3042,6 +3052,8 @@ async function streamPoll() {
     streamAddCard(d);
   } catch (e) {
     console.warn('[stream]', e?.message || e);
+    // Still update timestamp so the UI shows activity, not a frozen clock
+    updateTimestamp('scanning...');
   }
   finally { _streamPollInFlight = false; }
 }

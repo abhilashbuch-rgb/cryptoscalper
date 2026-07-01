@@ -12,6 +12,10 @@
     { "source": "/privacy",    "destination": "/privacy.html"    },
     { "source": "/__/auth/:path*", "destination": "https://wicknetwork.firebaseapp.com/__/auth/:path*" }
   ],
+  "functions": {
+    "api/polymarket-engine.js": { "maxDuration": 60 },
+    "api/cron/anomaly-scan.js": { "maxDuration": 60 }
+  },
   "crons": [
     {
       "path": "/api/cron/nightly-calibration",
@@ -23,6 +27,10 @@
     },
     {
       "path": "/api/position-monitor?action=cron_check",
+      "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/anomaly-scan",
       "schedule": "*/2 * * * *"
     }
   ]

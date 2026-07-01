@@ -1575,6 +1575,40 @@ body::before {
       <button onclick="toggleControlPanel()" style="flex-shrink:0;padding:7px 14px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:7px;color:#f59e0b;font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Connect Wallet</button>
     </div>
 
+    <!-- Quick Controls — always-visible toggles -->
+    <div id="quick-controls" style="display:none;grid-column:1/-1;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <!-- Agent On/Off -->
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" onclick="toggleBot()">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em" id="qc-agent-label">AGENT OFF</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px" id="qc-agent-desc">Click to start paper trading</div>
+        </div>
+        <div class="toggle" id="qc-bot-toggle"></div>
+      </div>
+      <!-- Auto-Exit -->
+      <div style="background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(16,185,129,.02));border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" onclick="toggleAutoExit()">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text1)">AUTO-EXIT</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px" id="qc-auto-exit-desc">Auto-sells at +20% gain</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--mono);font-size:10px;font-weight:700" id="qc-auto-exit-label">OFF</span>
+          <div class="toggle" id="qc-auto-exit-toggle"></div>
+        </div>
+      </div>
+      <!-- Auto-Execute -->
+      <div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" onclick="toggleAutoExecute()">
+        <div>
+          <div style="font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text1)">AUTO-EXECUTE <span style="font-size:9px;color:#f59e0b;font-weight:400">(50% FEE)</span></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px" id="qc-auto-exec-desc">Auto-trades expired plays</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:var(--mono);font-size:10px;font-weight:700" id="qc-auto-exec-label">OFF</span>
+          <div class="toggle" id="qc-auto-exec-toggle"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Stat tiles -->
     <div id="stats-row" style="display:none; grid-column:1/-1; grid-template-columns:repeat(4,1fr); gap:14px;">
       <div class="tile">
@@ -3172,11 +3206,11 @@ function streamAddCard(d) {
     </div>
     ${whaleHtml}
 
-    <!-- 1-Click Strike Button -->
-    ${_connected
+    <!-- 1-Click Strike Button — enabled in paper mode and when wallet connected -->
+    ${(_connected || window._selectedMode !== 'live')
       ? `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();streamStrike('${id}')">
           <span class="strike-flash"></span>
-          &#9889; STRIKE $${_strikeSize}
+          &#9889; STRIKE $${_strikeSize}${!_connected ? ' <span style="font-size:9px;opacity:.7">(paper)</span>' : ''}
         </button>`
       : `<button class="strike-btn" id="strike-${id}" onclick="event.stopPropagation();showPanel('broker')" style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06));border-color:rgba(16,185,129,.25)">
           <span style="color:#10b981">&#128279; Connect Polymarket Wallet to Strike</span>
@@ -3987,6 +4021,7 @@ function applyStatusToUI(d) {
     }
   }
 
+  document.getElementById('quick-controls').style.display = 'grid';
   document.getElementById('stats-row').style.display     = 'grid';
   document.getElementById('trades-card').style.display   = 'block';
   document.getElementById('worldcup-tile').style.display    = 'block';
@@ -4130,6 +4165,16 @@ function updateToggleUI(active, mode) {
   if (cbToggle) cbToggle.className = `toggle${active ? ' on' : ''}`;
   if (cbBadge) { cbBadge.textContent = actualMode.toUpperCase(); cbBadge.className = `bot-mode ${actualMode}`; cbBadge.style.fontSize = '9px'; cbBadge.style.padding = '2px 8px'; }
   if (cbLabel) cbLabel.textContent = active ? 'Agent running' : 'Agent off';
+
+  // Quick controls agent toggle
+  const qcToggle = document.getElementById('qc-bot-toggle');
+  const qcLabel  = document.getElementById('qc-agent-label');
+  const qcDesc   = document.getElementById('qc-agent-desc');
+  if (qcToggle) qcToggle.className = `toggle${active ? ' on' : ''}`;
+  if (qcLabel) qcLabel.textContent = active ? 'AGENT RUNNING' : 'AGENT OFF';
+  if (qcDesc) qcDesc.textContent = active
+    ? (actualMode === 'paper' ? 'Paper trading active' : 'Live trading active')
+    : (actualMode === 'paper' ? 'Click to start paper trading' : 'Click to start live trading');
 }
 
 function toggleControlPanel() {
@@ -4609,7 +4654,7 @@ function updateAutoExitUI() {
   const onClass = 'toggle' + (_autoExitEnabled ? ' on' : '');
   const descText = _autoExitEnabled ? 'Actively monitoring — sells at +' + tpPct + '% gain' : 'Auto-sells at +' + tpPct + '% gain';
 
-  ['', 'cc-', 'st-'].forEach(prefix => {
+  ['', 'cc-', 'st-', 'qc-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exit-toggle');
     const label = document.getElementById(prefix + 'auto-exit-label');
     const desc = document.getElementById(prefix + 'auto-exit-desc');
@@ -4654,7 +4699,7 @@ function updateAutoExecuteUI() {
   const descText = _autoExecuteEnabled
     ? 'ACTIVE — expired plays execute automatically at 50% fee'
     : 'When a play expires unacted, WICK trades it — 50% fee applies';
-  ['', 'st-'].forEach(prefix => {
+  ['', 'st-', 'qc-'].forEach(prefix => {
     const toggle = document.getElementById(prefix + 'auto-exec-toggle');
     const label = document.getElementById(prefix + 'auto-exec-label');
     const desc = document.getElementById(prefix + 'auto-exec-desc');

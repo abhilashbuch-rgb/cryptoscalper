@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 const { ethers } = require('ethers');
 const { db, FieldValue, _initError } = require('../lib/firebase-config');
 const { waitlistNotification, inviteRedeemedNotification, newUserLoginNotification, walletConnectedNotification, sendWelcomeEmail, syncResendContact } = require('../lib/notify-admin');
+const { deriveApiCredentials } = require('../lib/polymarket-clob');
 
 const STRATEGIES = [
   { id: 'negrisk_arb', name: 'NegRisk Arbitrage', description: 'Scans multi-outcome brackets for sum violations. Buys NO across all outcomes for locked mathematical profit. 80%+ win rate.', tier: 'free', risk: 'conservative', winRateGuide: '80–95%', locked: false },
@@ -209,6 +210,17 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Invalid private key' });
       }
       update.wallet_address = addr;
+
+      // Derive L2 API credentials from the L1 private key so live trading uses this wallet
+      try {
+        const l2 = await deriveApiCredentials(body.poly_private_key);
+        if (l2?.key)        update.poly_api_key    = l2.key;
+        if (l2?.secret)     update.poly_api_secret = l2.secret;
+        if (l2?.passphrase) update.poly_passphrase = l2.passphrase;
+      } catch (e) {
+        console.warn('[connect] L2 derivation failed (non-fatal):', e.message);
+      }
+
       await userRef.set(update, { merge: true });
       walletConnectedNotification(email, addr, update.mode).catch(() => {});
       return res.json({ ok: true, address: addr, mode: update.mode });

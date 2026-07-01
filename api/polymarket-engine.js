@@ -755,8 +755,26 @@ module.exports = async (req, res) => {
     const mode = userDoc.exists ? (userDoc.data().mode || 'sandbox') : 'sandbox';
 
     const engine = new PolymarketAlphaEngine(decoded.uid, { mode, email: decoded.email });
-    const brackets = await engine.fetchActiveNegRiskBrackets();
-    const target = brackets.find(b => b.id === play.bracketId);
+
+    // Fast path: reconstruct bracket from stored play data — skips the Gamma + CLOB API round-trip (~2-4s saved per trade)
+    const storedTokens = play.tokens || [];
+    let target = null;
+    if (storedTokens.length > 0 && storedTokens.every(t => t.noTokenId)) {
+      target = {
+        id: play.bracketId,
+        title: play.bracketTitle,
+        tokens: storedTokens.map(t => ({
+          slug: t.slug,
+          noTokenId: t.noTokenId,
+          currentYesPrice: 1 - (t.noPrice || 0),
+          volume: 0,
+        })),
+      };
+    } else {
+      // Fallback for legacy plays stored without noTokenId
+      const brackets = await engine.fetchActiveNegRiskBrackets();
+      target = brackets.find(b => b.id === play.bracketId);
+    }
 
     if (!target) {
       await playRef.update({ status: 'STALE' });

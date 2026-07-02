@@ -1,7 +1,10 @@
 const admin = require('firebase-admin');
 const { db, FieldValue } = require('../lib/firebase-config');
 const { submitMarketOrder, getCredentialsFromEnv } = require('../lib/polymarket-clob');
+const { collectFee } = require('../lib/fee-collector');
+const { isVip } = require('../lib/vip-accounts');
 const CLOB_API = 'https://clob.polymarket.com';
+const PLATFORM_FEE_PCT = 0.10;
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -110,8 +113,10 @@ module.exports = async (req, res) => {
           }
 
           const profit = (currentPrice - entryPrice) * pos.size;
-          const platformFee = 0;
-          const userProfit = profit;
+          const platformFee = (mode !== 'live' || profit <= 0)
+            ? 0
+            : profit * PLATFORM_FEE_PCT;
+          const userProfit = profit - platformFee;
 
           if (mode === 'live') {
             try {
@@ -125,6 +130,11 @@ module.exports = async (req, res) => {
                 lastChecked: FieldValue.serverTimestamp(),
               });
               continue;
+            }
+            if (platformFee > 0 && userData.poly_private_key) {
+              collectFee(userData.poly_private_key, platformFee).catch(err =>
+                console.error('[FEE] auto-exit collectFee failed:', err.message)
+              );
             }
           }
 
@@ -249,8 +259,11 @@ module.exports = async (req, res) => {
     const currentPrice = prices[pos.tokenId] ? parseFloat(prices[pos.tokenId]) : pos.entryPrice;
     const pnlPct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
     const profit = (currentPrice - pos.entryPrice) * pos.size;
-    const platformFee = 0;
-    const userProfit = profit;
+    const feeExempt = isVip(decoded.email);
+    const platformFee = (feeExempt || mode !== 'live' || profit <= 0)
+      ? 0
+      : profit * PLATFORM_FEE_PCT;
+    const userProfit = profit - platformFee;
 
     if (mode === 'live') {
       try {
@@ -267,6 +280,11 @@ module.exports = async (req, res) => {
         }
         if (creds.apiKey && creds.apiSecret && creds.passphrase) {
           await submitMarketOrder(pos.tokenId, 'SELL', pos.size, creds);
+        }
+        if (platformFee > 0 && userData.poly_private_key) {
+          collectFee(userData.poly_private_key, platformFee).catch(err =>
+            console.error('[FEE] manual-exit collectFee failed:', err.message)
+          );
         }
       } catch (err) {
         return res.status(500).json({ error: `Exit failed: ${err.message}` });

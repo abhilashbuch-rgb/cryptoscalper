@@ -1895,8 +1895,8 @@ body::before {
         <!-- Auto-Execute -->
         <div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
           <div>
-            <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXECUTE <span style="font-size:9px;color:#f59e0b;font-weight:400">(50% FEE)</span></div>
-            <div style="font-size:10px;color:var(--text3);margin-top:2px" id="st-auto-exec-desc">When a play expires unacted, WICK trades it on your behalf — 50% performance fee</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text1);font-family:var(--mono);letter-spacing:.04em">AUTO-EXECUTE</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px" id="st-auto-exec-desc">When a play expires unacted, WICK trades it on your behalf</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:10px;font-family:var(--mono);font-weight:600" id="st-auto-exec-label">OFF</span>
@@ -1927,7 +1927,7 @@ body::before {
           <button onclick="document.getElementById('settings-wallet-change').style.display=document.getElementById('settings-wallet-change').style.display==='block'?'none':'block'" style="padding:5px 12px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text3); font-family:var(--mono); font-size:10px; font-weight:700; cursor:pointer; flex-shrink:0;">Change</button>
         </div>
         <!-- Change / connect form -->
-        <div id="settings-wallet-change" style="display:none">
+        <div id="settings-wallet-change" style="display:block">
           <div class="form-group" style="margin-top:14px; margin-bottom:8px;">
             <label class="form-label">Wallet Private Key (Polygon)</label>
             <div style="position:relative">
@@ -2224,6 +2224,7 @@ function sessionLogout(reason) {
   _sessionLocked = true;
   clearTimeout(_inactivityTimer);
   clearTimeout(_tabHiddenTimer);
+  clearWalletCache();
   signOut(auth).then(() => {
     _sessionLocked = false;
     alert(reason || 'Session expired — please sign in again');
@@ -3430,6 +3431,43 @@ async function goLiveAfterConnect() {
   loadStatus();
 }
 
+// ── Wallet localStorage cache ──────────────────────────────────────────────────
+const WALLET_CACHE_KEY = 'wick_poly_wallet';
+
+function cacheWalletAddress(address) {
+  try { localStorage.setItem(WALLET_CACHE_KEY, address); } catch {}
+}
+
+function clearWalletCache() {
+  try { localStorage.removeItem(WALLET_CACHE_KEY); } catch {}
+}
+
+function getCachedWalletAddress() {
+  try { return localStorage.getItem(WALLET_CACHE_KEY) || null; } catch { return null; }
+}
+
+function applyWalletConnectedUI(address) {
+  const shortAddr = address.slice(0, 8) + '...' + address.slice(-4);
+  const settingsConnected = document.getElementById('settings-wallet-connected');
+  const settingsChange    = document.getElementById('settings-wallet-change');
+  const settingsAddr      = document.getElementById('settings-wallet-addr');
+  const walletStatusEl    = document.getElementById('poly-wallet-status');
+  const walletSettingsBtn = document.getElementById('poly-wallet-settings-btn');
+  const cbWallet          = document.getElementById('cb-wallet-status');
+  if (settingsConnected) settingsConnected.style.display = 'flex';
+  if (settingsChange)    settingsChange.style.display    = 'none';
+  if (settingsAddr)      settingsAddr.textContent        = shortAddr;
+  if (walletStatusEl)  { walletStatusEl.textContent = shortAddr; walletStatusEl.style.color = 'var(--green)'; }
+  if (walletSettingsBtn) walletSettingsBtn.style.display = 'inline-block';
+  if (cbWallet)          cbWallet.style.display          = 'inline';
+}
+
+// Apply cached wallet state immediately (synchronous — no API round-trip)
+(function initWalletCache() {
+  const cached = getCachedWalletAddress();
+  if (cached) applyWalletConnectedUI(cached);
+})();
+
 function normalizePrivKey(raw) {
   const s = (raw || '').trim().replace(/\s+/g, '');
   const key = s.startsWith('0x') || s.startsWith('0X') ? s : '0x' + s;
@@ -3758,6 +3796,7 @@ document.getElementById('btn-signin').addEventListener('click', () => {
 });
 
 document.getElementById('btn-signout').addEventListener('click', () => {
+  clearWalletCache();
   signOut(auth);
 });
 
@@ -3889,18 +3928,10 @@ function applyStatusToUI(d) {
   const settingsAddr      = document.getElementById('settings-wallet-addr');
   if (walletStatusEl) {
     if (d.wallet_address) {
-      const shortAddr = d.wallet_address.slice(0, 8) + '...' + d.wallet_address.slice(-4);
-      walletStatusEl.textContent = shortAddr;
-      walletStatusEl.style.color = 'var(--green)';
-      if (walletSettingsBtn) walletSettingsBtn.style.display = 'inline-block';
-      // Settings wallet section: show connected, hide form
-      if (settingsConnected) settingsConnected.style.display = 'flex';
-      if (settingsChange)    settingsChange.style.display    = 'none';
-      if (settingsAddr)      settingsAddr.textContent        = shortAddr;
-      // Control bar wallet badge
-      const cbWallet = document.getElementById('cb-wallet-status');
-      if (cbWallet) cbWallet.style.display = 'inline';
+      cacheWalletAddress(d.wallet_address);
+      applyWalletConnectedUI(d.wallet_address);
     } else if (d.configured && d.mode === 'sandbox') {
+      clearWalletCache();
       walletStatusEl.textContent = 'Sandbox mode ($10,000 simulated)';
       walletStatusEl.style.color = '#4D8FFF';
       if (walletSettingsBtn) walletSettingsBtn.style.display = 'none';
@@ -4670,15 +4701,11 @@ window.connectWallet = async function () {
 
     document.getElementById('dash-poly-key').value = '';
     window._configured = true;
+    if (d.address) cacheWalletAddress(d.address);
     // After 1.5s collapse the form and show connected state
     setTimeout(() => {
       loadStatus();
-      const sc = document.getElementById('settings-wallet-change');
-      const sw = document.getElementById('settings-wallet-connected');
-      const sa = document.getElementById('settings-wallet-addr');
-      if (sc) sc.style.display = 'none';
-      if (sw) sw.style.display = 'flex';
-      if (sa) sa.textContent = shortAddr;
+      if (d.address) applyWalletConnectedUI(d.address);
     }, 1500);
   } catch (err) {
     errEl.textContent = err.message;
